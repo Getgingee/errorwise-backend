@@ -20,6 +20,20 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING, 
     allowNull: false 
   },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    field: 'is_active'
+  },
+  role: {
+    type: DataTypes.ENUM('user', 'admin'),
+    defaultValue: 'user'
+  },
+  subscriptionStatus: {
+    type: DataTypes.ENUM('free', 'team', 'premium'),
+    defaultValue: 'free',
+    field: 'subscription_status'
+  },
   createdAt: {
     type: DataTypes.DATE,
     field: 'created_at'

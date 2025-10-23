@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const historyController = require('../controllers/historyController');
-const authMiddleware = require('../middleware/auth');
+const { authMiddleware } = require('../middleware/auth');
 
 // All history routes require authentication
 router.use(authMiddleware);

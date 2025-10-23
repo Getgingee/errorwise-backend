@@ -51,11 +51,25 @@ const mockResponses = {
   }
 };
 
-function createPrompt(errorMessage, language, errorType, subscriptionTier) {
+function createPrompt(errorMessage, language, errorType, subscriptionTier, codeContext = {}) {
   let prompt = `You are an expert software debugging assistant specializing in ${language} errors.\n\n`;
   prompt += `Error message: """${errorMessage}"""\n`;
   prompt += `Language: ${language}\n`;
-  prompt += `Error type: ${errorType}\n\n`;
+  prompt += `Error type: ${errorType}\n`;
+  
+  // Add code context if provided
+  if (codeContext.codeSnippet) {
+    prompt += `\nCode context:\n`;
+    if (codeContext.fileName) {
+      prompt += `File: ${codeContext.fileName}\n`;
+    }
+    if (codeContext.lineNumber) {
+      prompt += `Line number: ${codeContext.lineNumber}\n`;
+    }
+    prompt += `Code snippet:\n\`\`\`${language}\n${codeContext.codeSnippet}\n\`\`\`\n`;
+  }
+  
+  prompt += `\n`;
 
   switch (subscriptionTier) {
     case 'free':
@@ -141,12 +155,19 @@ function categorizeError(errorMessage) {
   return mockResponses.default;
 }
 
-async function analyzeError({ errorMessage, language, errorType, subscriptionTier = 'free' }) {
+async function analyzeError({ errorMessage, codeSnippet, fileName, lineNumber, language, errorType, subscriptionTier = 'free' }) {
   // Auto-detect language and error type if not provided
   const detectedLanguage = language || detectLanguage(errorMessage);
   const detectedErrorType = errorType || detectErrorType(errorMessage);
   
-  const prompt = createPrompt(errorMessage, detectedLanguage, detectedErrorType, subscriptionTier);
+  // Prepare code context
+  const codeContext = {
+    codeSnippet,
+    fileName,
+    lineNumber
+  };
+  
+  const prompt = createPrompt(errorMessage, detectedLanguage, detectedErrorType, subscriptionTier, codeContext);
 
   // Try Gemini first
   try {

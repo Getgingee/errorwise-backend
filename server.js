@@ -40,7 +40,7 @@ const userRoutes = require('./src/routes/users');
 const subscriptionRoutes = require('./src/routes/subscriptions');
 const historyRoutes = require('./src/routes/history');
 const settingsRoutes = require('./src/routes/settings');
-const webhookRoutes = require('./src/routes/webhooks');
+const teamRoutes = require('./src/routes/teams');
 const webhookRoutes = require('./src/routes/webhooks');
 
 // Health check
@@ -55,6 +55,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/teams', teamRoutes);
 app.use('/api/webhooks', webhookRoutes);
 
 // 404 handler

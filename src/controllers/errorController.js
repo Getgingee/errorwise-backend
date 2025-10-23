@@ -2,11 +2,12 @@ const ErrorQuery = require('../models/ErrorQuery');
 const User = require('../models/User');
 const authService = require('../services/authService');
 const aiService = require('../services/aiService');
+const { Op } = require('sequelize');
 
 // Analyze error with AI
 exports.analyzeError = async (req, res) => {
   try {
-    const { errorMessage, language, errorType } = req.body;
+    const { errorMessage, language, errorType, codeSnippet, fileName, lineNumber } = req.body;
     const userId = req.user.id;
 
     if (!errorMessage) {
@@ -19,8 +20,8 @@ exports.analyzeError = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // For now, we'll use a default tier - this can be enhanced with subscription logic
-    const subscriptionTier = 'free';
+    // Get user's subscription tier from middleware
+    const subscriptionTier = req.userTier || 'free';
 
     // Call AI service to analyze the error
     const startTime = Date.now();
@@ -28,6 +29,9 @@ exports.analyzeError = async (req, res) => {
     try {
       const analysis = await aiService.analyzeError({
         errorMessage,
+        codeSnippet,
+        fileName,
+        lineNumber,
         language: language || 'javascript',
         errorType: errorType || 'runtime',
         subscriptionTier
@@ -102,31 +106,109 @@ exports.analyzeError = async (req, res) => {
   }
 };
 
-// Get user's error history
+// Get user's error history with advanced search and filtering
 exports.getHistory = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { page = 1, limit = 10 } = req.query;
-    
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
+    
+    // Search and filter parameters
+    const { 
+      search,           // Search in error message and explanation
+      category,         // Filter by error category
+      language,         // Filter by programming language
+      aiProvider,       // Filter by AI provider
+      startDate,        // Filter by date range
+      endDate,
+      sortBy = 'createdAt', // Sort options
+      sortOrder = 'DESC',
+      tags             // Filter by tags
+    } = req.query;
+
+    // Build where clause
+    const whereClause = { userId };
+    
+    // Text search in error message and explanation
+    if (search) {
+      whereClause[Op.or] = [
+        { errorMessage: { [Op.iLike]: `%${search}%` } },
+        { explanation: { [Op.iLike]: `%${search}%` } }
+      ];
+    }
+    
+    // Category filter
+    if (category) {
+      whereClause.errorCategory = category;
+    }
+    
+    // AI provider filter
+    if (aiProvider) {
+      whereClause.aiProvider = aiProvider;
+    }
+    
+    // Date range filter
+    if (startDate || endDate) {
+      whereClause.createdAt = {};
+      if (startDate) {
+        whereClause.createdAt[Op.gte] = new Date(startDate);
+      }
+      if (endDate) {
+        whereClause.createdAt[Op.lte] = new Date(endDate);
+      }
+    }
+    
+    // Tags filter (if tags are stored as JSON array)
+    if (tags) {
+      const tagArray = Array.isArray(tags) ? tags : [tags];
+      whereClause.tags = {
+        [Op.overlap]: tagArray
+      };
+    }
+
+    // Validate sort options
+    const validSortFields = ['createdAt', 'errorCategory', 'aiProvider', 'responseTime'];
+    const sortField = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    const order = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
     const { count, rows: errorQueries } = await ErrorQuery.findAndCountAll({
-      where: { userId },
-      order: [['createdAt', 'DESC']],
-      limit: parseInt(limit),
-      offset: parseInt(offset),
+      where: whereClause,
+      order: [[sortField, order]],
+      limit,
+      offset,
       attributes: [
         'id', 'errorMessage', 'explanation', 'solution', 
-        'errorCategory', 'responseTime', 'tags', 'createdAt'
+        'errorCategory', 'aiProvider', 'userSubscriptionTier', 
+        'responseTime', 'createdAt', 'tags'
       ]
     });
 
+    // Get aggregation data for filters
+    const aggregations = await getHistoryAggregations(userId);
+
     res.json({
-      queries: errorQueries,
-      totalCount: count,
-      currentPage: parseInt(page),
-      totalPages: Math.ceil(count / limit),
-      hasMore: offset + errorQueries.length < count
+      history: errorQueries,
+      pagination: {
+        page,
+        limit,
+        total: count,
+        totalPages: Math.ceil(count / limit),
+        hasNext: page < Math.ceil(count / limit),
+        hasPrev: page > 1
+      },
+      aggregations,
+      filters: {
+        search,
+        category,
+        language,
+        aiProvider,
+        startDate,
+        endDate,
+        sortBy: sortField,
+        sortOrder: order,
+        tags
+      }
     });
 
   } catch (error) {
@@ -254,3 +336,209 @@ exports.getStats = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch statistics' });
   }
 };
+
+// Export error history to various formats
+exports.exportHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { format = 'json', category, startDate, endDate } = req.query;
+
+    // Build where clause for export
+    const whereClause = { userId };
+    
+    if (category) {
+      whereClause.errorCategory = category;
+    }
+    
+    if (startDate || endDate) {
+      whereClause.createdAt = {};
+      if (startDate) whereClause.createdAt[Op.gte] = new Date(startDate);
+      if (endDate) whereClause.createdAt[Op.lte] = new Date(endDate);
+    }
+
+    const errorQueries = await ErrorQuery.findAll({
+      where: whereClause,
+      order: [['createdAt', 'DESC']],
+      attributes: [
+        'id', 'errorMessage', 'explanation', 'solution', 
+        'errorCategory', 'aiProvider', 'responseTime', 'createdAt'
+      ]
+    });
+
+    if (format === 'csv') {
+      const csv = convertToCSV(errorQueries);
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="errorwise-history-${Date.now()}.csv"`);
+      return res.send(csv);
+    }
+
+    // Default JSON format
+    res.json({
+      export: {
+        format,
+        exportedAt: new Date().toISOString(),
+        count: errorQueries.length,
+        data: errorQueries
+      }
+    });
+
+  } catch (error) {
+    console.error('Failed to export error history:', error);
+    res.status(500).json({ error: 'Failed to export error history' });
+  }
+};
+
+// Search errors with advanced filtering
+exports.searchErrors = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { 
+      q: searchQuery, 
+      category, 
+      tags, 
+      limit = 10,
+      page = 1
+    } = req.query;
+
+    const offset = (page - 1) * limit;
+    const whereClause = { userId };
+
+    // Full text search
+    if (searchQuery) {
+      whereClause[Op.or] = [
+        { errorMessage: { [Op.iLike]: `%${searchQuery}%` } },
+        { explanation: { [Op.iLike]: `%${searchQuery}%` } },
+        { solution: { [Op.iLike]: `%${searchQuery}%` } }
+      ];
+    }
+
+    if (category) {
+      whereClause.errorCategory = category;
+    }
+
+    if (tags) {
+      const tagArray = Array.isArray(tags) ? tags : [tags];
+      whereClause.tags = { [Op.overlap]: tagArray };
+    }
+
+    const { count, rows } = await ErrorQuery.findAndCountAll({
+      where: whereClause,
+      order: [['createdAt', 'DESC']],
+      limit: parseInt(limit),
+      offset,
+      attributes: [
+        'id', 'errorMessage', 'explanation', 'solution', 
+        'errorCategory', 'createdAt', 'tags'
+      ]
+    });
+
+    res.json({
+      searchResults: rows,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: count,
+        totalPages: Math.ceil(count / limit)
+      },
+      query: {
+        searchQuery,
+        category,
+        tags
+      }
+    });
+
+  } catch (error) {
+    console.error('Failed to search errors:', error);
+    res.status(500).json({ error: 'Failed to search errors' });
+  }
+};
+
+// Helper function to get aggregation data for filters
+async function getHistoryAggregations(userId) {
+  try {
+    const [categories, aiProviders, tags] = await Promise.all([
+      // Get unique categories
+      ErrorQuery.findAll({
+        where: { userId },
+        attributes: [
+          'errorCategory',
+          [require('sequelize').fn('COUNT', '*'), 'count']
+        ],
+        group: ['errorCategory'],
+        raw: true
+      }),
+      // Get unique AI providers
+      ErrorQuery.findAll({
+        where: { userId },
+        attributes: [
+          'aiProvider',
+          [require('sequelize').fn('COUNT', '*'), 'count']
+        ],
+        group: ['aiProvider'],
+        raw: true
+      }),
+      // Get all tags (flatten from JSONB arrays)
+      ErrorQuery.findAll({
+        where: { userId, tags: { [Op.ne]: null } },
+        attributes: ['tags'],
+        raw: true
+      })
+    ]);
+
+    // Process tags
+    const allTags = {};
+    tags.forEach(item => {
+      if (item.tags && Array.isArray(item.tags)) {
+        item.tags.forEach(tag => {
+          allTags[tag] = (allTags[tag] || 0) + 1;
+        });
+      }
+    });
+
+    const topTags = Object.entries(allTags)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 20)
+      .map(([tag, count]) => ({ tag, count }));
+
+    return {
+      categories: categories.map(c => ({
+        category: c.errorCategory,
+        count: parseInt(c.count)
+      })),
+      aiProviders: aiProviders.map(p => ({
+        provider: p.aiProvider,
+        count: parseInt(p.count)
+      })),
+      tags: topTags
+    };
+  } catch (error) {
+    console.error('Failed to get aggregations:', error);
+    return { categories: [], aiProviders: [], tags: [] };
+  }
+}
+
+// Helper function to convert data to CSV
+function convertToCSV(data) {
+  if (!data || data.length === 0) return '';
+  
+  const headers = [
+    'ID', 'Error Message', 'Category', 'AI Provider', 
+    'Response Time (ms)', 'Created At'
+  ];
+  
+  const csvRows = [headers.join(',')];
+  
+  data.forEach(item => {
+    const row = [
+      item.id,
+      `"${(item.errorMessage || '').replace(/"/g, '""')}"`,
+      item.errorCategory || '',
+      item.aiProvider || '',
+      item.responseTime || '',
+      item.createdAt || ''
+    ];
+    csvRows.push(row.join(','));
+  });
+  
+  return csvRows.join('\n');
+}
