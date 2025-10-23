@@ -155,7 +155,7 @@ class DodoPaymentService {
         status: 'active',
         startDate,
         endDate,
-        stripeSubscriptionId: subscriptionId,
+        dodoSubscriptionId: subscriptionId,
         dodoSessionId: session.id
       }, {
         where: { userId: parseInt(userId) }
@@ -183,7 +183,7 @@ class DodoPaymentService {
       const Subscription = require('../models/Subscription');
       await Subscription.update(
         { status: 'active' },
-        { where: { stripeSubscriptionId: subscriptionId } }
+        { where: { dodoSubscriptionId: subscriptionId } }
       );
 
       console.log(`Payment successful for subscription: ${subscriptionId}`);
@@ -208,7 +208,7 @@ class DodoPaymentService {
       const Subscription = require('../models/Subscription');
       await Subscription.update(
         { status: 'past_due' },
-        { where: { stripeSubscriptionId: subscriptionId } }
+        { where: { dodoSubscriptionId: subscriptionId } }
       );
 
       console.log(`Payment failed for subscription: ${subscriptionId}`);
@@ -233,7 +233,7 @@ class DodoPaymentService {
       const Subscription = require('../models/Subscription');
       await Subscription.update(
         { status: 'cancelled' },
-        { where: { stripeSubscriptionId: subscriptionId } }
+        { where: { dodoSubscriptionId: subscriptionId } }
       );
 
       console.log(`Subscription cancelled: ${subscriptionId}`);

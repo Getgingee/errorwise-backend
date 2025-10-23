@@ -51,49 +51,50 @@ exports.getSubscription = async (req, res) => {
 // Get subscription plans
 exports.getPlans = async (req, res) => {
   try {
+    const dodoConfig = require('../config/dodoPayments');
+    
     const plans = [
       {
         id: 'free',
-        name: 'Free',
-        price: 0,
-        interval: 'month',
-        features: {
-          maxQueries: 10,
-          aiProviders: ['mock'],
-          advancedAnalysis: false,
-          prioritySupport: false,
-          exportResults: false
-        },
+        name: dodoConfig.plans.free.name,
+        price: dodoConfig.plans.free.price,
+        interval: dodoConfig.plans.free.interval,
+        features: dodoConfig.plans.free.features,
         description: 'Perfect for trying out ErrorWise'
       },
       {
         id: 'pro',
-        name: 'Pro',
-        price: 9.99,
-        interval: 'month',
+        name: dodoConfig.plans.pro.name,
+        price: dodoConfig.plans.pro.price,
+        interval: dodoConfig.plans.pro.interval,
         features: {
-          maxQueries: 100,
+          maxQueries: dodoConfig.plans.pro.features.monthlyAnalyses,
           aiProviders: ['openai', 'gemini'],
-          advancedAnalysis: true,
-          prioritySupport: false,
-          exportResults: true
+          advancedAnalysis: dodoConfig.plans.pro.features.advancedFeatures,
+          prioritySupport: dodoConfig.plans.pro.features.prioritySupport,
+          exportResults: true,
+          apiAccess: dodoConfig.plans.pro.features.apiAccess,
+          teamMembers: dodoConfig.plans.pro.features.teamMembers
         },
-        description: 'Great for individual developers'
+        description: 'Great for individual developers and small teams'
       },
       {
-        id: 'team',
-        name: 'Team',
-        price: 29.99,
-        interval: 'month',
+        id: 'enterprise',
+        name: dodoConfig.plans.enterprise.name,
+        price: dodoConfig.plans.enterprise.price,
+        interval: dodoConfig.plans.enterprise.interval,
         features: {
-          maxQueries: 1000,
+          maxQueries: dodoConfig.plans.enterprise.features.monthlyAnalyses,
           aiProviders: ['openai', 'gemini'],
-          advancedAnalysis: true,
-          prioritySupport: true,
+          advancedAnalysis: dodoConfig.plans.enterprise.features.advancedFeatures,
+          prioritySupport: dodoConfig.plans.enterprise.features.prioritySupport,
           exportResults: true,
-          teamManagement: true
+          apiAccess: dodoConfig.plans.enterprise.features.apiAccess,
+          teamMembers: dodoConfig.plans.enterprise.features.teamMembers,
+          customIntegrations: dodoConfig.plans.enterprise.features.customIntegrations,
+          onPremiseOption: dodoConfig.plans.enterprise.features.onPremiseOption
         },
-        description: 'Perfect for development teams'
+        description: 'Perfect for large development teams and enterprises'
       }
     ];
 
@@ -111,7 +112,7 @@ exports.createSubscription = async (req, res) => {
     const userId = req.user.id;
     const { planId, successUrl, cancelUrl } = req.body;
 
-    if (!planId || !['pro', 'team'].includes(planId)) {
+    if (!planId || !['pro', 'enterprise'].includes(planId)) {
       return res.status(400).json({ error: 'Invalid plan ID' });
     }
 
@@ -127,13 +128,10 @@ exports.createSubscription = async (req, res) => {
       return res.status(409).json({ error: 'User already has an active subscription' });
     }
 
-    // Get plan details
-    const plans = {
-      pro: { name: 'Pro', price: 9.99 },
-      team: { name: 'Team', price: 29.99 }
-    };
-
-    const plan = plans[planId];
+    // Get plan details from Dodo configuration
+    const dodoConfig = require('../config/dodoPayments');
+    const plan = dodoConfig.plans[planId];
+    
     if (!plan) {
       return res.status(400).json({ error: 'Invalid plan' });
     }
@@ -145,7 +143,7 @@ exports.createSubscription = async (req, res) => {
       planId,
       planName: plan.name,
       amount: plan.price,
-      currency: 'USD',
+      currency: dodoConfig.currency,
       successUrl: successUrl || `${process.env.FRONTEND_URL}/dashboard?payment=success`,
       cancelUrl: cancelUrl || `${process.env.FRONTEND_URL}/pricing?payment=cancelled`
     });
@@ -346,28 +344,37 @@ exports.updateSubscription = async (req, res) => {
 
 // Helper functions
 function getFeaturesByTier(tier) {
+  const dodoConfig = require('../config/dodoPayments');
+  
   const features = {
     free: {
-      maxQueries: 10,
+      maxQueries: dodoConfig.plans.free.features.monthlyAnalyses,
       aiProviders: ['mock'],
-      advancedAnalysis: false,
-      prioritySupport: false,
-      exportResults: false
+      advancedAnalysis: dodoConfig.plans.free.features.advancedFeatures,
+      prioritySupport: dodoConfig.plans.free.features.prioritySupport || false,
+      exportResults: false,
+      apiAccess: dodoConfig.plans.free.features.apiAccess,
+      teamMembers: dodoConfig.plans.free.features.teamMembers
     },
     pro: {
-      maxQueries: 100,
+      maxQueries: dodoConfig.plans.pro.features.monthlyAnalyses,
       aiProviders: ['openai', 'gemini'],
-      advancedAnalysis: true,
-      prioritySupport: false,
-      exportResults: true
-    },
-    team: {
-      maxQueries: 1000,
-      aiProviders: ['openai', 'gemini'],
-      advancedAnalysis: true,
-      prioritySupport: true,
+      advancedAnalysis: dodoConfig.plans.pro.features.advancedFeatures,
+      prioritySupport: dodoConfig.plans.pro.features.prioritySupport || false,
       exportResults: true,
-      teamManagement: true
+      apiAccess: dodoConfig.plans.pro.features.apiAccess,
+      teamMembers: dodoConfig.plans.pro.features.teamMembers
+    },
+    enterprise: {
+      maxQueries: dodoConfig.plans.enterprise.features.monthlyAnalyses === -1 ? 'unlimited' : dodoConfig.plans.enterprise.features.monthlyAnalyses,
+      aiProviders: ['openai', 'gemini'],
+      advancedAnalysis: dodoConfig.plans.enterprise.features.advancedFeatures,
+      prioritySupport: dodoConfig.plans.enterprise.features.prioritySupport,
+      exportResults: true,
+      apiAccess: dodoConfig.plans.enterprise.features.apiAccess,
+      teamMembers: dodoConfig.plans.enterprise.features.teamMembers === -1 ? 'unlimited' : dodoConfig.plans.enterprise.features.teamMembers,
+      customIntegrations: dodoConfig.plans.enterprise.features.customIntegrations,
+      onPremiseOption: dodoConfig.plans.enterprise.features.onPremiseOption
     }
   };
 
@@ -392,6 +399,16 @@ async function getUsageLimits(userId, tier) {
   });
 
   const features = getFeaturesByTier(tier);
+  
+  // Handle unlimited plans
+  if (features.maxQueries === 'unlimited') {
+    return {
+      queriesUsed,
+      queriesRemaining: 'unlimited',
+      maxQueries: 'unlimited'
+    };
+  }
+
   const queriesRemaining = Math.max(0, features.maxQueries - queriesUsed);
 
   return {

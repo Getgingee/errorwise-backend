@@ -13,7 +13,7 @@ const Subscription = sequelize.define('Subscription', {
     field: 'user_id' // Map to database column
   },
   tier: { 
-    type: DataTypes.ENUM('free', 'pro', 'team'), 
+    type: DataTypes.ENUM('free', 'pro', 'enterprise'), 
     defaultValue: 'free' 
   },
   status: { 
@@ -28,7 +28,7 @@ const Subscription = sequelize.define('Subscription', {
     type: DataTypes.DATE, 
     allowNull: true 
   },
-  stripeSubscriptionId: { 
+  dodoSubscriptionId: { 
     type: DataTypes.STRING, 
     allowNull: true 
   },
