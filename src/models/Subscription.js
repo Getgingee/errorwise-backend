@@ -12,7 +12,7 @@ const Subscription = sequelize.define('Subscription', {
     allowNull: false
   },
   tier: { 
-    type: DataTypes.ENUM('free', 'pro', 'enterprise'), 
+    type: DataTypes.ENUM('free', 'pro', 'team'), 
     defaultValue: 'free' 
   },
   status: { 

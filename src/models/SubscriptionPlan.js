@@ -56,7 +56,7 @@ const SubscriptionPlan = sequelize.define('SubscriptionPlan', {
     comment: 'Legacy Stripe plan ID (deprecated)'
   },
   billing_interval: {
-    type: DataTypes.ENUM('month', 'year'),
+    type: DataTypes.ENUM('day', 'month', 'year'),
     defaultValue: 'month'
   },
   trial_period_days: {

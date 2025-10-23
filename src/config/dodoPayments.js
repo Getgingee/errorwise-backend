@@ -16,74 +16,84 @@ const dodoPaymentsConfig = {
   // Currency
   currency: process.env.DEFAULT_CURRENCY || 'USD',
   
-  // Subscription plans configuration
+  // Subscription plans configuration - Aligned with ErrorWise vision
   plans: {
     free: {
       id: 'free',
       name: 'Free Plan',
       price: 0,
-      interval: 'month',
+      interval: 'month', // Monthly plan with daily limits
       dodoProductId: null,
       features: {
-        monthlyAnalyses: 10,
-        teamMembers: 1,
-        supportLevel: 'community',
-        advancedFeatures: false,
-        apiAccess: false
+        dailyQueries: 3,
+        errorExplanation: true,
+        fixSuggestions: false,
+        documentationLinks: false,
+        errorHistory: false,
+        teamFeatures: false,
+        supportLevel: 'community'
       }
     },
     
     pro: {
       id: process.env.DODO_PRO_PLAN_ID || 'plan_pro_monthly',
       name: 'Pro Plan',
-      price: 29,
+      price: 2, // $2/month - accessible pricing
       interval: 'month',
+      trialDays: 7,
       dodoProductId: process.env.DODO_PRO_PRODUCT_ID,
       features: {
-        monthlyAnalyses: 1000,
-        teamMembers: 5,
+        dailyQueries: -1, // Unlimited
+        errorExplanation: true,
+        fixSuggestions: true,
+        documentationLinks: true,
+        errorHistory: true,
+        teamFeatures: false,
         supportLevel: 'email',
-        advancedFeatures: true,
-        apiAccess: true,
-        prioritySupport: false
+        advancedAnalysis: true
       }
     },
     
-    enterprise: {
-      id: process.env.DODO_ENTERPRISE_PLAN_ID || 'plan_enterprise_monthly',
-      name: 'Enterprise Plan',
-      price: 99,
+    team: {
+      id: process.env.DODO_TEAM_PLAN_ID || 'plan_team_monthly',
+      name: 'Team Plan',
+      price: 8, // $8/month - team collaboration
       interval: 'month',
-      dodoProductId: process.env.DODO_ENTERPRISE_PRODUCT_ID,
+      trialDays: 14,
+      dodoProductId: process.env.DODO_TEAM_PRODUCT_ID,
       features: {
-        monthlyAnalyses: -1, // Unlimited
-        teamMembers: -1, // Unlimited
+        dailyQueries: -1, // Unlimited
+        errorExplanation: true,
+        fixSuggestions: true,
+        documentationLinks: true,
+        errorHistory: true,
+        teamFeatures: true,
+        sharedHistory: true,
+        teamDashboard: true,
         supportLevel: 'priority',
-        advancedFeatures: true,
-        apiAccess: true,
-        prioritySupport: true,
-        customIntegrations: true,
-        onPremiseOption: true
+        teamMembers: 10
       }
     }
   },
   
-  // Yearly plans (if offered)
+  // Yearly plans with attractive discounts
   yearlyPlans: {
     pro_yearly: {
       id: process.env.DODO_PRO_YEARLY_PLAN_ID || 'plan_pro_yearly',
       name: 'Pro Plan (Yearly)',
-      price: 290, // 2 months free
+      price: 20, // $20/year - 2 months free!
       interval: 'year',
-      discount: 17 // percentage
+      discount: 17, // ~17% discount
+      monthlyEquivalent: 1.67
     },
     
-    enterprise_yearly: {
-      id: process.env.DODO_ENTERPRISE_YEARLY_PLAN_ID || 'plan_enterprise_yearly',
-      name: 'Enterprise Plan (Yearly)',
-      price: 990, // 2 months free
+    team_yearly: {
+      id: process.env.DODO_TEAM_YEARLY_PLAN_ID || 'plan_team_yearly',
+      name: 'Team Plan (Yearly)',
+      price: 80, // $80/year - 2 months free!
       interval: 'year',
-      discount: 17 // percentage
+      discount: 17, // ~17% discount
+      monthlyEquivalent: 6.67
     }
   },
   

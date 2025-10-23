@@ -59,42 +59,49 @@ exports.getPlans = async (req, res) => {
         name: dodoConfig.plans.free.name,
         price: dodoConfig.plans.free.price,
         interval: dodoConfig.plans.free.interval,
-        features: dodoConfig.plans.free.features,
-        description: 'Perfect for trying out ErrorWise'
+        features: {
+          dailyQueries: dodoConfig.plans.free.features.dailyQueries,
+          errorExplanation: dodoConfig.plans.free.features.errorExplanation,
+          fixSuggestions: dodoConfig.plans.free.features.fixSuggestions,
+          documentationLinks: dodoConfig.plans.free.features.documentationLinks,
+          errorHistory: dodoConfig.plans.free.features.errorHistory
+        },
+        description: 'Perfect for trying out ErrorWise - 3 error explanations per day'
       },
       {
         id: 'pro',
         name: dodoConfig.plans.pro.name,
         price: dodoConfig.plans.pro.price,
         interval: dodoConfig.plans.pro.interval,
+        trialDays: dodoConfig.plans.pro.trialDays,
         features: {
-          maxQueries: dodoConfig.plans.pro.features.monthlyAnalyses,
-          aiProviders: ['openai', 'gemini'],
-          advancedAnalysis: dodoConfig.plans.pro.features.advancedFeatures,
-          prioritySupport: dodoConfig.plans.pro.features.prioritySupport,
-          exportResults: true,
-          apiAccess: dodoConfig.plans.pro.features.apiAccess,
-          teamMembers: dodoConfig.plans.pro.features.teamMembers
+          dailyQueries: dodoConfig.plans.pro.features.dailyQueries,
+          errorExplanation: dodoConfig.plans.pro.features.errorExplanation,
+          fixSuggestions: dodoConfig.plans.pro.features.fixSuggestions,
+          documentationLinks: dodoConfig.plans.pro.features.documentationLinks,
+          errorHistory: dodoConfig.plans.pro.features.errorHistory,
+          advancedAnalysis: dodoConfig.plans.pro.features.advancedAnalysis
         },
-        description: 'Great for individual developers and small teams'
+        description: 'Unlimited error queries with fixes, documentation, and complete history'
       },
       {
-        id: 'enterprise',
-        name: dodoConfig.plans.enterprise.name,
-        price: dodoConfig.plans.enterprise.price,
-        interval: dodoConfig.plans.enterprise.interval,
+        id: 'team',
+        name: dodoConfig.plans.team.name,
+        price: dodoConfig.plans.team.price,
+        interval: dodoConfig.plans.team.interval,
+        trialDays: dodoConfig.plans.team.trialDays,
         features: {
-          maxQueries: dodoConfig.plans.enterprise.features.monthlyAnalyses,
-          aiProviders: ['openai', 'gemini'],
-          advancedAnalysis: dodoConfig.plans.enterprise.features.advancedFeatures,
-          prioritySupport: dodoConfig.plans.enterprise.features.prioritySupport,
-          exportResults: true,
-          apiAccess: dodoConfig.plans.enterprise.features.apiAccess,
-          teamMembers: dodoConfig.plans.enterprise.features.teamMembers,
-          customIntegrations: dodoConfig.plans.enterprise.features.customIntegrations,
-          onPremiseOption: dodoConfig.plans.enterprise.features.onPremiseOption
+          dailyQueries: dodoConfig.plans.team.features.dailyQueries,
+          errorExplanation: dodoConfig.plans.team.features.errorExplanation,
+          fixSuggestions: dodoConfig.plans.team.features.fixSuggestions,
+          documentationLinks: dodoConfig.plans.team.features.documentationLinks,
+          errorHistory: dodoConfig.plans.team.features.errorHistory,
+          teamFeatures: dodoConfig.plans.team.features.teamFeatures,
+          sharedHistory: dodoConfig.plans.team.features.sharedHistory,
+          teamDashboard: dodoConfig.plans.team.features.teamDashboard,
+          teamMembers: dodoConfig.plans.team.features.teamMembers
         },
-        description: 'Perfect for large development teams and enterprises'
+        description: 'Everything in Pro plus shared team history and collaboration features'
       }
     ];
 
@@ -112,7 +119,7 @@ exports.createSubscription = async (req, res) => {
     const userId = req.user.id;
     const { planId, successUrl, cancelUrl } = req.body;
 
-    if (!planId || !['pro', 'enterprise'].includes(planId)) {
+    if (!planId || !['pro', 'team'].includes(planId)) {
       return res.status(400).json({ error: 'Invalid plan ID' });
     }
 
@@ -348,33 +355,35 @@ function getFeaturesByTier(tier) {
   
   const features = {
     free: {
-      maxQueries: dodoConfig.plans.free.features.monthlyAnalyses,
-      aiProviders: ['mock'],
-      advancedAnalysis: dodoConfig.plans.free.features.advancedFeatures,
-      prioritySupport: dodoConfig.plans.free.features.prioritySupport || false,
-      exportResults: false,
-      apiAccess: dodoConfig.plans.free.features.apiAccess,
-      teamMembers: dodoConfig.plans.free.features.teamMembers
+      dailyQueries: dodoConfig.plans.free.features.dailyQueries,
+      errorExplanation: dodoConfig.plans.free.features.errorExplanation,
+      fixSuggestions: dodoConfig.plans.free.features.fixSuggestions,
+      documentationLinks: dodoConfig.plans.free.features.documentationLinks,
+      errorHistory: dodoConfig.plans.free.features.errorHistory,
+      teamFeatures: dodoConfig.plans.free.features.teamFeatures,
+      supportLevel: dodoConfig.plans.free.features.supportLevel
     },
     pro: {
-      maxQueries: dodoConfig.plans.pro.features.monthlyAnalyses,
-      aiProviders: ['openai', 'gemini'],
-      advancedAnalysis: dodoConfig.plans.pro.features.advancedFeatures,
-      prioritySupport: dodoConfig.plans.pro.features.prioritySupport || false,
-      exportResults: true,
-      apiAccess: dodoConfig.plans.pro.features.apiAccess,
-      teamMembers: dodoConfig.plans.pro.features.teamMembers
+      dailyQueries: dodoConfig.plans.pro.features.dailyQueries === -1 ? 'unlimited' : dodoConfig.plans.pro.features.dailyQueries,
+      errorExplanation: dodoConfig.plans.pro.features.errorExplanation,
+      fixSuggestions: dodoConfig.plans.pro.features.fixSuggestions,
+      documentationLinks: dodoConfig.plans.pro.features.documentationLinks,
+      errorHistory: dodoConfig.plans.pro.features.errorHistory,
+      teamFeatures: dodoConfig.plans.pro.features.teamFeatures,
+      supportLevel: dodoConfig.plans.pro.features.supportLevel,
+      advancedAnalysis: dodoConfig.plans.pro.features.advancedAnalysis
     },
-    enterprise: {
-      maxQueries: dodoConfig.plans.enterprise.features.monthlyAnalyses === -1 ? 'unlimited' : dodoConfig.plans.enterprise.features.monthlyAnalyses,
-      aiProviders: ['openai', 'gemini'],
-      advancedAnalysis: dodoConfig.plans.enterprise.features.advancedFeatures,
-      prioritySupport: dodoConfig.plans.enterprise.features.prioritySupport,
-      exportResults: true,
-      apiAccess: dodoConfig.plans.enterprise.features.apiAccess,
-      teamMembers: dodoConfig.plans.enterprise.features.teamMembers === -1 ? 'unlimited' : dodoConfig.plans.enterprise.features.teamMembers,
-      customIntegrations: dodoConfig.plans.enterprise.features.customIntegrations,
-      onPremiseOption: dodoConfig.plans.enterprise.features.onPremiseOption
+    team: {
+      dailyQueries: dodoConfig.plans.team.features.dailyQueries === -1 ? 'unlimited' : dodoConfig.plans.team.features.dailyQueries,
+      errorExplanation: dodoConfig.plans.team.features.errorExplanation,
+      fixSuggestions: dodoConfig.plans.team.features.fixSuggestions,
+      documentationLinks: dodoConfig.plans.team.features.documentationLinks,
+      errorHistory: dodoConfig.plans.team.features.errorHistory,
+      teamFeatures: dodoConfig.plans.team.features.teamFeatures,
+      sharedHistory: dodoConfig.plans.team.features.sharedHistory,
+      teamDashboard: dodoConfig.plans.team.features.teamDashboard,
+      supportLevel: dodoConfig.plans.team.features.supportLevel,
+      teamMembers: dodoConfig.plans.team.features.teamMembers
     }
   };
 
@@ -400,20 +409,46 @@ async function getUsageLimits(userId, tier) {
 
   const features = getFeaturesByTier(tier);
   
-  // Handle unlimited plans
-  if (features.maxQueries === 'unlimited') {
+  // Handle unlimited plans (Pro and Team)
+  if (features.dailyQueries === 'unlimited') {
     return {
       queriesUsed,
       queriesRemaining: 'unlimited',
-      maxQueries: 'unlimited'
+      dailyQueries: 'unlimited',
+      planType: tier
     };
   }
 
-  const queriesRemaining = Math.max(0, features.maxQueries - queriesUsed);
+  // For free plan, calculate daily usage
+  if (tier === 'free') {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const dailyUsed = await ErrorQuery.count({
+      where: {
+        userId,
+        createdAt: {
+          [require('sequelize').Op.gte]: today
+        }
+      }
+    });
 
+    const dailyRemaining = Math.max(0, features.dailyQueries - dailyUsed);
+
+    return {
+      queriesUsed: dailyUsed,
+      queriesRemaining: dailyRemaining,
+      dailyQueries: features.dailyQueries,
+      planType: 'free',
+      resetTime: 'daily'
+    };
+  }
+
+  // For paid plans with unlimited queries
   return {
     queriesUsed,
-    queriesRemaining,
-    maxQueries: features.maxQueries
+    queriesRemaining: 'unlimited',
+    dailyQueries: 'unlimited',
+    planType: tier
   };
 }

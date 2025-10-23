@@ -15,147 +15,160 @@ const defaultPlans = [
   {
     name: 'Free Plan',
     price: 0.00,
-    billing_interval: 'month',
+    billing_interval: 'month', // Monthly plan with daily limits
     trial_period_days: 0,
     features: {
-      monthlyAnalyses: 10,
-      teamMembers: 1,
-      supportLevel: 'community',
-      advancedFeatures: false,
-      apiAccess: false,
-      prioritySupport: false,
-      exportResults: false
+      dailyQueries: 3, // 3 queries per day
+      errorExplanation: true,
+      fixSuggestions: false,
+      documentationLinks: false,
+      errorHistory: false,
+      teamFeatures: false,
+      supportLevel: 'community'
     },
     limits: {
-      maxQueries: 10,
-      aiProviders: ['mock'],
-      teamMembers: 1,
-      apiRequests: 0
+      maxDailyQueries: 3,
+      maxMonthlyQueries: 93, // ~3 per day
+      errorCategories: ['excel', 'sql', 'windows', 'python', 'javascript', 'general'],
+      historyRetention: 0, // No history
+      teamMembers: 1
     },
     max_users: 1,
     max_team_members: 1,
-    description: 'Perfect for trying out ErrorWise with basic error analysis capabilities.',
+    description: 'Perfect for trying out ErrorWise. Get clear explanations for 3 errors per day.',
     dodo_plan_id: null, // Free plan doesn't need Dodo integration
     dodo_product_id: null,
     is_active: true
   },
   {
     name: 'Pro Plan',
-    price: 29.00,
+    price: 2.00,
     billing_interval: 'month',
-    trial_period_days: 14,
+    trial_period_days: 7, // 7-day free trial
     features: {
-      monthlyAnalyses: 1000,
-      teamMembers: 5,
+      dailyQueries: -1, // Unlimited
+      errorExplanation: true,
+      fixSuggestions: true,
+      documentationLinks: true,
+      errorHistory: true,
+      teamFeatures: false,
       supportLevel: 'email',
-      advancedFeatures: true,
-      apiAccess: true,
-      prioritySupport: false,
-      exportResults: true,
-      customIntegrations: false
+      advancedAnalysis: true,
+      codeSnippets: true
     },
     limits: {
-      maxQueries: 1000,
-      aiProviders: ['openai', 'gemini'],
-      teamMembers: 5,
-      apiRequests: 10000
+      maxDailyQueries: -1, // Unlimited
+      maxMonthlyQueries: -1, // Unlimited
+      errorCategories: ['excel', 'sql', 'windows', 'python', 'javascript', 'java', 'c++', 'react', 'node', 'general'],
+      historyRetention: 365, // 1 year history
+      teamMembers: 1
     },
-    max_users: 5,
-    max_team_members: 5,
-    description: 'Great for individual developers and small teams with advanced error analysis and team collaboration.',
+    max_users: 1,
+    max_team_members: 1,
+    description: 'Unlimited error queries with fixes, documentation links, and complete history.',
     dodo_plan_id: process.env.DODO_PRO_PLAN_ID || 'plan_pro_monthly',
     dodo_product_id: process.env.DODO_PRO_PRODUCT_ID || 'prod_pro_plan',
     is_active: true
   },
   {
-    name: 'Enterprise Plan',
-    price: 99.00,
+    name: 'Team Plan',
+    price: 8.00,
     billing_interval: 'month',
-    trial_period_days: 30,
+    trial_period_days: 14, // 14-day free trial
     features: {
-      monthlyAnalyses: -1, // unlimited
-      teamMembers: -1, // unlimited
+      dailyQueries: -1, // Unlimited
+      errorExplanation: true,
+      fixSuggestions: true,
+      documentationLinks: true,
+      errorHistory: true,
+      teamFeatures: true,
+      sharedHistory: true,
+      teamDashboard: true,
       supportLevel: 'priority',
-      advancedFeatures: true,
-      apiAccess: true,
-      prioritySupport: true,
-      exportResults: true,
-      customIntegrations: true,
-      onPremiseOption: true,
-      ssoIntegration: true,
-      customReporting: true
+      advancedAnalysis: true,
+      codeSnippets: true,
+      teamInsights: true
     },
     limits: {
-      maxQueries: -1, // unlimited
-      aiProviders: ['openai', 'gemini'],
-      teamMembers: -1, // unlimited
-      apiRequests: -1 // unlimited
+      maxDailyQueries: -1, // Unlimited
+      maxMonthlyQueries: -1, // Unlimited
+      errorCategories: ['excel', 'sql', 'windows', 'python', 'javascript', 'java', 'c++', 'react', 'node', 'general'],
+      historyRetention: -1, // Unlimited history
+      teamMembers: 10, // Up to 10 team members
+      sharedWorkspaces: 5
     },
-    max_users: -1, // unlimited
-    max_team_members: -1, // unlimited
-    description: 'Perfect for large development teams and enterprises with unlimited access and premium support.',
-    dodo_plan_id: process.env.DODO_ENTERPRISE_PLAN_ID || 'plan_enterprise_monthly',
-    dodo_product_id: process.env.DODO_ENTERPRISE_PRODUCT_ID || 'prod_enterprise_plan',
+    max_users: 10,
+    max_team_members: 10,
+    description: 'Everything in Pro plus shared team history, team dashboard, and collaborative features.',
+    dodo_plan_id: process.env.DODO_TEAM_PLAN_ID || 'plan_team_monthly',
+    dodo_product_id: process.env.DODO_TEAM_PRODUCT_ID || 'prod_team_plan',
     is_active: true
   },
-  // Yearly plans with discounts
+  // Yearly plans with attractive discounts
   {
     name: 'Pro Plan (Yearly)',
-    price: 290.00, // ~17% discount (2 months free)
+    price: 20.00, // ~17% discount (2 months free)
     billing_interval: 'year',
-    trial_period_days: 14,
+    trial_period_days: 7,
     features: {
-      monthlyAnalyses: 1000,
-      teamMembers: 5,
+      dailyQueries: -1,
+      errorExplanation: true,
+      fixSuggestions: true,
+      documentationLinks: true,
+      errorHistory: true,
+      teamFeatures: false,
       supportLevel: 'email',
-      advancedFeatures: true,
-      apiAccess: true,
-      prioritySupport: false,
-      exportResults: true,
-      customIntegrations: false
+      advancedAnalysis: true,
+      codeSnippets: true,
+      yearlyDiscount: true
     },
     limits: {
-      maxQueries: 1000,
-      aiProviders: ['openai', 'gemini'],
-      teamMembers: 5,
-      apiRequests: 10000
+      maxDailyQueries: -1,
+      maxMonthlyQueries: -1,
+      errorCategories: ['excel', 'sql', 'windows', 'python', 'javascript', 'java', 'c++', 'react', 'node', 'general'],
+      historyRetention: 365,
+      teamMembers: 1
     },
-    max_users: 5,
-    max_team_members: 5,
-    description: 'Annual Pro subscription with 17% savings (2 months free).',
+    max_users: 1,
+    max_team_members: 1,
+    description: 'Annual Pro subscription - Save $4! (2 months free)',
     dodo_plan_id: process.env.DODO_PRO_YEARLY_PLAN_ID || 'plan_pro_yearly',
     dodo_product_id: process.env.DODO_PRO_PRODUCT_ID || 'prod_pro_plan',
     is_active: true
   },
   {
-    name: 'Enterprise Plan (Yearly)',
-    price: 990.00, // ~17% discount (2 months free)
+    name: 'Team Plan (Yearly)',
+    price: 80.00, // ~17% discount (2 months free)
     billing_interval: 'year',
-    trial_period_days: 30,
+    trial_period_days: 14,
     features: {
-      monthlyAnalyses: -1,
-      teamMembers: -1,
+      dailyQueries: -1,
+      errorExplanation: true,
+      fixSuggestions: true,
+      documentationLinks: true,
+      errorHistory: true,
+      teamFeatures: true,
+      sharedHistory: true,
+      teamDashboard: true,
       supportLevel: 'priority',
-      advancedFeatures: true,
-      apiAccess: true,
-      prioritySupport: true,
-      exportResults: true,
-      customIntegrations: true,
-      onPremiseOption: true,
-      ssoIntegration: true,
-      customReporting: true
+      advancedAnalysis: true,
+      codeSnippets: true,
+      teamInsights: true,
+      yearlyDiscount: true
     },
     limits: {
-      maxQueries: -1,
-      aiProviders: ['openai', 'gemini'],
-      teamMembers: -1,
-      apiRequests: -1
+      maxDailyQueries: -1,
+      maxMonthlyQueries: -1,
+      errorCategories: ['excel', 'sql', 'windows', 'python', 'javascript', 'java', 'c++', 'react', 'node', 'general'],
+      historyRetention: -1,
+      teamMembers: 10,
+      sharedWorkspaces: 5
     },
-    max_users: -1,
-    max_team_members: -1,
-    description: 'Annual Enterprise subscription with 17% savings (2 months free).',
-    dodo_plan_id: process.env.DODO_ENTERPRISE_YEARLY_PLAN_ID || 'plan_enterprise_yearly',
-    dodo_product_id: process.env.DODO_ENTERPRISE_PRODUCT_ID || 'prod_enterprise_plan',
+    max_users: 10,
+    max_team_members: 10,
+    description: 'Annual Team subscription - Save $16! (2 months free)',
+    dodo_plan_id: process.env.DODO_TEAM_YEARLY_PLAN_ID || 'plan_team_yearly',
+    dodo_product_id: process.env.DODO_TEAM_PRODUCT_ID || 'prod_team_plan',
     is_active: true
   }
 ];
