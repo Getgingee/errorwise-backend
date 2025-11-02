@@ -7,19 +7,14 @@ const emailService = require('../utils/emailService');
 const { authMiddleware } = require('../middleware/auth');
 const rateLimit = require('express-rate-limit');
 
-// Rate limiter for resend verification (3 attempts per 15 minutes)
+// Rate limiter DISABLED for development/testing
 const resendVerificationLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 3, // 3 attempts per window
+  windowMs: 15 * 60 * 1000,
+  max: 999999, // Essentially unlimited
   message: { error: 'Too many resend attempts. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
-  handler: (req, res) => {
-    res.status(429).json({
-      error: 'Too many resend attempts. Please try again later.',
-      retryAfter: Math.ceil((req.rateLimit.resetTime - Date.now()) / 1000)
-    });
-  }
+  skip: () => true // Skip rate limiting entirely
 });
 
 /**
@@ -329,6 +324,8 @@ router.post('/login/enhanced', async (req, res) => {
     const { redisClient } = require('../utils/redisClient');
     const rateLimitKey = `otp:daily:${user.id}`;
     
+    // RATE LIMITING DISABLED FOR DEVELOPMENT/TESTING
+    /* 
     try {
       const otpCount = await redisClient.get(rateLimitKey);
       const currentCount = otpCount ? parseInt(otpCount) : 0;
@@ -344,6 +341,7 @@ router.post('/login/enhanced', async (req, res) => {
       console.error('Rate limit check error:', err);
       // Continue even if Redis fails
     }
+    */
     
     // Check if email is verified
     if (!user.isEmailVerified) {
@@ -440,6 +438,8 @@ router.post('/login/enhanced', async (req, res) => {
     
     console.log(`📧 Login OTP sent to ${user.email}: ${otp}`); // Dev mode - remove in production
     
+    // OTP COUNTER DISABLED FOR DEVELOPMENT/TESTING
+    /*
     // Increment daily OTP counter
     try {
       const rateLimitKey = `otp:daily:${user.id}`;
@@ -461,6 +461,7 @@ router.post('/login/enhanced', async (req, res) => {
       console.error('Rate limit increment error:', err);
       // Continue even if Redis fails
     }
+    */
     
     res.json({
       message: 'OTP sent to your email',

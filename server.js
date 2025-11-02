@@ -25,8 +25,8 @@ app.use(cookieParser());
 // Session middleware (loads user session from Redis)
 app.use(sessionMiddleware);
 
-// General rate limiting (100 requests per minute)
-app.use(rateLimiters.general);
+// General rate limiting DISABLED for development/testing
+// app.use(rateLimiters.general);
 
 // Request logging
 app.use((req, res, next) => {
