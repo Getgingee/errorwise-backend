@@ -4,6 +4,7 @@ const User = require('../models/User');
 const authService = require('../services/authService');
 const userTrackingService = require('../services/userTrackingService');
 const emailService = require('../utils/emailService');
+const emailServiceConfirmation = require('../services/emailService');
 const { authMiddleware } = require('../middleware/auth');
 const rateLimit = require('express-rate-limit');
 
@@ -544,6 +545,7 @@ router.post('/login/verify-otp', async (req, res) => {
     });
     
     res.json({
+      success: true,
       message: 'Login successful',
       user: {
         id: user.id,
@@ -650,32 +652,50 @@ router.post('/forgot-password', async (req, res) => {
  */
 router.post('/reset-password', async (req, res) => {
   try {
+    console.log('🔍 Reset password request received');
     const { token, newPassword } = req.body;
     
     if (!token || !newPassword) {
+      console.log('❌ Missing token or password');
       return res.status(400).json({ error: 'Token and new password are required' });
     }
     
+    console.log('✓ Token and password provided');
+    
     // Validate password strength
     if (newPassword.length < 8) {
+      console.log('❌ Password too short:', newPassword.length);
       return res.status(400).json({ error: 'Password must be at least 8 characters long' });
     }
+    
+    console.log('✓ Password length valid:', newPassword.length);
+    console.log('🔍 Looking for user with token...');
     
     // Find user with reset token
     const user = await User.findOne({ 
       where: { 
-        resetPasswordToken: token,
-        resetPasswordExpires: { [require('sequelize').Op.gt]: new Date() }
+        '$reset_password_token$': token,
+        '$reset_password_expires$': { [require('sequelize').Op.gt]: new Date() }
       } 
     });
     
+    console.log('✓ User query completed, found:', !!user);
+    console.log('✓ User query completed, found:', !!user);
+    
     if (!user) {
+      console.log('❌ No user found with this token');
       return res.status(404).json({ error: 'Invalid or expired reset token' });
     }
+    
+    console.log('✓ User found:', user.email);
+    console.log('🔍 Hashing new password...');
     
     // Hash new password
     const bcrypt = require('bcryptjs');
     const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    console.log('✓ Password hashed');
+    console.log('🔍 Updating database...');
     
     // Update password and clear reset token
     await User.update({ 
@@ -684,12 +704,17 @@ router.post('/reset-password', async (req, res) => {
       resetPasswordExpires: null
     }, { where: { id: user.id } });
     
+    console.log('✓ Database updated');
+    
     // Send password change confirmation email
-    const emailService = require('../services/emailService');
     try {
-      await emailService.sendPasswordChangeConfirmation(user.email, user.username);
+      if (emailServiceConfirmation && typeof emailServiceConfirmation.sendPasswordChangeConfirmation === 'function') {
+        await emailServiceConfirmation.sendPasswordChangeConfirmation(user.email, user.username);
+        console.log(`📧 Password change confirmation email sent to ${user.email}`);
+      }
     } catch (emailError) {
       console.error('Failed to send password change confirmation:', emailError);
+      // Don't fail the request if email fails - password is already reset
     }
     
     console.log(`✅ Password reset successfully for ${user.email}`);
@@ -701,7 +726,8 @@ router.post('/reset-password', async (req, res) => {
     
   } catch (error) {
     console.error('Reset password error:', error);
-    res.status(500).json({ error: 'Server error during password reset' });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ success: false, error: 'Server error during password reset' });
   }
 });
 
