@@ -95,6 +95,7 @@ app.get('/api/stats', async (req, res) => {
   app.use('/api/history', historyRoutes);
   app.use('/api/settings', settingsRoutes);
   app.use('/api/support', supportRoutes); // Feedback, Contact, Help Center
+  app.use('/api/content', require('./src/routes/content')); // Privacy, Terms, About, Community
   // app.use('/api/teams', teamRoutes); // TODO: Add team models first
   // app.use('/api/webhooks', webhookRoutes); // TODO: Add webhook routes// 404 handler
 app.use('*', (req, res) => {
