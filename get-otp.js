@@ -16,11 +16,11 @@ async function getOTP() {
           ELSE 'Expired'
         END as status
       FROM users 
-      WHERE email = 'test@example.com'
+      WHERE email = 'pankaj@getgingee.com'
     `);
 
     if (result.rows.length === 0) {
-      console.log('\n❌ User not found: test@example.com\n');
+      console.log('\n❌ User not found: pankaj@getgingee.com\n');
       return;
     }
 

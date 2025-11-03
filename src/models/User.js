@@ -153,7 +153,8 @@ const User = sequelize.define('User', {
 }, {
   tableName: 'users',
   timestamps: true,
-  paranoid: true // Enable soft deletes
+  paranoid: true, // Enable soft deletes
+  underscored: true // Use snake_case for automatically generated columns
 });
 
 module.exports = User;

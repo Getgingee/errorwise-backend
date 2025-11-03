@@ -27,11 +27,26 @@ exports.submitFeedback = async (req, res) => {
       });
     }
 
+    // Validate message length
+    if (message.length < 10) {
+      return res.status(400).json({
+        success: false,
+        message: 'Message must be at least 10 characters long'
+      });
+    }
+
+    if (message.length > 5000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Message is too long (max 5000 characters)'
+      });
+    }
+
     const validTypes = ['feature_request', 'bug_report', 'general_feedback', 'improvement_suggestion'];
     if (!validTypes.includes(feedback_type)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid feedback type'
+        message: 'Invalid feedback type. Must be one of: ' + validTypes.join(', ')
       });
     }
 
@@ -47,17 +62,19 @@ exports.submitFeedback = async (req, res) => {
       [user_id, user_email, user_name, feedback_type, subject, message, rating, user_agent, ip_address]
     );
 
+    console.log('✅ Feedback submitted:', result.rows[0].id);
+
     res.status(201).json({
       success: true,
-      message: 'Thank you for your feedback! We appreciate your input.',
+      message: 'Thank you for your feedback! We appreciate your input and will review it shortly.',
       feedback: result.rows[0]
     });
   } catch (error) {
-    console.error('Error submitting feedback:', error);
+    console.error('❌ Error submitting feedback:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to submit feedback',
-      error: error.message
+      message: 'Failed to submit feedback. Please try again later.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -161,12 +178,35 @@ exports.submitContactMessage = async (req, res) => {
       });
     }
 
+    // Name validation
+    if (name.length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name must be at least 2 characters long'
+      });
+    }
+
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid email address'
+        message: 'Please provide a valid email address'
+      });
+    }
+
+    // Message validation
+    if (message.length < 10) {
+      return res.status(400).json({
+        success: false,
+        message: 'Message must be at least 10 characters long'
+      });
+    }
+
+    if (message.length > 5000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Message is too long (max 5000 characters)'
       });
     }
 
@@ -174,7 +214,7 @@ exports.submitContactMessage = async (req, res) => {
     if (!validTypes.includes(message_type)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid message type'
+        message: 'Invalid message type. Must be one of: ' + validTypes.join(', ')
       });
     }
 
@@ -189,6 +229,8 @@ exports.submitContactMessage = async (req, res) => {
       [user_id, name, email, phone, company, subject, message, message_type, user_agent, ip_address]
     );
 
+    console.log('✅ Contact message submitted:', result.rows[0].id);
+
     // TODO: Send notification email to support team
     // await sendContactNotification(result.rows[0]);
 
@@ -198,11 +240,11 @@ exports.submitContactMessage = async (req, res) => {
       contact: result.rows[0]
     });
   } catch (error) {
-    console.error('Error submitting contact message:', error);
+    console.error('❌ Error submitting contact message:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to submit contact message',
-      error: error.message
+      message: 'Failed to submit contact message. Please try again later.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };

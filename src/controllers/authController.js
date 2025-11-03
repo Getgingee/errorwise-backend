@@ -246,8 +246,8 @@ exports.resetPassword = async (req, res) => {
         // Find user with valid token
         const user = await User.findOne({
             where: {
-                passwordResetToken: token,
-                passwordResetExpires: {
+                '$reset_password_token$': token,
+                '$reset_password_expires$': {
                     [require('sequelize').Op.gt]: new Date()
                 }
             }
