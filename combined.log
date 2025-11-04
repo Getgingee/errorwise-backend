@@ -5241,3 +5241,630 @@
 {"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T09:08:48.869Z"}
 {"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T09:08:49.639Z"}
 {"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T09:08:52.589Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T09:19:28.520Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T09:19:28.593Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T09:19:30.342Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T09:19:32.732Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T09:24:30.812Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T09:24:30.883Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T09:24:32.518Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T09:24:34.495Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T09:24:39.460Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T09:24:39.468Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T09:24:40.773Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T09:24:42.825Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T09:24:51.056Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T09:24:51.099Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T09:24:54.315Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T09:24:54.335Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T09:24:56.155Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T09:24:58.175Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T09:25:32.117Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T09:25:32.140Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T09:25:34.314Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T09:25:34.323Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T09:25:35.770Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T09:25:37.731Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T09:27:13.553Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T09:27:13.598Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T09:27:15.395Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T09:27:16.997Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T09:36:52.558Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T09:36:52.595Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T09:36:54.229Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T09:36:57.258Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T09:48:15.871Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T09:48:15.898Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T09:48:18.021Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T09:48:19.800Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:19:56.595Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:19:56.614Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:19:58.038Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:20:01.237Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:20:11.559Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:20:11.570Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:20:13.384Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:20:16.472Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:20:16.515Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:20:17.500Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:20:20.500Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:20:54.526Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:20:54.542Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:20:57.423Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:20:59.627Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:21:21.593Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:21:21.604Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:21:23.265Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:21:25.553Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:21:32.059Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:21:32.068Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:21:33.192Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:21:35.724Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:21:35.739Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:21:37.440Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:21:39.628Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:22:12.739Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:22:12.754Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:22:14.520Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:22:16.523Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:22:31.182Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:22:31.205Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:22:32.780Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:22:35.228Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:22:59.597Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:22:59.614Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:23:00.649Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:23:03.228Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:23:13.507Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:23:13.517Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:23:15.019Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:23:17.708Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:23:45.040Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:23:45.050Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:23:46.578Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:23:48.832Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:24:53.603Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:24:53.620Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:24:55.569Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:24:58.805Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:25:37.868Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:25:37.911Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:25:39.391Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:25:43.201Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:26:36.955Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:26:37.034Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:26:38.586Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:26:40.680Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:26:59.688Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:26:59.704Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:27:01.709Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:27:03.349Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:27:16.139Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:27:16.150Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:27:17.053Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:27:20.388Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:27:58.944Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:27:59.181Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:28:01.379Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:28:02.762Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:28:27.131Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:28:27.145Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:28:28.922Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:28:30.778Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:28:58.352Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:28:58.370Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:28:59.450Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:29:02.032Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:29:43.104Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:29:43.203Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:29:44.650Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:29:46.699Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:30:26.581Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:30:26.613Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:30:28.109Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:30:31.482Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:41:06.708Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:41:06.727Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:41:09.316Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:41:10.453Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T10:59:32.903Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T10:59:33.026Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T10:59:35.295Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T10:59:36.641Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T11:01:39.573Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T11:01:39.590Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T11:01:41.053Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T11:01:43.139Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T11:05:04.037Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T11:05:04.087Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T11:05:05.173Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T11:05:07.374Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T11:09:35.439Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T11:09:35.669Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T11:10:18.165Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T11:10:18.185Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T11:10:19.271Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T11:10:22.213Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T11:35:18.070Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T11:35:18.093Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T11:35:19.839Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T11:35:22.162Z"}
+{"email":"pankajkrjain@outlook.com","level":"info","message":"Password reset email sent","service":"errorwise-backend","timestamp":"2025-11-03T11:39:54.023Z","userId":"a4296d9d-c7bc-46f2-9628-e986a3f56bc8"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T11:48:32.735Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T11:48:32.752Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T11:48:34.780Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T11:48:36.221Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T11:50:48.069Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T11:50:48.085Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T11:50:49.809Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T11:50:51.675Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T12:32:14.033Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T12:32:14.056Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T12:32:15.986Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T12:32:19.181Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T12:48:45.922Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T12:48:45.946Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T12:48:47.396Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T12:48:49.556Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T13:19:00.829Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T13:19:00.855Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T13:19:03.132Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T13:19:04.387Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T15:44:05.278Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T15:44:05.376Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T15:44:07.113Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T15:44:10.835Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T15:46:18.364Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T15:46:18.624Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T15:46:38.287Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T15:46:38.314Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T15:46:40.139Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T15:46:42.098Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T15:52:48.744Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T15:52:48.830Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T15:52:50.324Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T15:52:52.937Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T15:57:54.199Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T15:57:54.237Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T15:57:55.995Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T15:57:57.894Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T15:58:43.697Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T15:58:43.875Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T15:59:30.638Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T15:59:30.666Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T15:59:32.383Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T15:59:35.105Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T16:05:08.207Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T16:05:08.263Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T16:05:10.888Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T16:05:14.705Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T16:05:44.262Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T16:05:44.294Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T16:05:45.976Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T16:05:47.963Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T16:06:08.527Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T16:06:08.560Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T16:06:16.310Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T16:06:16.323Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T16:06:17.738Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T16:06:20.069Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T16:06:31.107Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T16:06:31.117Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T16:06:32.041Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T16:06:34.704Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T16:06:39.506Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T16:06:39.515Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-03T16:07:18.833Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-03T16:07:18.902Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-03T16:07:19.953Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-03T16:07:22.218Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T03:26:23.685Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T03:26:23.909Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T03:26:26.490Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T03:26:27.535Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T03:26:48.756Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T03:26:48.784Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T03:26:50.616Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T03:26:53.583Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T03:27:28.940Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T03:27:28.975Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T03:27:30.704Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T03:27:33.070Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T03:27:37.326Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T03:27:37.338Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T03:27:38.458Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T03:27:41.554Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T03:31:40.740Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T03:31:40.815Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T03:31:43.405Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T03:31:44.408Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T03:31:58.461Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T03:31:58.908Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T03:32:01.938Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T03:32:03.322Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T03:41:49.956Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T03:41:50.032Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T03:41:51.962Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T03:41:53.583Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T03:43:59.555Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T03:43:59.636Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T03:44:03.263Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T03:44:04.797Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T03:44:31.644Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T03:44:31.745Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T03:44:35.154Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T03:44:35.941Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T03:44:48.596Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T03:44:48.626Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T03:44:50.955Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T03:44:52.429Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T03:45:12.186Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T03:45:12.223Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T03:45:13.817Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T03:45:15.970Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T03:49:36.246Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T03:49:36.296Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T03:49:38.354Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T03:49:39.788Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T03:51:08.991Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T03:51:09.032Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T03:51:10.516Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T03:51:13.077Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T03:58:38.839Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T03:58:38.951Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T03:58:40.089Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T03:58:43.519Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T04:02:20.540Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T04:02:20.584Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T04:02:21.672Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:02:24.122Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T04:11:12.357Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T04:11:12.455Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T04:11:14.887Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:11:18.894Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T04:34:26.662Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T04:34:26.998Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T04:34:28.588Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:34:30.412Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T04:41:47.290Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T04:41:47.461Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T04:41:48.977Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:41:50.972Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T04:47:37.075Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T04:47:37.113Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T04:47:38.887Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:47:40.680Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:49:16.497Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:49:16.501Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:49:16.584Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:49:16.600Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T04:49:38.882Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T04:49:38.889Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:49:40.219Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:49:40.291Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:49:40.315Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:49:40.319Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T04:49:41.473Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T04:49:41.482Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:49:42.822Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:49:42.837Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:49:42.887Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:49:42.903Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T04:49:43.711Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T04:49:43.723Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:49:44.457Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:49:44.488Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:49:44.525Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:49:44.533Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T04:49:53.774Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T04:49:53.783Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:49:55.017Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:49:55.020Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:49:55.057Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:49:55.072Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T04:50:10.731Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T04:50:10.740Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:50:12.222Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:50:12.299Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:50:12.340Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:50:12.355Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:50:13.120Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:50:13.129Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:50:13.147Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:50:13.151Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:50:14.757Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:50:14.764Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:50:14.793Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:50:14.800Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:51:20.093Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:51:20.219Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:51:22.977Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:51:22.987Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:51:58.387Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:51:58.600Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:51:58.669Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:51:58.688Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T04:52:16.603Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T04:52:16.615Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:52:34.349Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:52:34.421Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T04:52:34.474Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T04:52:34.502Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:07:53.446Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:07:53.547Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:07:56.080Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:07:58.460Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:08:26.235Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:08:26.277Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:08:28.365Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:08:29.679Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:08:41.502Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:08:41.515Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:08:43.358Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:08:46.752Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:09:42.892Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:09:42.917Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:09:43.991Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:09:46.590Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:13:07.787Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:13:07.849Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:13:11.306Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:13:13.039Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:13:21.065Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:13:21.104Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:13:22.037Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:13:24.513Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:15:17.723Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:15:17.778Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:15:19.961Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:15:21.677Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:15:26.962Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:15:26.984Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:15:29.648Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:15:30.443Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:15:51.450Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:15:51.468Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:15:53.253Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:15:55.273Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:21:06.470Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:21:06.540Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:21:08.062Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:21:10.182Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:21:24.100Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:21:24.250Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:21:27.751Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:21:28.530Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:22:52.674Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:22:52.738Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:22:53.973Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:22:56.507Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:23:01.089Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:23:01.110Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:23:03.116Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:23:05.024Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:24:29.762Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:24:29.977Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:24:32.918Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:24:33.975Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:25:18.497Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:25:18.547Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:25:20.493Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:25:22.160Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:26:52.405Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:26:52.696Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:26:55.722Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:26:56.187Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:27:37.661Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:27:37.756Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:27:41.049Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:27:44.729Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:29:57.264Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:29:57.308Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:29:58.575Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:30:00.880Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:34:23.191Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:34:23.290Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:34:24.852Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:34:26.630Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T05:34:52.976Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:34:52.989Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T05:34:53.075Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:34:53.091Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T05:34:58.797Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T05:34:58.806Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T05:35:00.208Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:35:00.218Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T05:35:00.236Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:35:00.240Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T05:35:01.377Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:35:01.385Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T05:35:01.421Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:35:01.429Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T05:35:40.978Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:35:41.155Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"info","message":"User logged out","service":"errorwise-backend","timestamp":"2025-11-04T05:35:41.158Z","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:49:01.114Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:49:01.204Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:49:03.526Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:49:04.902Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:49:10.974Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:49:10.997Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:49:11.971Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:49:15.272Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:52:05.002Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:52:05.073Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:52:07.088Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:52:08.458Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:53:09.765Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:53:09.838Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:53:11.802Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:53:14.347Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:53:20.355Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:53:20.372Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:53:22.180Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:53:23.991Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T05:54:11.121Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T05:54:11.156Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T05:54:12.904Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T05:54:15.292Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:03:25.042Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:03:25.123Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T06:03:27.501Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:03:29.058Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:03:45.074Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:03:45.124Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T06:03:46.586Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:03:48.618Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:05:49.930Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:05:50.049Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:05:51.370Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T06:05:51.930Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:06:02.015Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:06:02.068Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:06:02.714Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T06:06:04.355Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:06:27.600Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:06:27.647Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:06:28.262Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T06:06:29.713Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:06:43.101Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:06:43.112Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T06:06:44.029Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:06:44.230Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:07:05.118Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:07:05.479Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:07:06.547Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T06:07:07.357Z"}
+{"level":"info","message":"Email sent (dev):","messageId":"<374c4295-895f-11ba-1195-7a4dae8b138e@errorwise.tech>","previewUrl":false,"service":"errorwise-backend","timestamp":"2025-11-04T06:12:33.589Z"}
+{"email":"pankaj@getgingee.com","level":"info","message":"Password reset email sent","service":"errorwise-backend","timestamp":"2025-11-04T06:12:33.622Z","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:12:51.922Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:12:52.183Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:12:52.956Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:13:52.103Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:13:52.253Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:13:53.023Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:18:19.720Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:18:19.917Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:18:21.114Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:18:32.575Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:18:32.682Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:18:34.079Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:21:30.627Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:21:30.660Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:21:32.164Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T06:21:32.244Z"}
+{"level":"info","message":"Email sent (dev):","messageId":"<ade40c35-1699-9288-fff5-308f60a851bb@errorwise.tech>","previewUrl":false,"service":"errorwise-backend","timestamp":"2025-11-04T06:22:03.962Z"}
+{"email":"pankaj@getgingee.com","level":"info","message":"Password reset email sent","service":"errorwise-backend","timestamp":"2025-11-04T06:22:03.963Z","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"error","message":"Reset password error: column User.passwordResetToken does not exist","name":"SequelizeDatabaseError","original":{"code":"42703","file":"parse_relation.c","length":123,"line":"3827","name":"error","position":"1154","routine":"errorMissingColumn","severity":"ERROR","sql":"SELECT \"id\", \"username\", \"email\", \"password\", \"reset_password_token\" AS \"resetPasswordToken\", \"reset_password_expires\" AS \"resetPasswordExpires\", \"is_active\" AS \"isActive\", \"role\", \"subscription_tier\" AS \"subscriptionTier\", \"subscription_status\" AS \"subscriptionStatus\", \"subscription_end_date\" AS \"subscriptionEndDate\", \"subscription_start_date\" AS \"subscriptionStartDate\", \"trial_ends_at\" AS \"trialEndsAt\", \"deleted_at\" AS \"deletedAt\", \"email_verification_token\" AS \"emailVerificationToken\", \"email_verification_expires\" AS \"emailVerificationExpires\", \"is_email_verified\" AS \"isEmailVerified\", \"google_id\" AS \"googleId\", \"phone_number\" AS \"phoneNumber\", \"is_phone_verified\" AS \"isPhoneVerified\", \"phone_verification_token\" AS \"phoneVerificationToken\", \"phone_verification_expires\" AS \"phoneVerificationExpires\", \"original_registration_date\" AS \"originalRegistrationDate\", \"account_recreation_count\" AS \"accountRecreationCount\", \"last_login_at\" AS \"lastLoginAt\", \"login_otp\" AS \"loginOTP\", \"login_otp_expires\" AS \"loginOTPExpires\", \"created_at\" AS \"createdAt\", \"updated_at\" AS \"updatedAt\" FROM \"users\" AS \"User\" WHERE (\"User\".\"deleted_at\" IS NULL AND (\"User\".\"passwordResetToken\" = '35238e925fcf950947ffa28f90405eccc5b0558ac6b968839af0a2d2786f3bfe' AND \"User\".\"passwordResetExpires\" > '2025-11-04 06:22:58.891 +00:00')) LIMIT 1;"},"parameters":{},"parent":{"code":"42703","file":"parse_relation.c","length":123,"line":"3827","name":"error","position":"1154","routine":"errorMissingColumn","severity":"ERROR","sql":"SELECT \"id\", \"username\", \"email\", \"password\", \"reset_password_token\" AS \"resetPasswordToken\", \"reset_password_expires\" AS \"resetPasswordExpires\", \"is_active\" AS \"isActive\", \"role\", \"subscription_tier\" AS \"subscriptionTier\", \"subscription_status\" AS \"subscriptionStatus\", \"subscription_end_date\" AS \"subscriptionEndDate\", \"subscription_start_date\" AS \"subscriptionStartDate\", \"trial_ends_at\" AS \"trialEndsAt\", \"deleted_at\" AS \"deletedAt\", \"email_verification_token\" AS \"emailVerificationToken\", \"email_verification_expires\" AS \"emailVerificationExpires\", \"is_email_verified\" AS \"isEmailVerified\", \"google_id\" AS \"googleId\", \"phone_number\" AS \"phoneNumber\", \"is_phone_verified\" AS \"isPhoneVerified\", \"phone_verification_token\" AS \"phoneVerificationToken\", \"phone_verification_expires\" AS \"phoneVerificationExpires\", \"original_registration_date\" AS \"originalRegistrationDate\", \"account_recreation_count\" AS \"accountRecreationCount\", \"last_login_at\" AS \"lastLoginAt\", \"login_otp\" AS \"loginOTP\", \"login_otp_expires\" AS \"loginOTPExpires\", \"created_at\" AS \"createdAt\", \"updated_at\" AS \"updatedAt\" FROM \"users\" AS \"User\" WHERE (\"User\".\"deleted_at\" IS NULL AND (\"User\".\"passwordResetToken\" = '35238e925fcf950947ffa28f90405eccc5b0558ac6b968839af0a2d2786f3bfe' AND \"User\".\"passwordResetExpires\" > '2025-11-04 06:22:58.891 +00:00')) LIMIT 1;"},"service":"errorwise-backend","sql":"SELECT \"id\", \"username\", \"email\", \"password\", \"reset_password_token\" AS \"resetPasswordToken\", \"reset_password_expires\" AS \"resetPasswordExpires\", \"is_active\" AS \"isActive\", \"role\", \"subscription_tier\" AS \"subscriptionTier\", \"subscription_status\" AS \"subscriptionStatus\", \"subscription_end_date\" AS \"subscriptionEndDate\", \"subscription_start_date\" AS \"subscriptionStartDate\", \"trial_ends_at\" AS \"trialEndsAt\", \"deleted_at\" AS \"deletedAt\", \"email_verification_token\" AS \"emailVerificationToken\", \"email_verification_expires\" AS \"emailVerificationExpires\", \"is_email_verified\" AS \"isEmailVerified\", \"google_id\" AS \"googleId\", \"phone_number\" AS \"phoneNumber\", \"is_phone_verified\" AS \"isPhoneVerified\", \"phone_verification_token\" AS \"phoneVerificationToken\", \"phone_verification_expires\" AS \"phoneVerificationExpires\", \"original_registration_date\" AS \"originalRegistrationDate\", \"account_recreation_count\" AS \"accountRecreationCount\", \"last_login_at\" AS \"lastLoginAt\", \"login_otp\" AS \"loginOTP\", \"login_otp_expires\" AS \"loginOTPExpires\", \"created_at\" AS \"createdAt\", \"updated_at\" AS \"updatedAt\" FROM \"users\" AS \"User\" WHERE (\"User\".\"deleted_at\" IS NULL AND (\"User\".\"passwordResetToken\" = '35238e925fcf950947ffa28f90405eccc5b0558ac6b968839af0a2d2786f3bfe' AND \"User\".\"passwordResetExpires\" > '2025-11-04 06:22:58.891 +00:00')) LIMIT 1;","stack":"Error\n    at Query.run (C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\sequelize\\lib\\dialects\\postgres\\query.js:50:25)\n    at C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\sequelize\\lib\\sequelize.js:315:28\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async PostgresQueryInterface.select (C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\sequelize\\lib\\dialects\\abstract\\query-interface.js:407:12)\n    at async User.findAll (C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\sequelize\\lib\\model.js:1140:21)\n    at async User.findOne (C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\sequelize\\lib\\model.js:1240:12)\n    at async exports.resetPassword (C:\\Users\\panka\\Getgingee\\errorwise-backend\\src\\controllers\\authController.js:319:22)","timestamp":"2025-11-04T06:22:59.071Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:27:06.638Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:27:06.732Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:27:07.269Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T06:27:08.615Z"}
+{"level":"info","message":"Email sent (dev):","messageId":"<56300e08-562a-1697-e04a-890d1823dbdf@errorwise.tech>","previewUrl":false,"service":"errorwise-backend","timestamp":"2025-11-04T06:27:21.673Z"}
+{"email":"pankaj@getgingee.com","level":"info","message":"Password reset email sent","service":"errorwise-backend","timestamp":"2025-11-04T06:27:21.677Z","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"error","message":"Reset password error: column User.passwordResetToken does not exist","name":"SequelizeDatabaseError","original":{"code":"42703","file":"parse_relation.c","length":123,"line":"3827","name":"error","position":"1154","routine":"errorMissingColumn","severity":"ERROR","sql":"SELECT \"id\", \"username\", \"email\", \"password\", \"reset_password_token\" AS \"resetPasswordToken\", \"reset_password_expires\" AS \"resetPasswordExpires\", \"is_active\" AS \"isActive\", \"role\", \"subscription_tier\" AS \"subscriptionTier\", \"subscription_status\" AS \"subscriptionStatus\", \"subscription_end_date\" AS \"subscriptionEndDate\", \"subscription_start_date\" AS \"subscriptionStartDate\", \"trial_ends_at\" AS \"trialEndsAt\", \"deleted_at\" AS \"deletedAt\", \"email_verification_token\" AS \"emailVerificationToken\", \"email_verification_expires\" AS \"emailVerificationExpires\", \"is_email_verified\" AS \"isEmailVerified\", \"google_id\" AS \"googleId\", \"phone_number\" AS \"phoneNumber\", \"is_phone_verified\" AS \"isPhoneVerified\", \"phone_verification_token\" AS \"phoneVerificationToken\", \"phone_verification_expires\" AS \"phoneVerificationExpires\", \"original_registration_date\" AS \"originalRegistrationDate\", \"account_recreation_count\" AS \"accountRecreationCount\", \"last_login_at\" AS \"lastLoginAt\", \"login_otp\" AS \"loginOTP\", \"login_otp_expires\" AS \"loginOTPExpires\", \"created_at\" AS \"createdAt\", \"updated_at\" AS \"updatedAt\" FROM \"users\" AS \"User\" WHERE (\"User\".\"deleted_at\" IS NULL AND (\"User\".\"passwordResetToken\" = '509002824de631d38634ae5393811d29a320d0ae573fb96b68eade7d8a9da745' AND \"User\".\"passwordResetExpires\" > '2025-11-04 06:27:56.827 +00:00')) LIMIT 1;"},"parameters":{},"parent":{"code":"42703","file":"parse_relation.c","length":123,"line":"3827","name":"error","position":"1154","routine":"errorMissingColumn","severity":"ERROR","sql":"SELECT \"id\", \"username\", \"email\", \"password\", \"reset_password_token\" AS \"resetPasswordToken\", \"reset_password_expires\" AS \"resetPasswordExpires\", \"is_active\" AS \"isActive\", \"role\", \"subscription_tier\" AS \"subscriptionTier\", \"subscription_status\" AS \"subscriptionStatus\", \"subscription_end_date\" AS \"subscriptionEndDate\", \"subscription_start_date\" AS \"subscriptionStartDate\", \"trial_ends_at\" AS \"trialEndsAt\", \"deleted_at\" AS \"deletedAt\", \"email_verification_token\" AS \"emailVerificationToken\", \"email_verification_expires\" AS \"emailVerificationExpires\", \"is_email_verified\" AS \"isEmailVerified\", \"google_id\" AS \"googleId\", \"phone_number\" AS \"phoneNumber\", \"is_phone_verified\" AS \"isPhoneVerified\", \"phone_verification_token\" AS \"phoneVerificationToken\", \"phone_verification_expires\" AS \"phoneVerificationExpires\", \"original_registration_date\" AS \"originalRegistrationDate\", \"account_recreation_count\" AS \"accountRecreationCount\", \"last_login_at\" AS \"lastLoginAt\", \"login_otp\" AS \"loginOTP\", \"login_otp_expires\" AS \"loginOTPExpires\", \"created_at\" AS \"createdAt\", \"updated_at\" AS \"updatedAt\" FROM \"users\" AS \"User\" WHERE (\"User\".\"deleted_at\" IS NULL AND (\"User\".\"passwordResetToken\" = '509002824de631d38634ae5393811d29a320d0ae573fb96b68eade7d8a9da745' AND \"User\".\"passwordResetExpires\" > '2025-11-04 06:27:56.827 +00:00')) LIMIT 1;"},"service":"errorwise-backend","sql":"SELECT \"id\", \"username\", \"email\", \"password\", \"reset_password_token\" AS \"resetPasswordToken\", \"reset_password_expires\" AS \"resetPasswordExpires\", \"is_active\" AS \"isActive\", \"role\", \"subscription_tier\" AS \"subscriptionTier\", \"subscription_status\" AS \"subscriptionStatus\", \"subscription_end_date\" AS \"subscriptionEndDate\", \"subscription_start_date\" AS \"subscriptionStartDate\", \"trial_ends_at\" AS \"trialEndsAt\", \"deleted_at\" AS \"deletedAt\", \"email_verification_token\" AS \"emailVerificationToken\", \"email_verification_expires\" AS \"emailVerificationExpires\", \"is_email_verified\" AS \"isEmailVerified\", \"google_id\" AS \"googleId\", \"phone_number\" AS \"phoneNumber\", \"is_phone_verified\" AS \"isPhoneVerified\", \"phone_verification_token\" AS \"phoneVerificationToken\", \"phone_verification_expires\" AS \"phoneVerificationExpires\", \"original_registration_date\" AS \"originalRegistrationDate\", \"account_recreation_count\" AS \"accountRecreationCount\", \"last_login_at\" AS \"lastLoginAt\", \"login_otp\" AS \"loginOTP\", \"login_otp_expires\" AS \"loginOTPExpires\", \"created_at\" AS \"createdAt\", \"updated_at\" AS \"updatedAt\" FROM \"users\" AS \"User\" WHERE (\"User\".\"deleted_at\" IS NULL AND (\"User\".\"passwordResetToken\" = '509002824de631d38634ae5393811d29a320d0ae573fb96b68eade7d8a9da745' AND \"User\".\"passwordResetExpires\" > '2025-11-04 06:27:56.827 +00:00')) LIMIT 1;","stack":"Error\n    at Query.run (C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\sequelize\\lib\\dialects\\postgres\\query.js:50:25)\n    at C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\sequelize\\lib\\sequelize.js:315:28\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async PostgresQueryInterface.select (C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\sequelize\\lib\\dialects\\abstract\\query-interface.js:407:12)\n    at async User.findAll (C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\sequelize\\lib\\model.js:1140:21)\n    at async User.findOne (C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\sequelize\\lib\\model.js:1240:12)\n    at async exports.resetPassword (C:\\Users\\panka\\Getgingee\\errorwise-backend\\src\\controllers\\authController.js:319:22)","timestamp":"2025-11-04T06:27:56.962Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:30:23.595Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:30:23.658Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:30:31.771Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:30:31.822Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:30:33.254Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T06:30:33.750Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:31:16.655Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:31:16.686Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:31:17.294Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T06:31:18.697Z"}
+{"level":"info","message":"Email sent (dev):","messageId":"<2d76dc00-8eda-19ad-052b-4fd8531ffb51@errorwise.tech>","previewUrl":false,"service":"errorwise-backend","timestamp":"2025-11-04T06:32:03.899Z"}
+{"email":"pankaj@getgingee.com","level":"info","message":"Password reset email sent","service":"errorwise-backend","timestamp":"2025-11-04T06:32:03.905Z","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"error","message":"Reset password error: column User.passwordResetToken does not exist","name":"SequelizeDatabaseError","original":{"code":"42703","file":"parse_relation.c","length":123,"line":"3827","name":"error","position":"1154","routine":"errorMissingColumn","severity":"ERROR","sql":"SELECT \"id\", \"username\", \"email\", \"password\", \"reset_password_token\" AS \"resetPasswordToken\", \"reset_password_expires\" AS \"resetPasswordExpires\", \"is_active\" AS \"isActive\", \"role\", \"subscription_tier\" AS \"subscriptionTier\", \"subscription_status\" AS \"subscriptionStatus\", \"subscription_end_date\" AS \"subscriptionEndDate\", \"subscription_start_date\" AS \"subscriptionStartDate\", \"trial_ends_at\" AS \"trialEndsAt\", \"deleted_at\" AS \"deletedAt\", \"email_verification_token\" AS \"emailVerificationToken\", \"email_verification_expires\" AS \"emailVerificationExpires\", \"is_email_verified\" AS \"isEmailVerified\", \"google_id\" AS \"googleId\", \"phone_number\" AS \"phoneNumber\", \"is_phone_verified\" AS \"isPhoneVerified\", \"phone_verification_token\" AS \"phoneVerificationToken\", \"phone_verification_expires\" AS \"phoneVerificationExpires\", \"original_registration_date\" AS \"originalRegistrationDate\", \"account_recreation_count\" AS \"accountRecreationCount\", \"last_login_at\" AS \"lastLoginAt\", \"login_otp\" AS \"loginOTP\", \"login_otp_expires\" AS \"loginOTPExpires\", \"created_at\" AS \"createdAt\", \"updated_at\" AS \"updatedAt\" FROM \"users\" AS \"User\" WHERE (\"User\".\"deleted_at\" IS NULL AND (\"User\".\"passwordResetToken\" = 'f2e6154b7cdaf53413c2235867a4d7769b1975ec49bc642120b020ceff8047d8' AND \"User\".\"passwordResetExpires\" > '2025-11-04 06:32:30.868 +00:00')) LIMIT 1;"},"parameters":{},"parent":{"code":"42703","file":"parse_relation.c","length":123,"line":"3827","name":"error","position":"1154","routine":"errorMissingColumn","severity":"ERROR","sql":"SELECT \"id\", \"username\", \"email\", \"password\", \"reset_password_token\" AS \"resetPasswordToken\", \"reset_password_expires\" AS \"resetPasswordExpires\", \"is_active\" AS \"isActive\", \"role\", \"subscription_tier\" AS \"subscriptionTier\", \"subscription_status\" AS \"subscriptionStatus\", \"subscription_end_date\" AS \"subscriptionEndDate\", \"subscription_start_date\" AS \"subscriptionStartDate\", \"trial_ends_at\" AS \"trialEndsAt\", \"deleted_at\" AS \"deletedAt\", \"email_verification_token\" AS \"emailVerificationToken\", \"email_verification_expires\" AS \"emailVerificationExpires\", \"is_email_verified\" AS \"isEmailVerified\", \"google_id\" AS \"googleId\", \"phone_number\" AS \"phoneNumber\", \"is_phone_verified\" AS \"isPhoneVerified\", \"phone_verification_token\" AS \"phoneVerificationToken\", \"phone_verification_expires\" AS \"phoneVerificationExpires\", \"original_registration_date\" AS \"originalRegistrationDate\", \"account_recreation_count\" AS \"accountRecreationCount\", \"last_login_at\" AS \"lastLoginAt\", \"login_otp\" AS \"loginOTP\", \"login_otp_expires\" AS \"loginOTPExpires\", \"created_at\" AS \"createdAt\", \"updated_at\" AS \"updatedAt\" FROM \"users\" AS \"User\" WHERE (\"User\".\"deleted_at\" IS NULL AND (\"User\".\"passwordResetToken\" = 'f2e6154b7cdaf53413c2235867a4d7769b1975ec49bc642120b020ceff8047d8' AND \"User\".\"passwordResetExpires\" > '2025-11-04 06:32:30.868 +00:00')) LIMIT 1;"},"service":"errorwise-backend","sql":"SELECT \"id\", \"username\", \"email\", \"password\", \"reset_password_token\" AS \"resetPasswordToken\", \"reset_password_expires\" AS \"resetPasswordExpires\", \"is_active\" AS \"isActive\", \"role\", \"subscription_tier\" AS \"subscriptionTier\", \"subscription_status\" AS \"subscriptionStatus\", \"subscription_end_date\" AS \"subscriptionEndDate\", \"subscription_start_date\" AS \"subscriptionStartDate\", \"trial_ends_at\" AS \"trialEndsAt\", \"deleted_at\" AS \"deletedAt\", \"email_verification_token\" AS \"emailVerificationToken\", \"email_verification_expires\" AS \"emailVerificationExpires\", \"is_email_verified\" AS \"isEmailVerified\", \"google_id\" AS \"googleId\", \"phone_number\" AS \"phoneNumber\", \"is_phone_verified\" AS \"isPhoneVerified\", \"phone_verification_token\" AS \"phoneVerificationToken\", \"phone_verification_expires\" AS \"phoneVerificationExpires\", \"original_registration_date\" AS \"originalRegistrationDate\", \"account_recreation_count\" AS \"accountRecreationCount\", \"last_login_at\" AS \"lastLoginAt\", \"login_otp\" AS \"loginOTP\", \"login_otp_expires\" AS \"loginOTPExpires\", \"created_at\" AS \"createdAt\", \"updated_at\" AS \"updatedAt\" FROM \"users\" AS \"User\" WHERE (\"User\".\"deleted_at\" IS NULL AND (\"User\".\"passwordResetToken\" = 'f2e6154b7cdaf53413c2235867a4d7769b1975ec49bc642120b020ceff8047d8' AND \"User\".\"passwordResetExpires\" > '2025-11-04 06:32:30.868 +00:00')) LIMIT 1;","stack":"Error\n    at Query.run (C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\sequelize\\lib\\dialects\\postgres\\query.js:50:25)\n    at C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\sequelize\\lib\\sequelize.js:315:28\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async PostgresQueryInterface.select (C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\sequelize\\lib\\dialects\\abstract\\query-interface.js:407:12)\n    at async User.findAll (C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\sequelize\\lib\\model.js:1140:21)\n    at async User.findOne (C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\sequelize\\lib\\model.js:1240:12)\n    at async exports.resetPassword (C:\\Users\\panka\\Getgingee\\errorwise-backend\\src\\controllers\\authController.js:319:22)","timestamp":"2025-11-04T06:32:30.937Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:34:40.118Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:34:40.307Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:34:41.901Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T06:34:44.324Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T06:34:53.680Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T06:34:53.714Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:34:54.947Z"}
+{"level":"info","message":"Server running on port 3001","service":"errorwise-backend","timestamp":"2025-11-04T06:34:55.827Z"}
+{"level":"info","message":"Email sent (dev):","messageId":"<42443584-b5e8-e8b0-c0a8-ed5f44cdcc17@errorwise.tech>","previewUrl":false,"service":"errorwise-backend","timestamp":"2025-11-04T06:36:39.807Z"}
+{"email":"pankaj@getgingee.com","level":"info","message":"Password reset email sent","service":"errorwise-backend","timestamp":"2025-11-04T06:36:39.811Z","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"email":"pankaj@getgingee.com","level":"info","message":"Password reset successful","service":"errorwise-backend","timestamp":"2025-11-04T06:37:34.606Z","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T06:38:27.839Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:38:27.846Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T06:38:27.931Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T06:38:27.940Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T07:47:36.943Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T07:47:36.992Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T07:48:24.228Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T07:48:24.253Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T07:48:35.601Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T07:48:35.621Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T07:48:43.582Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T07:49:10.626Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T07:49:10.632Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T07:49:10.709Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T07:49:10.722Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T07:49:19.217Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T07:49:19.234Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T07:58:18.722Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T07:58:18.819Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T07:58:34.162Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T07:58:34.406Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T07:58:34.536Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T07:58:34.549Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T07:58:38.664Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T07:58:38.672Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T08:06:04.577Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T08:06:04.602Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:08:13.518Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:08:13.623Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:08:13.682Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:08:13.692Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T08:08:17.559Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T08:08:17.566Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T08:13:00.397Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T08:13:00.414Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:13:35.406Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:13:35.574Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:13:35.701Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:13:35.718Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:14:06.940Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:14:07.042Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:14:12.940Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:14:12.948Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:15:13.108Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:15:13.219Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:15:22.534Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:15:22.539Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T08:16:42.182Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T08:16:42.247Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:16:57.302Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:16:57.393Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:16:57.443Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:16:57.446Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:17:09.271Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:17:09.353Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:17:09.399Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:17:09.410Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T08:22:30.185Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T08:22:30.207Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:29:08.831Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:29:09.144Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:29:09.273Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:29:09.297Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:29:16.061Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:29:16.073Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:29:16.126Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:29:16.145Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:29:45.308Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:29:45.371Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:29:50.288Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:29:50.293Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:30:37.920Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:30:38.146Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:30:47.135Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:30:47.142Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:31:27.758Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:31:28.177Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T08:31:33.316Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:31:33.321Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T09:03:21.770Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T09:03:21.818Z"}
