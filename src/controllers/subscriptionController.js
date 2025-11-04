@@ -36,9 +36,10 @@ const SUBSCRIPTION_TIERS = {
       codeExamples: true,
       documentationLinks: true,
       errorHistory: 'unlimited',
-      teamFeatures: false,
-      aiProvider: 'gpt-3.5-turbo',
-      maxTokens: 1200,
+  teamFeatures: false,
+  // aiProvider: 'gpt-3.5-turbo',
+  aiProvider: 'claude-3-haiku-20240307', // Only Anthropic enabled
+  maxTokens: 1200,
       supportLevel: 'email',
       advancedAnalysis: true,
       priorityQueue: true,
@@ -59,11 +60,12 @@ const SUBSCRIPTION_TIERS = {
       documentationLinks: true,
       errorHistory: 'unlimited',
       teamFeatures: true,
-      teamMembers: 10,
-      sharedHistory: true,
-      teamDashboard: true,
-      aiProvider: 'gpt-4',
-      maxTokens: 2000,
+  teamMembers: 10,
+  sharedHistory: true,
+  teamDashboard: true,
+  // aiProvider: 'gpt-4',
+  aiProvider: 'claude-3-5-sonnet-20241022', // Only Anthropic enabled
+  maxTokens: 2000,
       supportLevel: 'priority',
       advancedAnalysis: true,
       priorityQueue: true,
@@ -188,11 +190,11 @@ exports.getPlans = async (req, res) => {
           const tierConfig = SUBSCRIPTION_TIERS[tierKey] || SUBSCRIPTION_TIERS.free;
           
           return {
-            id: plan.id,
+            id: tierKey, // Use tier key ('free', 'pro', 'team') instead of database ID
             name: plan.name,
             price: parseFloat(plan.price) || 0,
-            interval: plan.interval || 'month',
-            trialDays: plan.trial_days || 0,
+            interval: plan.billing_interval || plan.interval || 'month',
+            trialDays: plan.trial_period_days || plan.trial_days || (tierKey === 'pro' ? 7 : tierKey === 'team' ? 14 : 0),
             features: tierConfig.features, // Use features from SUBSCRIPTION_TIERS
             popular: tierKey === 'pro', // Mark Pro as popular
             description: plan.description || getPlanDescription(tierKey),
@@ -546,6 +548,307 @@ exports.updateSubscription = async (req, res) => {
     res.status(500).json({ error: 'Failed to update subscription' });
   }
 };
+
+// Create checkout session (for frontend compatibility)
+exports.createCheckout = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { planId, successUrl, cancelUrl } = req.body;
+
+    if (!planId || !['pro', 'team'].includes(planId)) {
+      return res.status(400).json({ error: 'Invalid plan ID. Must be "pro" or "team"' });
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const plan = SUBSCRIPTION_TIERS[planId];
+    if (!plan) {
+      return res.status(400).json({ error: 'Invalid plan' });
+    }
+
+    // For development: instant upgrade
+    if (process.env.NODE_ENV === 'development' || !process.env.DODO_API_KEY) {
+      const trialDays = plan.trialDays || 7;
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + trialDays);
+
+      await user.update({
+        subscriptionTier: planId,
+        subscriptionStatus: 'trial',
+        subscriptionStartDate: startDate,
+        subscriptionEndDate: endDate,
+        trialEndsAt: endDate
+      });
+
+      return res.json({
+        success: true,
+        data: {
+          url: `${process.env.FRONTEND_URL}/dashboard?upgraded=true`,
+          sessionId: `dev_session_${Date.now()}`
+        }
+      });
+    }
+
+    // Production: Create payment session
+    const paymentService = require('../services/paymentService');
+    const paymentSession = await paymentService.createPaymentSession({
+      userId: user.id,
+      userEmail: user.email,
+      planId,
+      planName: plan.name,
+      amount: plan.price,
+      currency: 'USD',
+      interval: plan.interval,
+      trialDays: plan.trialDays || 0,
+      successUrl: successUrl || `${process.env.FRONTEND_URL}/dashboard?payment=success`,
+      cancelUrl: cancelUrl || `${process.env.FRONTEND_URL}/pricing?payment=cancelled`
+    });
+
+    if (!paymentSession.success) {
+      return res.status(500).json({ 
+        success: false,
+        error: paymentSession.error 
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        url: paymentSession.sessionUrl,
+        sessionId: paymentSession.sessionId
+      }
+    });
+
+  } catch (error) {
+    console.error('Failed to create checkout session:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to create checkout session',
+      message: error.message 
+    });
+  }
+};
+
+// Get billing information
+exports.getBillingInfo = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Get subscription records
+    const subscriptions = await Subscription.findAll({
+      where: { userId },
+      order: [['createdAt', 'DESC']],
+      limit: 10
+    });
+
+    const currentSubscription = subscriptions.find(s => s.status === 'active' || s.status === 'trial');
+    const plan = SUBSCRIPTION_TIERS[user.subscriptionTier] || SUBSCRIPTION_TIERS.free;
+
+    // Calculate next billing date
+    let nextBillingDate = null;
+    if (user.subscriptionEndDate && user.subscriptionStatus === 'active') {
+      nextBillingDate = new Date(user.subscriptionEndDate);
+    }
+
+    // Calculate billing amount
+    const billingAmount = plan.price;
+    const billingInterval = plan.interval;
+
+    res.json({
+      success: true,
+      data: {
+        currentPlan: {
+          name: plan.name,
+          tier: user.subscriptionTier,
+          price: billingAmount,
+          interval: billingInterval,
+          status: user.subscriptionStatus
+        },
+        billing: {
+          nextBillingDate,
+          amount: billingAmount,
+          currency: 'USD',
+          interval: billingInterval,
+          paymentMethod: currentSubscription?.paymentMethod || 'card',
+          lastPaymentDate: user.subscriptionStartDate
+        },
+        subscription: {
+          startDate: user.subscriptionStartDate,
+          endDate: user.subscriptionEndDate,
+          trialEndsAt: user.trialEndsAt,
+          cancelAtPeriodEnd: user.subscriptionStatus === 'cancelled'
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Failed to fetch billing info:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch billing information' 
+    });
+  }
+};
+
+// Get subscription history
+exports.getHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = parseInt(req.query.offset) || 0;
+
+    // Get subscription changes/transactions
+    const subscriptions = await Subscription.findAll({
+      where: { userId },
+      order: [['createdAt', 'DESC']],
+      limit,
+      offset
+    });
+
+    const total = await Subscription.count({ where: { userId } });
+
+    // Format history
+    const history = subscriptions.map(sub => {
+      const plan = SUBSCRIPTION_TIERS[sub.tier] || SUBSCRIPTION_TIERS.free;
+      return {
+        id: sub.id,
+        tier: sub.tier,
+        planName: plan.name,
+        status: sub.status,
+        amount: plan.price,
+        currency: 'USD',
+        interval: plan.interval,
+        startDate: sub.startDate,
+        endDate: sub.endDate,
+        createdAt: sub.createdAt,
+        updatedAt: sub.updatedAt,
+        action: getActionType(sub)
+      };
+    });
+
+    res.json({
+      success: true,
+      data: {
+        history,
+        pagination: {
+          total,
+          limit,
+          offset,
+          hasMore: offset + limit < total
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Failed to fetch subscription history:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch subscription history' 
+    });
+  }
+};
+
+// Get upgrade options
+exports.getUpgradeOptions = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const currentTier = user.subscriptionTier || 'free';
+    const allTiers = ['free', 'pro', 'team'];
+    const currentIndex = allTiers.indexOf(currentTier);
+
+    // Get available upgrades
+    const upgrades = [];
+    const downgrades = [];
+
+    for (let i = 0; i < allTiers.length; i++) {
+      const tier = allTiers[i];
+      if (tier === currentTier) continue;
+
+      const plan = SUBSCRIPTION_TIERS[tier];
+      const option = {
+        tier,
+        name: plan.name,
+        price: plan.price,
+        interval: plan.interval,
+        trialDays: plan.trialDays || 0,
+        features: plan.features,
+        savings: null,
+        isUpgrade: i > currentIndex,
+        isDowngrade: i < currentIndex,
+        popular: tier === 'pro'
+      };
+
+      // Calculate savings for yearly plans
+      if (plan.interval === 'year') {
+        const monthlyEquivalent = plan.price / 12;
+        const monthlyPlan = SUBSCRIPTION_TIERS[tier === 'proYearly' ? 'pro' : 'team'];
+        if (monthlyPlan) {
+          option.savings = Math.round((monthlyPlan.price * 12 - plan.price) * 100) / 100;
+        }
+      }
+
+      if (i > currentIndex) {
+        upgrades.push(option);
+      } else {
+        downgrades.push(option);
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        currentPlan: {
+          tier: currentTier,
+          name: SUBSCRIPTION_TIERS[currentTier].name,
+          price: SUBSCRIPTION_TIERS[currentTier].price,
+          features: SUBSCRIPTION_TIERS[currentTier].features
+        },
+        upgrades,
+        downgrades,
+        canUpgrade: upgrades.length > 0,
+        canDowngrade: downgrades.length > 0
+      }
+    });
+
+  } catch (error) {
+    console.error('Failed to fetch upgrade options:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch upgrade options' 
+    });
+  }
+};
+
+// Helper function to determine action type
+function getActionType(subscription) {
+  if (subscription.status === 'active' && !subscription.previousTier) {
+    return 'subscribed';
+  } else if (subscription.status === 'cancelled') {
+    return 'cancelled';
+  } else if (subscription.previousTier && subscription.previousTier !== subscription.tier) {
+    return subscription.tier > subscription.previousTier ? 'upgraded' : 'downgraded';
+  } else if (subscription.status === 'trial') {
+    return 'trial_started';
+  } else if (subscription.status === 'expired') {
+    return 'expired';
+  }
+  return 'updated';
+}
 
 // Export subscription tiers for use in other modules
 exports.SUBSCRIPTION_TIERS = SUBSCRIPTION_TIERS;

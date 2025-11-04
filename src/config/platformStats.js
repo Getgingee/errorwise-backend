@@ -196,7 +196,8 @@ const getPlatformCapabilities = () => {
       'Go', 'Rust', 'PHP', 'Ruby', 'C#', 'Swift', 'Kotlin', 
       'Scala', 'R', 'SQL'
     ],
-    aiProviders: ['OpenAI', 'Google Gemini', 'Enhanced Mock'],
+    // aiProviders: ['OpenAI', 'Google Gemini', 'Enhanced Mock'],
+    aiProviders: ['Anthropic Claude', 'Enhanced Mock'], // Only Anthropic enabled
     subscriptionTiers: ['Free', 'Pro', 'Team'],
     uptime: '99.9%',
     responseTime: {

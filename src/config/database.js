@@ -1,9 +1,20 @@
 require('dotenv').config();
 const { Sequelize } = require('sequelize');
 
-const databaseUrl = process.env.DATABASE_URL || 'postgres://postgres:28April2001@23@127.0.0.1:5432/errorwise';
+// Ensure DATABASE_URL is set
+if (!process.env.DATABASE_URL) {
+  console.error('❌ DATABASE_URL environment variable is not set!');
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('DATABASE_URL is required in production');
+  }
+  console.warn('⚠️  Using fallback database URL for development only');
+}
 
-console.log('Connecting to DB with:', databaseUrl);
+const databaseUrl = process.env.DATABASE_URL || 'postgres://postgres:password@localhost:5432/errorwise';
+
+// Log connection (hide password in production)
+const safeUrl = databaseUrl.replace(/:([^:@]+)@/, ':****@');
+console.log('Connecting to DB with:', safeUrl);
 
 const sequelize = new Sequelize(databaseUrl, {
   dialect: 'postgres',

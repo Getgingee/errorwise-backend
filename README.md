@@ -32,10 +32,10 @@
   - Refresh token rotation
 
 - 🤖 **AI-Powered Error Analysis**
-  - OpenAI GPT-4 integration
-  - Google Gemini support
+  - Anthropic Claude integration (Haiku & Sonnet)
   - Context-aware error debugging
   - Solution recommendations
+  - Multi-tier AI models (Free: Haiku, Team: Sonnet)
 
 - 💳 **Subscription Management**
   - Free, Pro, and Team tiers
@@ -60,9 +60,9 @@
 
 | Feature | Free | Pro | Team |
 |---------|------|-----|------|
-| Error Queries/Month | 10 | 500 | 2000 |
-| AI Model | GPT-3.5 | GPT-4 | GPT-4 + Gemini |
-| Context Length | 1000 tokens | 5000 tokens | 10000 tokens |
+| Error Queries/Day | 5 | 50 | Unlimited |
+| AI Model | Claude Haiku | Claude Haiku | Claude Sonnet |
+| Max Tokens | 800 | 1200 | 2000 |
 | Team Members | 1 | 1 | 10 |
 | Rate Limit | 10/min | 50/min | 200/min |
 | Priority Support | ❌ | ✅ | ✅ |
@@ -80,8 +80,8 @@
 - **Authentication:** JWT + bcrypt
 
 ### AI/ML
-- **OpenAI:** GPT-4, GPT-3.5-turbo
-- **Google:** Gemini Pro
+- **Anthropic:** Claude 3.5 Sonnet, Claude 3 Haiku
+- **Fallback:** Enhanced mock responses
 
 ### Payment
 - **Provider:** Dodo Payments
@@ -143,9 +143,10 @@ REDIS_URL=redis://localhost:6379
 JWT_SECRET=your_jwt_secret_here
 JWT_REFRESH_SECRET=your_refresh_secret_here
 
-# AI APIs
-OPENAI_API_KEY=sk-...
-GEMINI_API_KEY=...
+# AI API (ONLY ANTHROPIC ENABLED)
+ANTHROPIC_API_KEY=sk-ant-...
+# OPENAI_API_KEY=sk-... (DISABLED)
+# GEMINI_API_KEY=... (DISABLED)
 
 # Server
 PORT=3001
@@ -198,7 +199,9 @@ psql -d errorwise -c "SELECT 1;"
 - **[REDIS-IMPLEMENTATION.md](./REDIS-IMPLEMENTATION.md)** - Redis configuration & usage
 
 ### Deployment
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Production deployment guide
+- **[QUICK_START_RAILWAY.md](./QUICK_START_RAILWAY.md)** - 🚀 Deploy in 5 steps!
+- **[RAILWAY_DEPLOYMENT.md](./RAILWAY_DEPLOYMENT.md)** - Complete Railway deployment guide
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - General production deployment guide
 
 ### API & Integration
 - **[API-DOCUMENTATION.md](./API-DOCUMENTATION.md)** - Complete API reference

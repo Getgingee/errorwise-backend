@@ -5868,3 +5868,877 @@
 {"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T08:31:33.321Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
 {"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T09:03:21.770Z"}
 {"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T09:03:21.818Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis error:","service":"errorwise-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-04T16:17:29.161Z"}
+{"level":"info","message":"Redis reconnecting...","service":"errorwise-backend","timestamp":"2025-11-04T16:17:29.167Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis error:","service":"errorwise-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-04T16:17:29.172Z"}
+{"level":"info","message":"Redis reconnecting...","service":"errorwise-backend","timestamp":"2025-11-04T16:17:29.225Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis error:","service":"errorwise-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-04T16:17:29.228Z"}
+{"level":"info","message":"Redis reconnecting...","service":"errorwise-backend","timestamp":"2025-11-04T16:17:29.334Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis error:","service":"errorwise-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-04T16:17:29.338Z"}
+{"level":"info","message":"Redis reconnecting...","service":"errorwise-backend","timestamp":"2025-11-04T16:17:29.499Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis error:","service":"errorwise-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-04T16:17:29.503Z"}
+{"level":"info","message":"Redis reconnecting...","service":"errorwise-backend","timestamp":"2025-11-04T16:17:29.715Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis error:","service":"errorwise-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-04T16:17:29.718Z"}
+{"level":"info","message":"Redis reconnecting...","service":"errorwise-backend","timestamp":"2025-11-04T16:17:29.983Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis error:","service":"errorwise-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-04T16:17:29.986Z"}
+{"level":"info","message":"Redis reconnecting...","service":"errorwise-backend","timestamp":"2025-11-04T16:17:30.299Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis error:","service":"errorwise-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-04T16:17:30.303Z"}
+{"level":"info","message":"Redis reconnecting...","service":"errorwise-backend","timestamp":"2025-11-04T16:17:30.658Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis error:","service":"errorwise-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-04T16:17:30.661Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T16:17:30.718Z"}
+{"level":"info","message":"Redis reconnecting...","service":"errorwise-backend","timestamp":"2025-11-04T16:17:31.065Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis error:","service":"errorwise-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-04T16:17:31.070Z"}
+{"level":"info","message":"Redis reconnecting...","service":"errorwise-backend","timestamp":"2025-11-04T16:17:31.533Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis error:","service":"errorwise-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-04T16:17:31.536Z"}
+{"level":"info","message":"Redis reconnecting...","service":"errorwise-backend","timestamp":"2025-11-04T16:17:32.045Z"}
+{"level":"error","message":"Redis: Too many reconnection attempts, giving up","service":"errorwise-backend","timestamp":"2025-11-04T16:17:32.049Z"}
+{"code":"ECONNREFUSED","level":"error","message":"Redis error:","service":"errorwise-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-04T16:17:32.050Z"}
+{"level":"error","message":"Failed to connect to Redis: Redis reconnection failed","originalError":{},"service":"errorwise-backend","socketError":{"code":"ECONNREFUSED"},"stack":"Error: Redis reconnection failed\n    at RedisSocket._RedisSocket_shouldReconnect (C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\@redis\\client\\dist\\lib\\client\\socket.js:140:16)\n    at RedisSocket._RedisSocket_connect (C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\@redis\\client\\dist\\lib\\client\\socket.js:162:117)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Commander.connect (C:\\Users\\panka\\Getgingee\\errorwise-backend\\node_modules\\@redis\\client\\dist\\lib\\client\\index.js:185:9)\n    at async connectRedis (C:\\Users\\panka\\Getgingee\\errorwise-backend\\src\\utils\\redisClient.js:49:7)\n    at async start (C:\\Users\\panka\\Getgingee\\errorwise-backend\\server.js:145:7)","timestamp":"2025-11-04T16:17:32.052Z"}
+{"level":"info","message":"Server running on port 3001 in development mode","service":"errorwise-backend","timestamp":"2025-11-04T16:17:33.770Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T16:17:57.871Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T16:17:57.882Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T16:18:01.264Z"}
+{"level":"info","message":"Server running on port 3001 in development mode","service":"errorwise-backend","timestamp":"2025-11-04T16:18:01.293Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T18:02:49.540Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T18:02:49.665Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T18:02:50.937Z"}
+{"level":"info","message":"Server running on port 3001 in development mode","service":"errorwise-backend","timestamp":"2025-11-04T18:02:51.650Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:04:28.225Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:05:19.072Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T18:05:19.614Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T18:05:19.630Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T18:05:19.751Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T18:05:19.776Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:05:22.619Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:05:22.626Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T18:05:25.408Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T18:05:25.425Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T18:05:25.452Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T18:05:25.459Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:05:28.539Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:05:28.544Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T18:05:29.821Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T18:05:29.824Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T18:05:29.851Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T18:05:29.859Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:05:33.565Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:05:33.572Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T18:05:36.279Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T18:05:36.284Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T18:05:36.303Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T18:05:36.307Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:05:50.345Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:05:50.349Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:09:26.313Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:09:26.379Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T18:36:50.994Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T18:37:32.009Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T18:37:32.508Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T18:37:32.516Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T18:37:32.630Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T18:37:32.643Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:37:35.014Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:37:35.050Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:37:35.069Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:37:35.088Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:37:55.892Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:37:55.967Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:37:55.986Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:37:55.995Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:40:58.082Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:40:58.246Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:40:58.261Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:40:58.277Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T18:42:15.828Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T18:42:15.885Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T18:42:17.116Z"}
+{"level":"info","message":"Server running on port 3001 in development mode","service":"errorwise-backend","timestamp":"2025-11-04T18:42:17.685Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T18:43:28.417Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T18:43:28.545Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T18:43:28.621Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T18:43:28.638Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:43:29.219Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:43:29.242Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:43:29.262Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:43:29.279Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:43:32.438Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:43:32.450Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:43:32.458Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T18:43:32.482Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:03:17.358Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:03:17.607Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:03:17.625Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:03:17.643Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:13.764Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:13.848Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:13.855Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:37.166Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:37.324Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:37.344Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:37.361Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:37.375Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:37.381Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:37.400Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:37.409Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:37.422Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:37.431Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:38.864Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:38.878Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:38.900Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:38.919Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:38.930Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:38.949Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:38.962Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:38.976Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:38.987Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:16:38.999Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T19:18:34.157Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T19:18:34.334Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T19:18:34.417Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T19:18:34.424Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T19:18:39.765Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T19:18:39.787Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T19:18:39.861Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T19:18:39.882Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:18:49.958Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:18:49.975Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:18:49.992Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:18:50.000Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:18:50.009Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:18:50.018Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:18:50.025Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:18:50.034Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:18:50.042Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:18:50.051Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:20:27.445Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:20:27.538Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:20:27.548Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:20:27.558Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:20:27.567Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:20:27.574Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:20:27.585Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:20:27.592Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:20:27.602Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:20:27.610Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:29.686Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:29.874Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:29.891Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:29.911Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:29.934Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:33.371Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:33.402Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:33.483Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:33.536Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:33.587Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:40.667Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:40.681Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:40.691Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:40.703Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:40.719Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:42.727Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:42.747Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:42.764Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:42.781Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:21:42.797Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:15.202Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:16.165Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:16.271Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:16.322Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:16.377Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:16.443Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:16.817Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:16.888Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:16.937Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:16.969Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:20.469Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:20.495Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:20.519Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:20.542Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:20.567Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:22.728Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:22.753Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:22.772Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:22.792Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:22.823Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:26.445Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:26.462Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:26.482Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:26.502Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:26.517Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:33.663Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:33.691Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:33.716Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:33.733Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:23:33.754Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:14.593Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:14.849Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:14.871Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:14.886Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:14.908Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:14.922Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:14.956Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:14.972Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:14.986Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:14.994Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:30.504Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:30.596Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:30.620Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:30.631Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:30.641Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:30.650Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:30.665Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:30.678Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:30.697Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:24:30.703Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:28:34.820Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:28:35.384Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:28:40.702Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:28:47.696Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:28:51.425Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:28:55.364Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:30:54.083Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:34:47.835Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:34:48.277Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:34:48.399Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:34:48.569Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:34:48.699Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:34:49.396Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:34:49.463Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:34:49.538Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:34:49.574Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:34:49.606Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:30.770Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:30.914Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:30.945Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:30.990Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:31.021Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:33.679Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:33.690Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:33.698Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:33.709Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:33.719Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:37.370Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:37.390Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:37.402Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:37.416Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:37.436Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:38.375Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:38.396Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:38.409Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:38.422Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:35:38.431Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T19:36:28.697Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T19:36:28.864Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T19:36:28.915Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T19:36:28.922Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:30.803Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:30.828Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:30.844Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:30.855Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:30.867Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:30.875Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:30.888Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:30.899Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:30.913Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:30.920Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T19:36:32.243Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T19:36:32.251Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T19:36:32.328Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T19:36:32.345Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:40.047Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:40.083Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:40.123Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:40.138Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:40.157Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:40.175Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:40.203Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:40.216Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:40.240Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:40.261Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:47.785Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:36:52.609Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:40:47.451Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:40:47.685Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:40:47.702Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:40:47.722Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:40:47.756Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:40:47.777Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:40:47.799Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:40:47.815Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:40:47.829Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:40:47.836Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T19:42:25.912Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T19:42:26.094Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T19:43:51.425Z"}
+{"level":"info","message":"Server running on port 3001 in development mode","service":"errorwise-backend","timestamp":"2025-11-04T19:43:52.822Z"}
+{"level":"info","message":"Redis client connected","service":"errorwise-backend","timestamp":"2025-11-04T19:46:48.065Z"}
+{"level":"info","message":"Redis client ready to use","service":"errorwise-backend","timestamp":"2025-11-04T19:46:48.128Z"}
+{"level":"info","message":"Email service initialized successfully","service":"errorwise-backend","timestamp":"2025-11-04T19:46:49.527Z"}
+{"level":"info","message":"Server running on port 3001 in development mode","service":"errorwise-backend","timestamp":"2025-11-04T19:46:50.047Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:47:00.491Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:47:00.569Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:47:00.665Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:47:00.700Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:47:00.730Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:47:27.781Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:06.052Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:06.108Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:11.044Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:11.074Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:20.736Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:21.050Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:21.064Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:21.075Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:21.093Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:21.103Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:21.116Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:21.126Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:21.133Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:21.141Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:21.592Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:21.599Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:23.161Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:23.182Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:23.204Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:23.222Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:23.229Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:23.236Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:23.249Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:23.258Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:23.264Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:51:23.274Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:57:37.548Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:57:37.883Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:57:37.910Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:57:37.957Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:57:37.991Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:57:38.005Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:57:38.035Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:57:38.050Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:57:38.070Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:57:38.078Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T19:58:44.457Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:02:06.888Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:02:31.534Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:02:31.709Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:02:31.739Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:02:31.749Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:02:31.763Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:02:31.772Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:02:31.781Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:02:31.790Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:02:31.804Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:02:31.816Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:02:35.208Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:03:09.030Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:03:09.043Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:03:09.184Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:03:09.197Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:12.722Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:12.741Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:12.760Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:12.772Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:12.789Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:12.802Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:12.817Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:12.830Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:12.848Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:12.855Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:03:15.222Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:03:15.228Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:03:15.248Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:03:15.255Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:16.747Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:16.770Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:16.795Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:16.814Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:16.826Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:16.832Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:16.843Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:16.849Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:16.863Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:03:16.878Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:07:32.102Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:07:32.320Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:07:32.405Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:07:32.419Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:08:14.928Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:08:15.181Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:08:15.211Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:08:15.248Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:08:15.284Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:08:15.296Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:08:15.315Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:08:15.324Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:08:15.351Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:08:15.371Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:08:16.871Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:08:16.887Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:08:16.920Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:08:16.928Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:15.744Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:16.158Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:16.168Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:16.182Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:16.203Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:16.224Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:16.246Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:16.260Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:16.278Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:16.291Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:10:29.208Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:10:29.316Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:10:29.362Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:10:29.365Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:10:30.216Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:10:30.230Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:10:30.309Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:10:30.328Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:46.184Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:46.258Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:46.276Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:46.290Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:46.322Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:46.329Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:46.354Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:46.362Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:46.380Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:10:46.393Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:10:50.600Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:10:50.616Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:10:50.706Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:10:50.719Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:12:31.897Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:12:32.804Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:12:32.852Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:12:32.874Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:12:32.910Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:12:32.958Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:12:33.037Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:12:33.077Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:12:33.110Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:12:33.128Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:12:35.264Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:12:35.335Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:12:35.416Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:12:35.428Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:13:49.136Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:13:49.498Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:13:49.716Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:13:49.742Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:13:56.208Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:13:56.230Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:13:56.250Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:13:56.266Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:13:56.298Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:13:56.318Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:13:56.342Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:13:56.369Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:13:56.394Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:13:56.405Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:13:57.233Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:13:57.255Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:13:57.285Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:13:57.293Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:16:27.031Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:16:27.432Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:16:27.459Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:16:27.485Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:16:27.516Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:16:27.533Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:16:27.582Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:16:27.596Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:16:27.617Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:16:27.631Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:16:34.070Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:24:22.316Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:24:22.744Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:24:22.767Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:24:22.787Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:24:22.826Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:24:48.130Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:24:48.250Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:24:48.333Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:24:48.354Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:27:09.274Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:27:09.519Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:27:09.597Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:27:09.616Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:25.043Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:25.627Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:25.681Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:25.715Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:25.789Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:25.817Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:25.903Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:25.925Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:25.971Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:25.988Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:29:27.950Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:29:27.980Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:29:28.110Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:29:28.129Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:30.506Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:30.522Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:30.530Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:30.549Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:30.559Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:30.569Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:30.584Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:30.596Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:30.604Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:29:30.638Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:29:42.005Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:29:42.168Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:29:42.240Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:29:42.264Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:44:10.385Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:44:10.515Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:44:10.857Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:44:10.865Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:44:11.048Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:44:11.061Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:44:11.070Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:44:11.079Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:44:12.031Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:44:12.182Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:44:12.219Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:44:12.249Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:44:12.279Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:44:12.295Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:44:12.329Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:44:12.335Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:44:12.349Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:44:12.355Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:44:23.905Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:44:23.995Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:44:24.015Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:44:24.021Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:44:25.894Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:44:25.905Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:44:25.988Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:44:26.007Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:44:38.873Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:44:38.972Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:44:40.343Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:44:40.350Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:44.202Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:44.549Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:44.609Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:44.656Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:44.696Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:44.721Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:44.767Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:44.793Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:44.839Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:44.865Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:46:44.973Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:46:45.004Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:46:45.069Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:46:45.074Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:46.750Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:46.770Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:46.787Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:46.818Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:46.828Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:46.838Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:46.849Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:46.859Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:46.874Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:46:46.922Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:46:48.922Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:46:48.936Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:46:48.971Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:46:48.982Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:46:50.128Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:46:50.154Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:46:50.243Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:46:50.264Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:52:01.979Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:52:02.120Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:52:02.177Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:52:02.190Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:52:39.278Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:52:39.362Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:52:39.376Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:52:39.384Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:52:39.405Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:52:39.413Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:52:39.426Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:52:39.440Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:52:39.478Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T20:52:39.485Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:52:42.959Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:52:42.980Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T20:52:43.138Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T20:52:43.166Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:51.997Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:52.508Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:52.580Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:52.611Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:52.653Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:52.673Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:52.708Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:52.742Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:52.790Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:52.814Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:53.492Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:53.517Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:54.298Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:54.314Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:54.321Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:54.339Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:54.351Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:54.369Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:54.383Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:54.400Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:54.413Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:54.432Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:55.420Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:55.430Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:57.038Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:57.052Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:57.066Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:57.084Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:57.096Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:57.108Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:57.117Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:57.129Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:57.142Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:57.154Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:57.802Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:09:57.832Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:05.439Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:05.449Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:06.289Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:06.307Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:06.324Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:06.345Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:06.376Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:06.403Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:06.428Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:06.440Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:06.451Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:06.460Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:07.321Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:07.335Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:34.438Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:34.658Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:34.675Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:34.695Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:34.727Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:34.744Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:34.770Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:34.786Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:34.809Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:34.818Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:35.388Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:10:35.397Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:02.820Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:03.004Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:03.074Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:03.617Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:03.673Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:03.714Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:03.796Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:03.824Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:03.862Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:03.893Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:03.931Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:03.950Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:05.457Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:05.497Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:06.365Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:06.401Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:06.446Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:06.810Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:06.837Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:06.879Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:06.921Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:06.982Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:07.018Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:07.167Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:07.731Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:12:07.754Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:13:48.447Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:13:49.072Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:13:49.117Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:13:49.139Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:13:49.168Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:13:49.183Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:13:49.232Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:13:49.246Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:13:49.264Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:13:49.277Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:15:00.639Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:15:00.697Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:15:00.766Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:15:00.810Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:15:03.846Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:15:24.303Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:15:24.311Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:15:24.446Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:15:24.455Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:28.463Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:28.589Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:28.624Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:28.643Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:28.667Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:28.680Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:28.699Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:28.717Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:28.741Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:28.762Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:16:30.223Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:16:30.275Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:16:30.360Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:16:30.371Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:32.522Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:32.576Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:32.590Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:32.619Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:32.639Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:32.663Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:32.714Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:32.757Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:32.779Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:16:32.817Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:16:33.431Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:16:33.449Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:16:33.549Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:16:33.606Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:23:07.874Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:23:08.155Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:23:08.168Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:23:08.176Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:23:08.187Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:23:08.194Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:23:08.204Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:23:08.212Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:23:08.223Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:23:08.229Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:23:50.344Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:23:50.493Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:23:50.568Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:23:50.583Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:28:50.815Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:28:51.017Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:29:02.837Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:29:03.068Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:29:09.322Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:29:09.335Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:29:14.076Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:29:14.094Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:29:14.121Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:29:14.127Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:29:14.741Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:29:14.743Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:29:14.761Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:29:14.765Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:29:23.071Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:29:23.111Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:29:23.135Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:29:23.150Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:29:23.176Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:29:23.190Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:29:23.216Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:29:23.244Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:29:23.273Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:29:23.293Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:29:25.087Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:29:25.092Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:29:25.119Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:29:25.129Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:38:00.980Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:38:01.165Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:38:02.262Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:38:02.274Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:26.935Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:27.059Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:27.082Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:27.095Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:27.119Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:27.126Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:27.141Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:27.155Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:27.166Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:27.173Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:37.157Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:38:51.626Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:38:51.784Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:38:51.865Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:38:51.876Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:54.112Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:54.131Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:54.148Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:54.160Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:54.173Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:54.182Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:54.202Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:54.212Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:54.218Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:38:54.228Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:38:54.981Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:38:54.997Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:38:55.033Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:38:55.042Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:08.890Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:08.963Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:08.974Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:08.980Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:08.990Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:08.995Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:09.005Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:09.010Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:09.018Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:09.023Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:39:10.956Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:39:10.963Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:39:11.004Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:39:11.021Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:12.603Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:12.619Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:12.634Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:12.646Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:12.660Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:12.676Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:12.688Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:12.693Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:12.701Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:12.710Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:39:13.507Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:39:13.521Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:39:13.542Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:39:13.550Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:14.678Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:14.692Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:14.709Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:14.721Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:14.730Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:14.739Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:14.745Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:14.755Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:14.762Z"}
+{"level":"warn","message":"Invalid JWT token:","service":"errorwise-backend","timestamp":"2025-11-04T21:39:14.773Z"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:39:15.416Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:39:15.422Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:39:15.472Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:39:15.504Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:39:29.789Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:39:29.903Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:39:30.418Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:39:30.429Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:39:31.173Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:39:31.183Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:41:25.327Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:41:25.529Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:41:54.184Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:41:54.254Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:41:54.296Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:41:54.313Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:42:09.254Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:42:09.498Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:42:09.582Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:42:09.605Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}
+{"level":"warn","message":"Session not found in Redis for token: eyJhbGciOi...","service":"errorwise-backend","timestamp":"2025-11-04T21:42:14.691Z"}
+{"email":"pankaj@getgingee.com","ip":"127.0.0.1","level":"info","message":"User authenticated successfully","service":"errorwise-backend","timestamp":"2025-11-04T21:42:14.705Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 Edg/142.0.0.0","userId":"aee17e00-7890-41ad-9cd5-a57dd5144ff7"}

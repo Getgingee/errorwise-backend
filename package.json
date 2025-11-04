@@ -26,11 +26,14 @@
   },
   "homepage": "https://github.com/Getgingee/errorwise-backend#readme",
 
-  
   "name": "errorwise-backend",
   "version": "1.0.0",
   "description": "AI-powered error resolution platform with multi-tier intelligence - Backend API",
   "main": "server.js",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.67.0",
     "@google/generative-ai": "^0.24.1",

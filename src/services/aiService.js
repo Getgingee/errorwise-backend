@@ -4,38 +4,228 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Anthropic = require('@anthropic-ai/sdk');
 const axios = require('axios');
 
+// ============================================================================
+// CONFIGURATION & CONSTANTS
+// ============================================================================
+
+const CONFIG = {
+  MAX_RETRIES: 50,
+  RETRY_DELAY_MS: 1000,
+  REQUEST_TIMEOUT_MS: 30000,
+  CACHE_TTL_MS: 1800000, // 30 minutes
+  MAX_PROMPT_LENGTH: 8000,
+  MAX_URL_SCRAPE_TIMEOUT: 10000,
+  MAX_URLS_TO_PROCESS: 2,
+  MAX_SCRAPED_CONTENT_LENGTH: 3000,
+};
+
+// Simple in-memory cache (consider Redis for production)
+const responseCache = new Map();
+
 // Log API key status on startup
-console.log('\n🔑 AI Service API Keys Status:');
-console.log(`   Gemini: ${process.env.GEMINI_API_KEY ? '✅ Loaded (' + process.env.GEMINI_API_KEY.substring(0, 20) + '...)' : '❌ Missing'}`);
-console.log(`   OpenAI: ${process.env.OPENAI_API_KEY ? '✅ Loaded (' + process.env.OPENAI_API_KEY.substring(0, 20) + '...)' : '❌ Missing'}`);
-console.log(`   Anthropic: ${process.env.ANTHROPIC_API_KEY ? '✅ Loaded' : '❌ Missing'}`);
-console.log(`   URL Scraping: ✅ Enabled\n`);
+console.log('\n🔑 AI Service Configuration:');
+console.log(`   Provider: Anthropic Claude ${process.env.ANTHROPIC_API_KEY ? '✅' : '❌ MISSING!'}`);
+console.log(`   URL Scraping: ✅ Enabled`);
+console.log(`   Cache TTL: ${CONFIG.CACHE_TTL_MS / 1000}s`);
+console.log(`   Max Retries: ${CONFIG.MAX_RETRIES}`);
+console.log(`   Request Timeout: ${CONFIG.REQUEST_TIMEOUT_MS / 1000}s`);
+console.log(`   Note: Only Anthropic Claude is active for all tiers\n`);
 
-// Initialize AI clients
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// Initialize AI clients (only Anthropic is active)
+// const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); // DISABLED
+// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY); // DISABLED
 
-// Tier-based model configuration with intelligent provider selection
+let anthropic;
+try {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.warn('⚠️  WARNING: ANTHROPIC_API_KEY not set. Only mock responses will be available.');
+  } else {
+    anthropic = new Anthropic({ 
+      apiKey: process.env.ANTHROPIC_API_KEY,
+      timeout: CONFIG.REQUEST_TIMEOUT_MS,
+      maxRetries: 2,
+    });
+    console.log('✅ Anthropic client initialized successfully');
+  }
+} catch (error) {
+  console.error('❌ Failed to initialize Anthropic client:', error.message);
+}
+
+// ============================================================================
+// TIER CONFIGURATION
+// ============================================================================
+
 const TIER_CONFIG = {
   free: {
-    primary: { provider: 'gemini', model: 'gemini-2.0-flash', maxTokens: 800 },
-    secondary: { provider: 'openai', model: 'gpt-3.5-turbo', maxTokens: 800 },
-    fallback: { provider: 'mock' }
+    primary: { 
+      provider: 'anthropic', 
+      model: 'claude-3-haiku-20240307', 
+      maxTokens: 800,
+      temperature: 0.3,
+    },
+    fallback: { provider: 'mock' },
+    features: {
+      batchAnalysis: false,
+      urlScraping: false,
+      conversationHistory: false,
+    },
   },
   pro: {
-    primary: { provider: 'openai', model: 'gpt-3.5-turbo', maxTokens: 1200 },
-    secondary: { provider: 'gemini', model: 'gemini-2.5-flash', maxTokens: 1200 },
-    tertiary: { provider: 'anthropic', model: 'claude-3-haiku-20240307', maxTokens: 1200 },
-    fallback: { provider: 'mock' }
+    primary: { 
+      provider: 'anthropic', 
+      model: 'claude-3-haiku-20240307', 
+      maxTokens: 1200,
+      temperature: 0.3,
+    },
+    fallback: { provider: 'mock' },
+    features: {
+      batchAnalysis: false,
+      urlScraping: true,
+      conversationHistory: true,
+    },
   },
   team: {
-    primary: { provider: 'anthropic', model: 'claude-3-5-sonnet-20241022', maxTokens: 2000 },
-    secondary: { provider: 'openai', model: 'gpt-4', maxTokens: 2000 },
-    tertiary: { provider: 'gemini', model: 'gemini-2.5-pro', maxTokens: 2000 },
-    fallback: { provider: 'mock' }
-  }
+    primary: { 
+      provider: 'anthropic', 
+      model: 'claude-3-5-sonnet-20241022', 
+      maxTokens: 2000,
+      temperature: 0.2,
+    },
+    fallback: { provider: 'mock' },
+    features: {
+      batchAnalysis: true,
+      urlScraping: true,
+      conversationHistory: true,
+    },
+  },
 };
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+/**
+ * Generate cache key from request parameters
+ */
+function generateCacheKey(errorMessage, language, errorType, subscriptionTier) {
+  const key = `${subscriptionTier}:${language}:${errorType}:${errorMessage}`;
+  return Buffer.from(key).toString('base64').substring(0, 64);
+}
+
+/**
+ * Get cached response if available and not expired
+ */
+function getCachedResponse(cacheKey) {
+  const cached = responseCache.get(cacheKey);
+  if (!cached) return null;
+  
+  const isExpired = Date.now() - cached.timestamp > CONFIG.CACHE_TTL_MS;
+  if (isExpired) {
+    responseCache.delete(cacheKey);
+    return null;
+  }
+  
+  console.log(`💾 Cache HIT: ${cacheKey.substring(0, 16)}...`);
+  return cached.response;
+}
+
+/**
+ * Cache a response
+ */
+function cacheResponse(cacheKey, response) {
+  responseCache.set(cacheKey, {
+    response,
+    timestamp: Date.now(),
+  });
+  
+  // Cleanup old entries if cache is too large
+  if (responseCache.size > 1000) {
+    const oldestKey = responseCache.keys().next().value;
+    responseCache.delete(oldestKey);
+  }
+}
+
+/**
+ * Retry async function with exponential backoff
+ */
+async function retryWithBackoff(fn, retries = CONFIG.MAX_RETRIES) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      const isLastRetry = i === retries - 1;
+      
+      // Don't retry on client errors (4xx)
+      if (error.status >= 400 && error.status < 500) {
+        throw error;
+      }
+      
+      if (isLastRetry) {
+        throw error;
+      }
+      
+      const delay = CONFIG.RETRY_DELAY_MS * Math.pow(2, i);
+      console.log(`⏳ Retry ${i + 1}/${retries} after ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+
+/**
+ * Validate and sanitize input parameters
+ */
+function validateInput(errorMessage, subscriptionTier) {
+  if (!errorMessage || typeof errorMessage !== 'string') {
+    throw new Error('errorMessage must be a non-empty string');
+  }
+  
+  if (errorMessage.length > CONFIG.MAX_PROMPT_LENGTH) {
+    console.warn(`⚠️  Error message truncated from ${errorMessage.length} to ${CONFIG.MAX_PROMPT_LENGTH} chars`);
+    return errorMessage.substring(0, CONFIG.MAX_PROMPT_LENGTH);
+  }
+  
+  const validTiers = ['free', 'pro', 'team'];
+  if (!validTiers.includes(subscriptionTier)) {
+    console.warn(`⚠️  Invalid tier "${subscriptionTier}", defaulting to "free"`);
+    return 'free';
+  }
+  
+  return errorMessage;
+}
+
+/**
+ * Truncate text to max length
+ */
+function truncateText(text, maxLength = 3000) {
+  if (!text || text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+}
+
+/**
+ * Clean cache (remove expired entries)
+ */
+function cleanCache() {
+  const now = Date.now();
+  let cleaned = 0;
+  
+  for (const [key, value] of responseCache.entries()) {
+    if (now - value.timestamp > CONFIG.CACHE_TTL_MS) {
+      responseCache.delete(key);
+      cleaned++;
+    }
+  }
+  
+  if (cleaned > 0) {
+    console.log(`🧹 Cleaned ${cleaned} expired cache entries`);
+  }
+}
+
+// Run cache cleanup every 10 minutes
+setInterval(cleanCache, 600000);
+
+// ============================================================================
+// MOCK RESPONSES
+// ============================================================================
 
 // Enhanced mock responses with categories, tags, and code examples
 const mockResponses = {
@@ -277,7 +467,7 @@ const mockResponses = {
 
 function createPrompt(errorMessage, language, errorType, subscriptionTier, codeContext = {}) {
   // Enhanced system context with natural, clear English and Indian cultural context
-  let prompt = `You are an expert AI assistant with deep knowledge across multiple domains, including Indian languages, culture, and global updates relevant to India. Please analyze this issue and provide clear, natural explanations in proper English.
+  let prompt = `You are an expert AI assistant with deep knowledge across multiple domains, including Indian languages, culture, and global updates relevant to India. Please analyze this issue and provide clear, natural explanations in proper English context conversations.
 
 🎯 **YOUR EXPERTISE INCLUDES:**
 • **Programming Languages**: JavaScript, Python, Java, C++, Go, Rust, TypeScript, PHP, Ruby, Swift, Kotlin, and more
@@ -861,61 +1051,109 @@ async function callGemini(prompt, model, detectedLanguage, detectedErrorType, st
   }
 }
 
-// Helper function to call Anthropic Claude
-async function callAnthropic(prompt, systemMessage, model, maxTokens, detectedLanguage, detectedErrorType, stackTrace, conversationHistory = []) {
+// ============================================================================
+// ANTHROPIC CLAUDE API CALLER
+// ============================================================================
+
+/**
+ * Call Anthropic Claude API with retry logic and error handling
+ */
+async function callAnthropic(prompt, systemMessage, model, maxTokens, detectedLanguage, detectedErrorType, stackTrace, conversationHistory = [], temperature = 0.3) {
+  if (!anthropic) {
+    throw new Error('Anthropic client not initialized. Check ANTHROPIC_API_KEY.');
+  }
+  
+  console.log(`🔵 Calling Anthropic Claude: ${model} (max_tokens: ${maxTokens})`);
+  
   // Build messages array with conversation history
   const messages = [];
   
-  // Add conversation history if provided
+  // Add conversation history if provided (limit to last 5 for context)
   if (conversationHistory && conversationHistory.length > 0) {
-    conversationHistory.forEach(msg => {
+    const recentHistory = conversationHistory.slice(-5);
+    recentHistory.forEach(msg => {
       messages.push({ role: 'user', content: msg.query });
-      messages.push({ role: 'assistant', content: JSON.stringify({
-        explanation: msg.explanation,
-        solution: msg.solution,
-        category: msg.category
-      })});
+      messages.push({ 
+        role: 'assistant', 
+        content: JSON.stringify({
+          explanation: msg.explanation,
+          solution: msg.solution,
+          category: msg.category
+        })
+      });
     });
   }
   
   // Add current prompt
-  messages.push({ role: 'user', content: prompt });
+  messages.push({ role: 'user', content: truncateText(prompt, CONFIG.MAX_PROMPT_LENGTH) });
   
-  const response = await anthropic.messages.create({
-    model,
-    max_tokens: maxTokens,
-    temperature: 0.3,
-    system: systemMessage,
-    messages
+  // Call API with retry logic
+  const response = await retryWithBackoff(async () => {
+    return await anthropic.messages.create({
+      model,
+      max_tokens: maxTokens,
+      temperature,
+      system: systemMessage,
+      messages,
+    });
   });
   
-  const content = response.content[0].text;
-  if (!content) throw new Error('Empty Anthropic response');
+  // Extract and validate response
+  const content = response.content?.[0]?.text;
+  if (!content) {
+    throw new Error('Empty Anthropic response');
+  }
   
-  // Try to parse as JSON, Claude sometimes wraps in markdown
-  let cleanText = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  const parsed = JSON.parse(cleanText);
+  console.log(`✅ Anthropic response received (${content.length} chars)`);
   
+  // Parse JSON response (handle markdown wrapping)
+  let cleanText = content
+    .replace(/```json\n?/g, '')
+    .replace(/```\n?/g, '')
+    .trim();
+  
+  let parsed;
+  try {
+    parsed = JSON.parse(cleanText);
+  } catch (parseError) {
+    console.error('❌ Failed to parse Anthropic JSON response:', parseError.message);
+    console.error('Raw response:', cleanText.substring(0, 200));
+    
+    // Attempt to extract JSON from text
+    const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      parsed = JSON.parse(jsonMatch[0]);
+    } else {
+      throw new Error('Invalid JSON response from Anthropic');
+    }
+  }
+  
+  // Return structured response with all fields
   return {
     explanation: parsed.explanation || 'Unable to analyze this error.',
     solution: parsed.solution || 'Please review the code and error message.',
     codeExample: parsed.codeExample || '',
     category: parsed.category || detectedErrorType,
-    tags: parsed.tags || [detectedLanguage, detectedErrorType],
-    confidence: parsed.confidence || 0.7,
+    tags: Array.isArray(parsed.tags) ? parsed.tags : [detectedLanguage, detectedErrorType],
+    confidence: Number(parsed.confidence) || 0.7,
+    severity: parsed.severity || 'medium',
     domainKnowledge: parsed.domainKnowledge || '',
-    preventionTips: parsed.preventionTips || [],
+    preventionTips: Array.isArray(parsed.preventionTips) ? parsed.preventionTips : [],
     complexity: parsed.complexity || '',
-    relatedErrors: parsed.relatedErrors || [],
-    debugging: parsed.debugging || [],
-    alternatives: parsed.alternatives || [],
-    resources: parsed.resources || [],
+    relatedErrors: Array.isArray(parsed.relatedErrors) ? parsed.relatedErrors : [],
+    debugging: Array.isArray(parsed.debugging) ? parsed.debugging : [],
+    alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives : [],
+    resources: Array.isArray(parsed.resources) ? parsed.resources : [],
     provider: 'anthropic',
     model,
     language: detectedLanguage,
     errorType: detectedErrorType,
     stackTrace,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    usage: {
+      inputTokens: response.usage?.input_tokens || 0,
+      outputTokens: response.usage?.output_tokens || 0,
+    },
   };
 }
 
@@ -1127,37 +1365,77 @@ async function processURLs(errorMessage, codeSnippet) {
   return results;
 }
 
-async function analyzeError({ errorMessage, codeSnippet, fileName, lineNumber, language, errorType, subscriptionTier = 'free', framework, dependencies, conversationHistory = [] }) {
-  // Auto-detect language and error type if not provided
-  const detectedLanguage = language || detectLanguage(errorMessage, codeSnippet);
-  const detectedErrorType = errorType || detectErrorType(errorMessage);
-  
-  // Parse stack trace if available
-  const stackTrace = parseStackTrace(errorMessage);
-  
-  // Process URLs in error message (scrape and summarize)
-  let urlContext = [];
-  try {
-    urlContext = await processURLs(errorMessage, codeSnippet);
-  } catch (urlError) {
-    console.log('⚠️ URL processing failed:', urlError.message);
-  }
-  
-  // Prepare enhanced code context
-  const codeContext = {
-    codeSnippet,
-    fileName,
-    lineNumber,
-    framework,
-    dependencies,
-    stackTrace,
-    urlContext // Add URL context
-  };
-  
-  const prompt = createPrompt(errorMessage, detectedLanguage, detectedErrorType, subscriptionTier, codeContext);
+// ============================================================================
+// MAIN ERROR ANALYSIS FUNCTION
+// ============================================================================
 
-  // Enhanced system message with natural, clear English and Indian cultural context
-  const systemMessage = `You are an expert AI assistant who helps developers and learners understand and solve programming issues. You also have deep knowledge of Indian languages, culture, cuisine, and global updates relevant to India.
+/**
+ * Analyze error with AI providers, caching, and fallback handling
+ */
+async function analyzeError({ 
+  errorMessage, 
+  codeSnippet, 
+  fileName, 
+  lineNumber, 
+  language, 
+  errorType, 
+  subscriptionTier = 'free', 
+  framework, 
+  dependencies, 
+  conversationHistory = [] 
+}) {
+  try {
+    // Validate and sanitize input
+    const sanitizedMessage = validateInput(errorMessage, subscriptionTier);
+    const validTier = ['free', 'pro', 'team'].includes(subscriptionTier) ? subscriptionTier : 'free';
+    
+    // Auto-detect language and error type if not provided
+    const detectedLanguage = language || detectLanguage(sanitizedMessage, codeSnippet);
+    const detectedErrorType = errorType || detectErrorType(sanitizedMessage);
+    
+    console.log(`\n📊 Analyzing error: ${detectedErrorType} (${detectedLanguage}) [${validTier} tier]`);
+    
+    // Check cache first (skip for team tier with conversation history)
+    const cacheKey = generateCacheKey(sanitizedMessage, detectedLanguage, detectedErrorType, validTier);
+    const cachedResponse = conversationHistory.length === 0 ? getCachedResponse(cacheKey) : null;
+    
+    if (cachedResponse) {
+      return { ...cachedResponse, cached: true };
+    }
+    
+    // Parse stack trace if available
+    const stackTrace = parseStackTrace(sanitizedMessage);
+    
+    // Get tier config and features
+    const tierConfig = TIER_CONFIG[validTier];
+    const features = tierConfig.features;
+    
+    // Process URLs in error message (only if enabled for tier)
+    let urlContext = [];
+    if (features.urlScraping) {
+      try {
+        console.log('🔗 URL scraping enabled for this tier...');
+        urlContext = await processURLs(sanitizedMessage, codeSnippet);
+      } catch (urlError) {
+        console.warn('⚠️  URL processing failed:', urlError.message);
+      }
+    }
+  
+    // Prepare enhanced code context
+    const codeContext = {
+      codeSnippet,
+      fileName,
+      lineNumber,
+      framework,
+      dependencies,
+      stackTrace,
+      urlContext
+    };
+    
+    const prompt = createPrompt(sanitizedMessage, detectedLanguage, detectedErrorType, validTier, codeContext);
+
+    // Enhanced system message with natural, clear English and Indian cultural context
+    const systemMessage = `You are an expert AI assistant who helps developers and learners understand and solve programming issues. You also have deep knowledge of Indian languages, culture, cuisine, and global updates relevant to India.
 
 **YOUR STRENGTHS:**
 - Deep knowledge of programming languages, frameworks, and tools
@@ -1217,112 +1495,249 @@ async function analyzeError({ errorMessage, codeSnippet, fileName, lineNumber, l
 
 Remember: Your goal is to help users understand their issues and learn from them, not just provide quick fixes. Write clearly, explain thoroughly, and be genuinely helpful. When dealing with Indian languages, culture, or cuisine, ensure authenticity and respect for regional diversity.`;
 
-  // Get tier configuration
-  const tierConfig = TIER_CONFIG[subscriptionTier] || TIER_CONFIG.free;
-  const providers = [];
-  
-  // Build provider chain based on tier
-  if (tierConfig.primary) providers.push(tierConfig.primary);
-  if (tierConfig.secondary) providers.push(tierConfig.secondary);
-  if (tierConfig.tertiary) providers.push(tierConfig.tertiary);
-  if (tierConfig.fallback) providers.push(tierConfig.fallback);
+    // Build provider chain based on tier
+    const providers = [];
+    if (tierConfig.primary) providers.push(tierConfig.primary);
+    if (tierConfig.secondary) providers.push(tierConfig.secondary);
+    if (tierConfig.tertiary) providers.push(tierConfig.tertiary);
+    if (tierConfig.fallback) providers.push(tierConfig.fallback);
 
-  // Try each provider in order
-  for (let i = 0; i < providers.length; i++) {
-    const config = providers[i];
-    const isLastProvider = i === providers.length - 1;
-    
-    try {
-      console.log(`🤖 Trying ${config.provider.toUpperCase()} (${i === 0 ? 'primary' : i === 1 ? 'secondary' : i === 2 ? 'tertiary' : 'fallback'} for ${subscriptionTier} tier)`);
+    // Try each provider in order
+    for (let i = 0; i < providers.length; i++) {
+      const config = providers[i];
+      const isLastProvider = i === providers.length - 1;
       
-      if (config.provider === 'openai') {
-        return await callOpenAI(prompt, systemMessage, config.model, config.maxTokens, detectedLanguage, detectedErrorType, stackTrace, conversationHistory);
-      } 
-      else if (config.provider === 'gemini') {
-        return await callGemini(prompt, config.model, detectedLanguage, detectedErrorType, stackTrace, conversationHistory);
-      } 
-      else if (config.provider === 'anthropic') {
-        return await callAnthropic(prompt, systemMessage, config.model, config.maxTokens, detectedLanguage, detectedErrorType, stackTrace, conversationHistory);
-      } 
-      else if (config.provider === 'mock') {
-        console.log('🎯 Using enhanced mock response (fallback)');
-        return getMockResponse(errorMessage, detectedLanguage, detectedErrorType, stackTrace);
+      try {
+        console.log(`🤖 Trying ${config.provider.toUpperCase()} (${i === 0 ? 'primary' : i === 1 ? 'secondary' : i === 2 ? 'tertiary' : 'fallback'} for ${validTier} tier)`);
+        
+        let result;
+        
+        if (config.provider === 'anthropic') {
+          result = await callAnthropic(
+            prompt, 
+            systemMessage, 
+            config.model, 
+            config.maxTokens, 
+            detectedLanguage, 
+            detectedErrorType, 
+            stackTrace, 
+            features.conversationHistory ? conversationHistory : [],
+            config.temperature
+          );
+        } 
+        else if (config.provider === 'mock') {
+          console.log('🎯 Using enhanced mock response (fallback)');
+          result = getMockResponse(sanitizedMessage, detectedLanguage, detectedErrorType, stackTrace);
+        }
+        else {
+          continue; // Skip disabled providers
+        }
+        
+        // Cache successful response (except for conversations)
+        if (conversationHistory.length === 0 && result && !result.error) {
+          cacheResponse(cacheKey, result);
+        }
+        
+        return result;
+        
+      } catch (error) {
+        console.error(`❌ ${config.provider.toUpperCase()} error:`, error?.message || error);
+        
+        // If this is the last provider, return error response
+        if (isLastProvider) {
+          console.error('❌ All providers failed');
+          return {
+            explanation: 'AI analysis temporarily unavailable. Please try again in a moment.',
+            solution: 'If the issue persists, contact support with this error ID.',
+            codeExample: '',
+            category: detectedErrorType,
+            tags: [detectedLanguage, detectedErrorType],
+            confidence: 0.3,
+            provider: 'none',
+            language: detectedLanguage,
+            errorType: detectedErrorType,
+            stackTrace,
+            timestamp: new Date().toISOString(),
+            errorId: cacheKey.substring(0, 8),
+            note: 'Service temporarily unavailable.',
+            error: error?.message
+          };
+        }
+        
+        // Continue to next provider
+        console.log(`🔄 Falling back to next provider...`);
       }
-      
-    } catch (error) {
-      console.error(`${config.provider.toUpperCase()} error:`, error?.message || error);
-      
-      // If this is the last provider, return error response
-      if (isLastProvider) {
-        console.error('❌ All providers failed');
-        return {
-          explanation: 'All AI providers are currently unavailable.',
-          solution: 'Please try again later or check your API configurations.',
-          codeExample: '',
-          category: detectedErrorType,
-          tags: [detectedLanguage, detectedErrorType],
-          confidence: 0.3,
-          provider: 'none',
-          language: detectedLanguage,
-          errorType: detectedErrorType,
-          stackTrace,
-          timestamp: new Date().toISOString(),
-          note: 'Service temporarily unavailable. All configured providers failed.',
-          error: error?.message
-        };
-      }
-      
-      // Continue to next provider
-      console.log(`🔄 Falling back to next provider...`);
     }
+    
+  } catch (error) {
+    console.error('❌ Unexpected error in analyzeError:', error);
+    return {
+      explanation: 'An unexpected error occurred while analyzing your request.',
+      solution: 'Please try again. If the problem persists, contact support.',
+      codeExample: '',
+      category: 'runtime',
+      tags: ['error', 'system'],
+      confidence: 0.2,
+      provider: 'error',
+      language: 'unknown',
+      errorType: 'unknown',
+      timestamp: new Date().toISOString(),
+      error: error?.message
+    };
   }
 }
 
-// New function: Batch error analysis for team tier
-async function analyzeBatchErrors(errors, subscriptionTier = 'team') {
+// ============================================================================
+// BATCH ANALYSIS & STATISTICS
+// ============================================================================
+
+/**
+ * Batch error analysis for team tier (with concurrency control)
+ */
+async function analyzeBatchErrors(errors, subscriptionTier = 'team', concurrency = 3) {
   if (subscriptionTier !== 'team') {
     throw new Error('Batch analysis is only available for team tier subscriptions');
   }
   
-  const results = await Promise.allSettled(
-    errors.map(error => analyzeError({ ...error, subscriptionTier }))
-  );
+  if (!Array.isArray(errors) || errors.length === 0) {
+    throw new Error('errors must be a non-empty array');
+  }
   
-  return results.map((result, index) => ({
-    index,
-    status: result.status,
-    data: result.status === 'fulfilled' ? result.value : null,
-    error: result.status === 'rejected' ? result.reason.message : null
-  }));
+  console.log(`📊 Batch analyzing ${errors.length} errors with concurrency ${concurrency}`);
+  
+  const results = [];
+  
+  // Process in batches to avoid overwhelming the API
+  for (let i = 0; i < errors.length; i += concurrency) {
+    const batch = errors.slice(i, i + concurrency);
+    console.log(`   Processing batch ${Math.floor(i / concurrency) + 1}/${Math.ceil(errors.length / concurrency)}`);
+    
+    const batchResults = await Promise.allSettled(
+      batch.map(error => analyzeError({ ...error, subscriptionTier }))
+    );
+    
+    results.push(...batchResults.map((result, batchIndex) => ({
+      index: i + batchIndex,
+      status: result.status,
+      data: result.status === 'fulfilled' ? result.value : null,
+      error: result.status === 'rejected' ? result.reason?.message : null,
+      timestamp: new Date().toISOString(),
+    })));
+  }
+  
+  console.log(`✅ Batch analysis complete: ${results.filter(r => r.status === 'fulfilled').length}/${errors.length} successful`);
+  
+  return results;
 }
 
-// New function: Get error statistics and patterns
+/**
+ * Get comprehensive error statistics and patterns from history
+ */
 function getErrorStatistics(errorHistory) {
+  if (!Array.isArray(errorHistory)) {
+    throw new Error('errorHistory must be an array');
+  }
+  
   const stats = {
     totalErrors: errorHistory.length,
     byLanguage: {},
     byCategory: {},
     byType: {},
+    byProvider: {},
+    byConfidence: { high: 0, medium: 0, low: 0 },
     commonPatterns: [],
-    timeDistribution: {}
+    timeDistribution: {},
+    successRate: 0,
   };
   
   errorHistory.forEach(error => {
     // Count by language
-    stats.byLanguage[error.language] = (stats.byLanguage[error.language] || 0) + 1;
+    if (error.language) {
+      stats.byLanguage[error.language] = (stats.byLanguage[error.language] || 0) + 1;
+    }
     
     // Count by category
-    stats.byCategory[error.category] = (stats.byCategory[error.category] || 0) + 1;
+    if (error.category) {
+      stats.byCategory[error.category] = (stats.byCategory[error.category] || 0) + 1;
+    }
     
     // Count by type
-    stats.byType[error.errorType] = (stats.byType[error.errorType] || 0) + 1;
+    if (error.errorType) {
+      stats.byType[error.errorType] = (stats.byType[error.errorType] || 0) + 1;
+    }
+    
+    // Count by provider
+    if (error.provider) {
+      stats.byProvider[error.provider] = (stats.byProvider[error.provider] || 0) + 1;
+    }
+    
+    // Count by confidence
+    if (error.confidence) {
+      if (error.confidence >= 0.8) stats.byConfidence.high++;
+      else if (error.confidence >= 0.5) stats.byConfidence.medium++;
+      else stats.byConfidence.low++;
+    }
+    
+    // Time distribution (by hour)
+    if (error.timestamp) {
+      const hour = new Date(error.timestamp).getHours();
+      stats.timeDistribution[hour] = (stats.timeDistribution[hour] || 0) + 1;
+    }
   });
+  
+  // Calculate success rate
+  const successfulAnalyses = errorHistory.filter(e => 
+    e.provider !== 'none' && e.provider !== 'error' && !e.error
+  ).length;
+  stats.successRate = errorHistory.length > 0 
+    ? (successfulAnalyses / errorHistory.length * 100).toFixed(2) 
+    : 0;
   
   return stats;
 }
 
-// Backward compatibility
+/**
+ * Get service health status
+ */
+function getServiceHealth() {
+  return {
+    status: anthropic ? 'healthy' : 'degraded',
+    providers: {
+      anthropic: anthropic ? 'available' : 'unavailable',
+      mock: 'available',
+    },
+    cache: {
+      size: responseCache.size,
+      maxSize: 1000,
+    },
+    config: {
+      maxRetries: CONFIG.MAX_RETRIES,
+      cacheTTL: CONFIG.CACHE_TTL_MS / 1000 + 's',
+      timeout: CONFIG.REQUEST_TIMEOUT_MS / 1000 + 's',
+    },
+    timestamp: new Date().toISOString(),
+  };
+}
+
+/**
+ * Clear response cache
+ */
+function clearCache() {
+  const size = responseCache.size;
+  responseCache.clear();
+  console.log(`🧹 Cleared ${size} cache entries`);
+  return { cleared: size, timestamp: new Date().toISOString() };
+}
+
+// ============================================================================
+// BACKWARD COMPATIBILITY
+// ============================================================================
+
+/**
+ * @deprecated Use analyzeError instead
+ */
 async function explainError(errorMessage, subscriptionTier = 'free') {
+  console.warn('⚠️  explainError is deprecated. Use analyzeError instead.');
   const result = await analyzeError({ errorMessage, subscriptionTier });
   return {
     explanation: result.explanation,
@@ -1330,12 +1745,29 @@ async function explainError(errorMessage, subscriptionTier = 'free') {
   };
 }
 
+// ============================================================================
+// EXPORTS
+// ============================================================================
+
 module.exports = { 
+  // Main functions
   analyzeError,
   analyzeBatchErrors,
+  
+  // Statistics & monitoring
   getErrorStatistics,
-  explainError, // Keep for backward compatibility
+  getServiceHealth,
+  clearCache,
+  
+  // Utility functions
   detectLanguage,
   detectErrorType,
-  parseStackTrace
+  parseStackTrace,
+  
+  // Backward compatibility
+  explainError,
+  
+  // Constants (for testing/monitoring)
+  CONFIG,
+  TIER_CONFIG,
 };
