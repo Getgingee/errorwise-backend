@@ -458,7 +458,6 @@
     "wkx": "^0.5.0",
     "word-wrap": "^1.2.5",
     "wrap-ansi": "^7.0.0",
-    "wrap-ansi-cjs": "^7.0.0",
     "wrappy": "^1.0.2",
     "write-file-atomic": "^4.0.2",
     "ws": "^8.18.3",
