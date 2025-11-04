@@ -1,7 +1,7 @@
 {
   "name": "errorwise-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "AI-powered error resolution platform with multi-tier intelligence - Backend API",
   "main": "server.js",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.67.0",
@@ -453,14 +453,23 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PankajKumar2804/errorwise-backend.git"
+    "url": "git+https://github.com/Getgingee/errorwise-backend.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "error-resolution",
+    "ai-debugging",
+    "openai",
+    "gemini",
+    "claude",
+    "error-analysis",
+    "code-debugging",
+    "developer-tools"
+  ],
+  "author": "Getgingee Team",
+  "license": "MIT",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/PankajKumar2804/errorwise-backend/issues"
+    "url": "https://github.com/Getgingee/errorwise-backend/issues"
   },
-  "homepage": "https://github.com/PankajKumar2804/errorwise-backend#readme"
+  "homepage": "https://github.com/Getgingee/errorwise-backend#readme"
 }
