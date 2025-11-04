@@ -6,6 +6,7 @@ const userTrackingService = require('../services/userTrackingService');
 const emailService = require('../utils/emailService');
 const emailServiceConfirmation = require('../services/emailService');
 const { authMiddleware } = require('../middleware/auth');
+const { accountLockoutMiddleware, trackFailedAttempt, resetFailedAttempts } = require('../middleware/accountLock');
 const rateLimit = require('express-rate-limit');
 
 // Rate limiter DISABLED for development/testing
@@ -298,7 +299,7 @@ router.delete('/account', authMiddleware, async (req, res) => {
  * Enhanced login with OTP verification
  * Step 1: Verify credentials and send OTP
  */
-router.post('/login/enhanced', async (req, res) => {
+router.post('/login/enhanced', accountLockoutMiddleware, async (req, res) => {
   try {
     const { email, password } = req.body;
     
@@ -310,6 +311,8 @@ router.post('/login/enhanced', async (req, res) => {
     const user = await User.findOne({ where: { email } });
     
     if (!user) {
+      // Track failed attempt even for non-existent users
+      await trackFailedAttempt(email);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
@@ -318,7 +321,28 @@ router.post('/login/enhanced', async (req, res) => {
     const isValidPassword = await bcrypt.compare(password, user.password);
     
     if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      // Track failed login attempt
+      const attemptResult = await trackFailedAttempt(email);
+      
+      // If account got locked, send appropriate response
+      if (attemptResult.locked) {
+        const remainingMinutes = Math.ceil((attemptResult.lockoutInfo.expiresAt - Date.now()) / 1000 / 60);
+        
+        return res.status(423).json({
+          success: false,
+          code: 'ACCOUNT_LOCKED',
+          error: `Account locked due to too many failed login attempts. Please try again in ${remainingMinutes} minutes.`,
+          lockoutInfo: {
+            expiresAt: attemptResult.lockoutInfo.expiresAt,
+            remainingMinutes
+          }
+        });
+      }
+      
+      return res.status(401).json({ 
+        error: 'Invalid credentials',
+        remainingAttempts: attemptResult.remainingAttempts
+      });
     }
 
     // Check OTP generation rate limit (5 per day per user)
@@ -369,16 +393,36 @@ router.post('/login/enhanced', async (req, res) => {
     // Generate and send login OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
     const otpHash = await bcrypt.hash(otp, 10);
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     
-    // Store OTP in user record
-    await User.update(
+    // Calculate expiry as raw timestamp (milliseconds) to avoid timezone issues
+    const expiryTimestamp = Date.now() + 60 * 60 * 1000; // 60 minutes (1 hour) for testing
+    
+    console.log('🔐 Generated OTP:', { 
+      otp, 
+      expiryTimestamp,
+      expiresAt: new Date(expiryTimestamp).toISOString(),
+      userId: user.id 
+    });
+    
+    // Store OTP in user record - store raw timestamp as bigint to avoid timezone conversion
+    const updateResult = await User.update(
       {
         loginOTP: otpHash,
-        loginOTPExpires: otpExpires
+        loginOTPExpires: expiryTimestamp  // Store as milliseconds since epoch
       },
       { where: { id: user.id } }
     );
+    
+    console.log('💾 OTP saved to database:', { 
+      userId: user.id, 
+      rowsUpdated: updateResult[0],
+      expiryTimestamp,
+      expiresAt: new Date(expiryTimestamp).toISOString()
+    });
+    
+    // Verify the save by reading back
+    const verifyUser = await User.findOne({ where: { id: user.id }, attributes: ['id', 'email', 'loginOTPExpires'] });
+    console.log('✅ Verification - OTP expiry in DB:', verifyUser.loginOTPExpires, typeof verifyUser.loginOTPExpires);
     
     // Send OTP via email
     await emailService.sendEmail({
@@ -487,7 +531,10 @@ router.post('/login/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body;
     
+    console.log('🔐 OTP Verification Request:', { email, otp, otpType: typeof otp, otpLength: otp?.length });
+    
     if (!email || !otp) {
+      console.log('❌ Missing email or OTP');
       return res.status(400).json({ error: 'Email and OTP required' });
     }
     
@@ -495,25 +542,73 @@ router.post('/login/verify-otp', async (req, res) => {
     const user = await User.findOne({ where: { email } });
     
     if (!user) {
+      console.log('❌ User not found:', email);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
+    console.log('✅ User found:', { 
+      email: user.email, 
+      hasLoginOTP: !!user.loginOTP, 
+      loginOTPExpires: user.loginOTPExpires,
+      expiresType: typeof user.loginOTPExpires
+    });
+    
     // Check if OTP exists and not expired
     if (!user.loginOTP || !user.loginOTPExpires) {
+      console.log('❌ No OTP found in database');
       return res.status(400).json({ error: 'No OTP request found. Please login again.' });
     }
     
-    if (new Date() > new Date(user.loginOTPExpires)) {
+    // Handle both timestamp (number/string) and Date object formats
+    const nowTimestamp = Date.now();
+    let expiresTimestamp;
+    
+    if (typeof user.loginOTPExpires === 'number') {
+      // Already a timestamp (number)
+      expiresTimestamp = user.loginOTPExpires;
+    } else if (typeof user.loginOTPExpires === 'string') {
+      // Parse string timestamp to number
+      expiresTimestamp = parseInt(user.loginOTPExpires, 10);
+    } else if (user.loginOTPExpires instanceof Date) {
+      // Convert Date to timestamp
+      expiresTimestamp = user.loginOTPExpires.getTime();
+    } else {
+      // Fallback - try to parse
+      expiresTimestamp = parseInt(String(user.loginOTPExpires), 10);
+    }
+    
+    const isExpired = nowTimestamp > expiresTimestamp;
+    
+    console.log('⏰ Time check:', { 
+      nowTimestamp, 
+      expiresTimestamp,
+      expiresType: typeof expiresTimestamp,
+      nowDate: new Date(nowTimestamp).toISOString(),
+      expiresDate: new Date(expiresTimestamp).toISOString(),
+      timeDiffMinutes: Math.round((expiresTimestamp - nowTimestamp) / 60000),
+      expired: isExpired 
+    });
+    
+    if (isExpired) {
+      console.log('❌ OTP expired');
       return res.status(400).json({ error: 'OTP expired. Please login again.' });
     }
     
     // Verify OTP
     const bcrypt = require('bcryptjs');
+    console.log('🔍 Comparing OTP:', { provided: otp, stored: user.loginOTP?.substring(0, 20) + '...' });
     const isValidOTP = await bcrypt.compare(otp, user.loginOTP);
+    console.log('🔑 OTP comparison result:', isValidOTP);
     
     if (!isValidOTP) {
+      console.log('❌ Invalid OTP');
       return res.status(401).json({ error: 'Invalid OTP' });
     }
+    
+    console.log('✅ OTP verified successfully!');
+    
+    // Successful login - reset failed attempts
+    await resetFailedAttempts(email);
     
     // Clear OTP
     await User.update(
@@ -603,14 +698,20 @@ router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
     
+    console.log('🔐 Forgot password request for:', email);
+    
     if (!email) {
+      console.log('❌ No email provided');
       return res.status(400).json({ error: 'Email is required' });
     }
     
     const user = await User.findOne({ where: { email } });
     
+    console.log('👤 User lookup result:', user ? `Found: ${user.email}` : 'Not found');
+    
     // Don't reveal if email exists for security
     if (!user) {
+      console.log('⚠️ Email not registered, returning generic success message');
       return res.json({ 
         success: true,
         message: 'If this email is registered, you will receive a password reset link.' 
@@ -627,11 +728,20 @@ router.post('/forgot-password', async (req, res) => {
       resetPasswordExpires: resetTokenExpires
     }, { where: { id: user.id } });
     
+    console.log(`🔐 Generated reset token for ${user.email}:`, resetToken);
+    console.log(`⏰ Token expires at:`, resetTokenExpires.toISOString());
+    
     // Send reset email using utils emailService
     const utilsEmailService = require('../utils/emailService');
-    await utilsEmailService.sendPasswordResetEmail(user.email, user.username, resetToken);
     
-    console.log(`📧 Password reset email sent to ${user.email}`);
+    console.log(`📧 Attempting to send password reset email to ${user.email}...`);
+    try {
+      await utilsEmailService.sendPasswordResetEmail(user.email, user.username, resetToken);
+      console.log(`✅ Password reset email sent successfully to ${user.email}`);
+    } catch (emailError) {
+      console.error(`❌ Error sending password reset email:`, emailError);
+      // Continue anyway - don't fail the request
+    }
     
     res.json({
       success: true,

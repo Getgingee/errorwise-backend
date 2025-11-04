@@ -109,30 +109,58 @@ pm2.log
 *-FIX*.md
 *DEPLOYMENT*.md
 *MIGRATION*.md
+*INTEGRATION*.md
+*DIAGNOSIS*.md
+*VERIFICATION*.md
+*AUTHENTICATION*.md
+*BACKEND*.md
+*FRONTEND*.md
+*DOCUMENTATION*.md
 API_DIAGNOSIS.md
+API_DOCUMENTATION.md
 FEATURES.md
 COMPLETE-*.md
 COMPREHENSIVE-*.md
 ENHANCED-*.md
+FINAL*.md
+DODO-*.md
 
 # Test/Debug files (keep locally, don't push)
 test-*.js
+test-*.html
 debug-*.js
 check-*.js
 diagnose-*.js
 create-*.js
 delete-*.js
+verify-*.js
+fix-*.js
 *-test.js
 *-debug.js
 minimal-*.js
 auto-*.ps1
 deploy-*.ps1
 deploy-*.js
+deploy-*.sh
+*.test.html
+check-subscription-page.html
 
 # Additional scripts to keep local
 seed-*.js
 migrate-*.js
 migration.js
+add-*.js
+
+# Frontend fix files (temporary)
+*-FIX.tsx
+*-FIX.ts
+FIXED-*.tsx
+FIXED-*.ts
+*FIX.tsx
+LOGINFORM-FIX.tsx
+FRONTEND_AUTH_FIX.tsx
+LOGIN-REDIRECTION-FIX.tsx
+ADD_*.txt
 
 
 # Log files - keep locally

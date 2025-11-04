@@ -138,7 +138,7 @@ const User = sequelize.define('User', {
     field: 'login_otp'
   },
   loginOTPExpires: {
-    type: DataTypes.DATE,
+    type: DataTypes.BIGINT,  // Changed from DATE to BIGINT to store raw timestamp
     allowNull: true,
     field: 'login_otp_expires'
   },

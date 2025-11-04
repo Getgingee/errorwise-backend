@@ -706,6 +706,281 @@ exports.updateHelpTicket = async (req, res) => {
 
 /**
  * ============================================
+ * NEWSLETTER SUBSCRIPTION ENDPOINTS
+ * ============================================
+ */
+
+// Subscribe to newsletter
+exports.subscribeToNewsletter = async (req, res) => {
+  try {
+    const { email, name, subscription_type = 'general', source = 'website' } = req.body;
+    const user_id = req.user?.id || null;
+
+    // Validation
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email address is required'
+      });
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address'
+      });
+    }
+
+    const validTypes = ['general', 'product_updates', 'tips', 'all'];
+    if (!validTypes.includes(subscription_type)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid subscription type. Must be one of: ' + validTypes.join(', ')
+      });
+    }
+
+    const validSources = ['website', 'footer', 'modal', 'api'];
+    if (!validSources.includes(source)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid source. Must be one of: ' + validSources.join(', ')
+      });
+    }
+
+    // Generate unsubscribe token
+    const crypto = require('crypto');
+    const unsubscribe_token = crypto.randomBytes(32).toString('hex');
+
+    const user_agent = req.get('user-agent');
+    const ip_address = req.ip || req.connection.remoteAddress;
+
+    // Check if email already subscribed
+    const existingCheck = await pool.query(
+      'SELECT id, status FROM NewsletterSubscriptions WHERE email = $1',
+      [email]
+    );
+
+    let result;
+
+    if (existingCheck.rowCount > 0) {
+      const existing = existingCheck.rows[0];
+
+      if (existing.status === 'active') {
+        return res.status(200).json({
+          success: true,
+          message: 'You\'re already subscribed to our newsletter!',
+          alreadySubscribed: true
+        });
+      }
+
+      // Re-activate subscription
+      result = await pool.query(
+        `UPDATE NewsletterSubscriptions 
+         SET status = 'active', 
+             subscription_type = $1,
+             source = $2,
+             unsubscribed_at = NULL,
+             unsubscribe_reason = NULL,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $3
+         RETURNING id, email, status, subscription_type, created_at`,
+        [subscription_type, source, existing.id]
+      );
+
+      console.log('✅ Newsletter subscription reactivated:', email);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Welcome back! Your newsletter subscription has been reactivated.',
+        subscription: result.rows[0],
+        reactivated: true
+      });
+    }
+
+    // New subscription
+    result = await pool.query(
+      `INSERT INTO NewsletterSubscriptions 
+        (user_id, email, name, status, subscription_type, source, unsubscribe_token, ip_address, user_agent, confirmed_at)
+       VALUES ($1, $2, $3, 'active', $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
+       RETURNING id, email, name, status, subscription_type, source, created_at`,
+      [user_id, email, name, subscription_type, source, unsubscribe_token, ip_address, user_agent]
+    );
+
+    console.log('✅ New newsletter subscription:', result.rows[0].id, email);
+
+    // TODO: Send welcome email with unsubscribe link
+    // await sendNewsletterWelcomeEmail(result.rows[0], unsubscribe_token);
+
+    res.status(201).json({
+      success: true,
+      message: 'Thank you for subscribing! Check your email for confirmation.',
+      subscription: result.rows[0]
+    });
+  } catch (error) {
+    console.error('❌ Error subscribing to newsletter:', error);
+
+    // Handle unique constraint violation
+    if (error.code === '23505') {
+      return res.status(200).json({
+        success: true,
+        message: 'You\'re already subscribed to our newsletter!',
+        alreadySubscribed: true
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to subscribe to newsletter. Please try again later.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Unsubscribe from newsletter
+exports.unsubscribeFromNewsletter = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { reason } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Unsubscribe token is required'
+      });
+    }
+
+    const result = await pool.query(
+      `UPDATE NewsletterSubscriptions 
+       SET status = 'unsubscribed',
+           unsubscribed_at = CURRENT_TIMESTAMP,
+           unsubscribe_reason = $1
+       WHERE unsubscribe_token = $2 AND status = 'active'
+       RETURNING id, email`,
+      [reason, token]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Subscription not found or already unsubscribed'
+      });
+    }
+
+    console.log('✅ Newsletter unsubscribed:', result.rows[0].email);
+
+    res.json({
+      success: true,
+      message: 'You have been successfully unsubscribed from our newsletter. We\'re sorry to see you go!'
+    });
+  } catch (error) {
+    console.error('Error unsubscribing from newsletter:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to unsubscribe',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+// Get newsletter subscription status
+exports.getNewsletterStatus = async (req, res) => {
+  try {
+    const { email } = req.query;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
+    const result = await pool.query(
+      'SELECT id, email, name, status, subscription_type, source, created_at FROM NewsletterSubscriptions WHERE email = $1',
+      [email]
+    );
+
+    if (result.rowCount === 0) {
+      return res.json({
+        success: true,
+        subscribed: false,
+        message: 'Email not found in our newsletter list'
+      });
+    }
+
+    const subscription = result.rows[0];
+
+    res.json({
+      success: true,
+      subscribed: subscription.status === 'active',
+      subscription: subscription
+    });
+  } catch (error) {
+    console.error('Error checking newsletter status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check subscription status',
+      error: error.message
+    });
+  }
+};
+
+// Get all newsletter subscriptions (admin only)
+exports.getAllNewsletterSubscriptions = async (req, res) => {
+  try {
+    const { status, subscription_type, limit = 100, offset = 0 } = req.query;
+
+    let query = `SELECT id, email, name, user_id, status, subscription_type, source, email_count, last_email_sent_at, created_at, unsubscribed_at
+                 FROM NewsletterSubscriptions
+                 WHERE 1=1`;
+    const params = [];
+    let paramCount = 1;
+
+    if (status) {
+      query += ` AND status = $${paramCount++}`;
+      params.push(status);
+    }
+
+    if (subscription_type) {
+      query += ` AND subscription_type = $${paramCount++}`;
+      params.push(subscription_type);
+    }
+
+    query += ` ORDER BY created_at DESC LIMIT $${paramCount++} OFFSET $${paramCount}`;
+    params.push(limit, offset);
+
+    const result = await pool.query(query, params);
+
+    // Get stats
+    const statsResult = await pool.query(`
+      SELECT 
+        COUNT(*) FILTER (WHERE status = 'active') as active_count,
+        COUNT(*) FILTER (WHERE status = 'unsubscribed') as unsubscribed_count,
+        COUNT(*) FILTER (WHERE status = 'bounced') as bounced_count,
+        COUNT(*) FILTER (WHERE status = 'complained') as complained_count,
+        COUNT(*) as total_count
+      FROM NewsletterSubscriptions
+    `);
+
+    res.json({
+      success: true,
+      subscriptions: result.rows,
+      stats: statsResult.rows[0],
+      total: result.rowCount
+    });
+  } catch (error) {
+    console.error('Error fetching newsletter subscriptions:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch subscriptions',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * ============================================
  * HELP CENTER ARTICLES ENDPOINTS
  * ============================================
  */

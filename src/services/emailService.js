@@ -9,9 +9,24 @@ class EmailService {
 
   async initialize() {
     try {
-      // Configure transporter based on environment
-      if (process.env.NODE_ENV === 'production') {
-        // Production email service (SendGrid, Mailgun, etc.)
+      // Configure transporter using environment variables (SendGrid SMTP)
+      if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+        // Use configured SMTP (SendGrid, etc.)
+        console.log('📧 Initializing email service with SMTP:', process.env.SMTP_HOST);
+        this.transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT) || 587,
+          secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
+          }
+        });
+        
+        console.log('✅ SMTP transporter created with host:', process.env.SMTP_HOST);
+      } else if (process.env.NODE_ENV === 'production') {
+        // Fallback for production if SMTP not configured
+        console.warn('⚠️  No SMTP configuration found, using EMAIL_SERVICE fallback');
         this.transporter = nodemailer.createTransport({
           service: process.env.EMAIL_SERVICE || 'gmail',
           auth: {
@@ -20,7 +35,8 @@ class EmailService {
           }
         });
       } else {
-        // Development - use Ethereal for testing
+        // Development fallback - use Ethereal for testing
+        console.log('📧 No SMTP configured, using Ethereal (fake) email for testing');
         const testAccount = await nodemailer.createTestAccount();
         this.transporter = nodemailer.createTransport({
           host: 'smtp.ethereal.email',
@@ -35,8 +51,10 @@ class EmailService {
 
       // Verify connection
       await this.transporter.verify();
+      console.log('✅ Email service connection verified successfully');
       logger.info('Email service initialized successfully');
     } catch (error) {
+      console.error('❌ Email service initialization failed:', error);
       logger.error('Email service initialization failed:', error);
     }
   }
@@ -47,20 +65,33 @@ class EmailService {
         throw new Error('Email service not initialized');
       }
 
+      const fromName = process.env.FROM_NAME || 'ErrorWise';
+      const fromEmail = process.env.FROM_EMAIL || 'noreply@errorwise.app';
+      
       const mailOptions = {
-        from: `"ErrorWise" <${process.env.EMAIL_FROM || 'noreply@errorwise.app'}>`,
+        from: `"${fromName}" <${fromEmail}>`,
         to,
         subject,
         html: htmlContent,
         text: textContent || this.stripHtml(htmlContent)
       };
 
+      console.log('📧 Sending email to:', to);
+      console.log('📧 From:', mailOptions.from);
+      console.log('📧 Subject:', subject);
+
       const info = await this.transporter.sendMail(mailOptions);
       
+      console.log('✅ Email sent successfully! Message ID:', info.messageId);
+      
       if (process.env.NODE_ENV === 'development') {
+        const previewUrl = nodemailer.getTestMessageUrl(info);
+        if (previewUrl) {
+          console.log('📬 [DEV MODE] Email preview URL:', previewUrl);
+        }
         logger.info('Email sent (dev):', {
           messageId: info.messageId,
-          previewUrl: nodemailer.getTestMessageUrl(info)
+          previewUrl
         });
       }
 
@@ -70,6 +101,7 @@ class EmailService {
         previewUrl: process.env.NODE_ENV === 'development' ? nodemailer.getTestMessageUrl(info) : null
       };
     } catch (error) {
+      console.error('❌ Failed to send email:', error);
       logger.error('Failed to send email:', error);
       return {
         success: false,

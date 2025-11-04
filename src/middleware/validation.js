@@ -1,10 +1,55 @@
 const { body, validationResult, param, query } = require('express-validator');
+const sanitizeHtml = require('sanitize-html');
+
+/**
+ * HTML sanitization configuration
+ * Allows basic formatting but strips dangerous tags
+ */
+const sanitizeConfig = {
+  allowedTags: ['b', 'i', 'em', 'strong', 'u', 'br', 'p'],
+  allowedAttributes: {},
+  disallowedTagsMode: 'discard'
+};
+
+/**
+ * Strict HTML sanitization (no HTML allowed)
+ */
+const strictSanitizeConfig = {
+  allowedTags: [],
+  allowedAttributes: {}
+};
+
+/**
+ * Sanitize HTML in request body fields
+ */
+function sanitizeHTMLFields(fields = [], strict = false) {
+  return (req, res, next) => {
+    try {
+      const config = strict ? strictSanitizeConfig : sanitizeConfig;
+      
+      fields.forEach(field => {
+        if (req.body[field] && typeof req.body[field] === 'string') {
+          req.body[field] = sanitizeHtml(req.body[field], config);
+        }
+      });
+      
+      next();
+    } catch (error) {
+      console.error('❌ HTML sanitization error:', error);
+      next(error);
+    }
+  };
+}
 
 // Helper function to handle validation errors
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.warn(`⚠️  Validation failed | IP: ${req.ip} | Errors: ${JSON.stringify(errors.array())}`);
+    
     return res.status(400).json({
+      success: false,
+      code: 'VALIDATION_ERROR',
       error: 'Validation failed',
       details: errors.array().map(error => ({
         field: error.path || error.param,
@@ -180,6 +225,138 @@ const validateSearch = [
   handleValidationErrors
 ];
 
+// Newsletter validation rules
+const validateNewsletterSubscription = [
+  body('email')
+    .trim()
+    .isEmail().withMessage('Please provide a valid email address')
+    .normalizeEmail()
+    .isLength({ max: 255 }).withMessage('Email is too long'),
+  
+  body('subscriptionType')
+    .optional()
+    .isIn(['general', 'product_updates', 'tips', 'all'])
+    .withMessage('Invalid subscription type'),
+  
+  body('source')
+    .optional()
+    .isLength({ max: 100 }).withMessage('Source is too long')
+    .trim(),
+  
+  sanitizeHTMLFields(['source'], true),
+  
+  handleValidationErrors
+];
+
+// Feedback validation rules
+const validateFeedbackSubmission = [
+  body('email')
+    .optional()
+    .trim()
+    .isEmail().withMessage('Please provide a valid email address')
+    .normalizeEmail()
+    .isLength({ max: 255 }).withMessage('Email is too long'),
+  
+  body('feedbackType')
+    .isIn(['bug', 'feature_request', 'improvement', 'praise', 'complaint', 'other'])
+    .withMessage('Invalid feedback type'),
+  
+  body('category')
+    .isIn(['ui_ux', 'performance', 'functionality', 'documentation', 'pricing', 'support', 'other'])
+    .withMessage('Invalid category'),
+  
+  body('subject')
+    .trim()
+    .isLength({ min: 5, max: 200 }).withMessage('Subject must be between 5 and 200 characters')
+    .notEmpty().withMessage('Subject is required'),
+  
+  body('message')
+    .trim()
+    .isLength({ min: 10, max: 5000 }).withMessage('Message must be between 10 and 5000 characters')
+    .notEmpty().withMessage('Message is required'),
+  
+  body('rating')
+    .optional()
+    .isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
+  
+  sanitizeHTMLFields(['subject', 'message']),
+  
+  handleValidationErrors
+];
+
+// Contact message validation rules
+const validateContactMessage = [
+  body('name')
+    .trim()
+    .isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters')
+    .notEmpty().withMessage('Name is required')
+    .matches(/^[a-zA-Z\s'-]+$/).withMessage('Name contains invalid characters'),
+  
+  body('email')
+    .trim()
+    .isEmail().withMessage('Please provide a valid email address')
+    .normalizeEmail()
+    .isLength({ max: 255 }).withMessage('Email is too long')
+    .notEmpty().withMessage('Email is required'),
+  
+  body('subject')
+    .trim()
+    .isLength({ min: 5, max: 200 }).withMessage('Subject must be between 5 and 200 characters')
+    .notEmpty().withMessage('Subject is required'),
+  
+  body('message')
+    .trim()
+    .isLength({ min: 20, max: 5000 }).withMessage('Message must be between 20 and 5000 characters')
+    .notEmpty().withMessage('Message is required'),
+  
+  body('phone')
+    .optional()
+    .trim()
+    .isMobilePhone('any', { strictMode: false }).withMessage('Invalid phone number'),
+  
+  body('company')
+    .optional()
+    .trim()
+    .isLength({ max: 100 }).withMessage('Company name is too long'),
+  
+  sanitizeHTMLFields(['name', 'subject', 'message', 'company'], true),
+  
+  handleValidationErrors
+];
+
+// Help ticket validation rules
+const validateHelpTicket = [
+  body('email')
+    .optional()
+    .trim()
+    .isEmail().withMessage('Please provide a valid email address')
+    .normalizeEmail()
+    .isLength({ max: 255 }).withMessage('Email is too long'),
+  
+  body('category')
+    .isIn(['technical', 'billing', 'account', 'feature_request', 'bug_report', 'documentation', 'api', 'integration', 'other'])
+    .withMessage('Invalid ticket category'),
+  
+  body('priority')
+    .optional()
+    .isIn(['low', 'medium', 'high', 'urgent'])
+    .withMessage('Invalid priority level'),
+  
+  body('subject')
+    .trim()
+    .isLength({ min: 5, max: 200 }).withMessage('Subject must be between 5 and 200 characters')
+    .notEmpty().withMessage('Subject is required'),
+  
+  body('description')
+    .trim()
+    .isLength({ min: 20, max: 5000 }).withMessage('Description must be between 20 and 5000 characters')
+    .notEmpty().withMessage('Description is required'),
+  
+  sanitizeHTMLFields(['subject', 'description']),
+  
+  handleValidationErrors
+];
+
 module.exports = {
   validateRegistration,
   validateLogin,
@@ -192,5 +369,10 @@ module.exports = {
   validateUUID,
   validatePagination,
   validateSearch,
+  validateNewsletterSubscription,
+  validateFeedbackSubmission,
+  validateContactMessage,
+  validateHelpTicket,
+  sanitizeHTMLFields,
   handleValidationErrors
 };

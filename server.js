@@ -63,6 +63,9 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+const healthRoutes = require('./src/routes/health');
+app.use('/', healthRoutes);
+
 // Platform statistics (public endpoint - real-time calculations)
 app.get('/api/stats', async (req, res) => {
   try {

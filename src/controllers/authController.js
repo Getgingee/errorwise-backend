@@ -2,6 +2,7 @@
 const authService = require('../services/authService');
 const emailService = require('../services/emailService');
 const logger = require('../utils/logger');
+const { trackFailedAttempt, resetFailedAttempts } = require('../middleware/accountLock');
 
 // Simple registration without OTP
 exports.register = async (req, res) => {
@@ -97,6 +98,9 @@ exports.login = async (req, res) => {
         // Find user
         const user = await User.findOne({ where: { email } });
         if (!user) {
+            // Track failed attempt even if user doesn't exist (prevent enumeration but track suspicious activity)
+            await trackFailedAttempt(email);
+            
             return res.status(401).json({ 
                 success: false, 
                 error: 'Invalid email or password' 
@@ -114,11 +118,38 @@ exports.login = async (req, res) => {
         // Verify password
         const isPasswordValid = await authService.comparePassword(password, user.password);
         if (!isPasswordValid) {
+            // Track failed login attempt
+            const attemptResult = await trackFailedAttempt(email);
+            
+            logger.warn(`Failed login attempt for ${email}`, {
+                attempts: attemptResult.attempts,
+                locked: attemptResult.locked
+            });
+            
+            // If account got locked, send appropriate response
+            if (attemptResult.locked) {
+                const remainingMinutes = Math.ceil((attemptResult.lockoutInfo.expiresAt - Date.now()) / 1000 / 60);
+                
+                return res.status(423).json({
+                    success: false,
+                    code: 'ACCOUNT_LOCKED',
+                    error: `Account locked due to too many failed login attempts. Please try again in ${remainingMinutes} minutes.`,
+                    lockoutInfo: {
+                        expiresAt: attemptResult.lockoutInfo.expiresAt,
+                        remainingMinutes
+                    }
+                });
+            }
+            
             return res.status(401).json({ 
                 success: false, 
-                error: 'Invalid email or password' 
+                error: 'Invalid email or password',
+                remainingAttempts: attemptResult.remainingAttempts
             });
         }
+
+        // Successful login - reset failed attempts
+        await resetFailedAttempts(email);
 
         // Update last login
         await user.update({ lastLoginAt: new Date() });
@@ -169,7 +200,12 @@ exports.login = async (req, res) => {
 //Forgot password - email-based flow
 exports.forgotPassword = async (req, res) => {
     try {
-        const { email } = req.body;
+        let { email } = req.body;
+        
+        // Normalize email to lowercase for consistent lookup
+        email = email.toLowerCase().trim();
+        
+        console.log('🔐 [authController] Forgot password request for:', email);
 
         // Validate input
         if (!email) {
@@ -179,10 +215,17 @@ exports.forgotPassword = async (req, res) => {
             });
         }
 
-        // Find user
-        const user = await User.findOne({ where: { email } });
+        // Find user (case-insensitive email search)
+        const user = await User.findOne({ 
+            where: { 
+                email: email 
+            } 
+        });
+        console.log('👤 [authController] User lookup result:', user ? `Found: ${user.email}` : 'Not found');
+        
         if (!user) {
             // For security, don't reveal if email exists
+            console.log('⚠️ [authController] Email not registered, returning generic success message');
             return res.json({
                 success: true,
                 message: 'If an account with that email exists, a password reset link has been sent.'
@@ -192,19 +235,38 @@ exports.forgotPassword = async (req, res) => {
         // Generate reset token
         const resetToken = authService.generatePasswordResetToken();
         const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+        
+        console.log('🔐 [authController] Generated reset token:', resetToken);
+        console.log('⏰ [authController] Token expires at:', resetTokenExpiry.toISOString());
 
         // Save token to user
         await user.update({
-            passwordResetToken: resetToken,
-            passwordResetExpires: resetTokenExpiry
+            resetPasswordToken: resetToken,
+            resetPasswordExpires: resetTokenExpiry
         });
+        
+        console.log('💾 [authController] Token saved to database for user:', user.email);
 
         // Send reset email
         try {
             const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
-            await emailService.sendPasswordResetEmail(user.email, user.username, resetUrl);
-            logger.info('Password reset email sent', { userId: user.id, email: user.email });
+            console.log('📧 [authController] Attempting to send password reset email to:', user.email);
+            console.log('🔗 [authController] Reset URL:', resetUrl);
+            
+            const result = await emailService.sendPasswordResetEmail(user.email, user.username, resetUrl);
+            
+            console.log('✅ [authController] Email service returned:', result);
+            
+            if (result.success) {
+                logger.info('Password reset email sent', { userId: user.id, email: user.email });
+                if (result.previewUrl) {
+                    console.log('📬 [DEV MODE] Email preview URL:', result.previewUrl);
+                }
+            } else {
+                console.error('❌ [authController] Email service reported failure:', result.error);
+            }
         } catch (emailError) {
+            console.error('❌ [authController] Exception sending password reset email:', emailError);
             logger.error('Failed to send password reset email:', emailError);
             // Don't fail the request if email fails
         }
@@ -214,6 +276,7 @@ exports.forgotPassword = async (req, res) => {
             message: 'If an account with that email exists, a password reset link has been sent.'
         });
     } catch (error) {
+        console.error('❌ [authController] Forgot password error:', error);
         logger.error('Forgot password error:', error);
         res.status(500).json({ 
             success: false, 
@@ -226,9 +289,14 @@ exports.forgotPassword = async (req, res) => {
 exports.resetPassword = async (req, res) => {
     try {
         const { token, newPassword } = req.body;
+        
+        console.log('🔐 [authController] Reset password request received');
+        console.log('🔑 [authController] Token:', token);
+        console.log('🔒 [authController] New password length:', newPassword ? newPassword.length : 0);
 
         // Validate input
         if (!token || !newPassword) {
+            console.log('❌ [authController] Missing token or password');
             return res.status(400).json({ 
                 success: false, 
                 error: 'Token and new password are required' 
@@ -237,6 +305,7 @@ exports.resetPassword = async (req, res) => {
 
         // Validate password strength
         if (newPassword.length < 8) {
+            console.log('❌ [authController] Password too short');
             return res.status(400).json({ 
                 success: false, 
                 error: 'Password must be at least 8 characters long' 
@@ -244,31 +313,41 @@ exports.resetPassword = async (req, res) => {
         }
 
         // Find user with valid token
+        const { Op } = require('sequelize');
+        console.log('🔍 [authController] Looking up user with token...');
+        
         const user = await User.findOne({
             where: {
-                '$reset_password_token$': token,
-                '$reset_password_expires$': {
-                    [require('sequelize').Op.gt]: new Date()
+                resetPasswordToken: token,
+                resetPasswordExpires: {
+                    [Op.gt]: new Date()
                 }
             }
         });
+        
+        console.log('👤 [authController] User found:', user ? `Yes: ${user.email}` : 'No - token invalid or expired');
 
         if (!user) {
+            console.log('❌ [authController] Invalid or expired reset token');
             return res.status(400).json({ 
                 success: false, 
                 error: 'Invalid or expired reset token' 
             });
         }
 
+        console.log('🔐 [authController] Hashing new password...');
         // Hash new password
         const hashedPassword = await authService.hashPassword(newPassword);
 
+        console.log('💾 [authController] Updating user password and clearing reset token...');
         // Update password and clear reset token
         await user.update({
             password: hashedPassword,
             passwordResetToken: null,
             passwordResetExpires: null
         });
+
+        console.log('✅ [authController] Password updated successfully for:', user.email);
 
         logger.info('Password reset successful', { userId: user.id, email: user.email });
 
