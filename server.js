@@ -78,9 +78,18 @@ const supportRoutes = require('./src/routes/support');
 // const teamRoutes = require('./src/routes/teams'); // TODO: Add team models first
 // const webhookRoutes = require('./src/routes/webhooks'); // TODO: Add webhook routes
 
-// Health check
+// Health check - Multiple endpoints for Railway compatibility
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+app.get('/', (req, res) => {
+  res.status(200).json({ 
+    message: 'ErrorWise API is running', 
+    status: 'OK',
+    version: '1.0.0',
+    timestamp: new Date().toISOString() 
+  });
 });
 
 const healthRoutes = require('./src/routes/health');
