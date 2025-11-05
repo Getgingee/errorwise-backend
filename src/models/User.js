@@ -36,16 +36,16 @@ const User = sequelize.define('User', {
     field: 'is_active'
   },
   role: {
-    type: DataTypes.ENUM('user', 'admin'),
+    type: DataTypes.STRING(50),
     defaultValue: 'user'
   },
   subscriptionTier: {
-    type: DataTypes.ENUM('free', 'pro', 'team'),
+    type: DataTypes.STRING(50),
     defaultValue: 'free',
     field: 'subscription_tier'
   },
   subscriptionStatus: {
-    type: DataTypes.ENUM('active', 'cancelled', 'expired', 'trial'),
+    type: DataTypes.STRING(50),
     defaultValue: 'active',
     field: 'subscription_status'
   },
