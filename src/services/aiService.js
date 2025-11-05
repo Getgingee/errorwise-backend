@@ -24,28 +24,41 @@ const responseCache = new Map();
 
 // Log API key status on startup
 console.log('\n🔑 AI Service Configuration:');
-console.log(`   Provider: Anthropic Claude ${process.env.ANTHROPIC_API_KEY ? '✅' : '❌ MISSING!'}`);
-console.log(`   URL Scraping: ✅ Enabled`);
+console.log(`   FREE tier: Google Gemini ${process.env.GEMINI_API_KEY ? '✅' : '❌ MISSING!'}`);
+console.log(`   PRO tier: Claude Haiku ${process.env.ANTHROPIC_API_KEY ? '✅' : '❌ MISSING!'}`);
+console.log(`   TEAM tier: Claude Sonnet ${process.env.ANTHROPIC_API_KEY ? '✅' : '❌ MISSING!'}`);
+console.log(`   URL Scraping: ✅ Enabled (Pro/Team)`);
 console.log(`   Cache TTL: ${CONFIG.CACHE_TTL_MS / 1000}s`);
 console.log(`   Max Retries: ${CONFIG.MAX_RETRIES}`);
-console.log(`   Request Timeout: ${CONFIG.REQUEST_TIMEOUT_MS / 1000}s`);
-console.log(`   Note: Only Anthropic Claude is active for all tiers\n`);
+console.log(`   Request Timeout: ${CONFIG.REQUEST_TIMEOUT_MS / 1000}s\n`);
 
-// Initialize AI clients (only Anthropic is active)
-// const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY }); // DISABLED
-// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY); // DISABLED
+// Initialize AI clients
+let genAI; // Google Gemini (for FREE tier)
+let anthropic; // Anthropic Claude (for PRO/TEAM tiers)
 
-let anthropic;
+// Initialize Gemini
+try {
+  if (!process.env.GEMINI_API_KEY) {
+    console.warn('⚠️  WARNING: GEMINI_API_KEY not set. Free tier will use mock responses.');
+  } else {
+    genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    console.log('✅ Gemini client initialized successfully (FREE tier)');
+  }
+} catch (error) {
+  console.error('❌ Failed to initialize Gemini client:', error.message);
+}
+
+// Initialize Anthropic
 try {
   if (!process.env.ANTHROPIC_API_KEY) {
-    console.warn('⚠️  WARNING: ANTHROPIC_API_KEY not set. Only mock responses will be available.');
+    console.warn('⚠️  WARNING: ANTHROPIC_API_KEY not set. Pro/Team tiers will use fallback.');
   } else {
     anthropic = new Anthropic({ 
       apiKey: process.env.ANTHROPIC_API_KEY,
       timeout: CONFIG.REQUEST_TIMEOUT_MS,
       maxRetries: 2,
     });
-    console.log('✅ Anthropic client initialized successfully');
+    console.log('✅ Anthropic client initialized successfully (PRO/TEAM tiers)');
   }
 } catch (error) {
   console.error('❌ Failed to initialize Anthropic client:', error.message);
@@ -58,12 +71,17 @@ try {
 const TIER_CONFIG = {
   free: {
     primary: { 
-      provider: 'anthropic', 
-      model: 'claude-3-haiku-20240307', 
+      provider: 'gemini',  // FREE tier uses Gemini (100% FREE)
+      model: 'gemini-2.0-flash-exp', 
       maxTokens: 800,
       temperature: 0.3,
     },
-    fallback: { provider: 'mock' },
+    fallback: { 
+      provider: 'anthropic',  // Fallback to Claude Haiku if Gemini fails
+      model: 'claude-3-haiku-20240307',
+      maxTokens: 800,
+      temperature: 0.3,
+    },
     features: {
       batchAnalysis: false,
       urlScraping: false,
@@ -72,12 +90,12 @@ const TIER_CONFIG = {
   },
   pro: {
     primary: { 
-      provider: 'anthropic', 
+      provider: 'anthropic',  // PRO tier uses Claude Haiku
       model: 'claude-3-haiku-20240307', 
       maxTokens: 1200,
       temperature: 0.3,
     },
-    fallback: { provider: 'mock' },
+    fallback: { provider: 'gemini', model: 'gemini-2.0-flash-exp', maxTokens: 1200 },
     features: {
       batchAnalysis: false,
       urlScraping: true,
@@ -86,12 +104,12 @@ const TIER_CONFIG = {
   },
   team: {
     primary: { 
-      provider: 'anthropic', 
+      provider: 'anthropic',  // TEAM tier uses Claude Sonnet (best quality)
       model: 'claude-3-5-sonnet-20241022', 
       maxTokens: 2000,
       temperature: 0.2,
     },
-    fallback: { provider: 'mock' },
+    fallback: { provider: 'anthropic', model: 'claude-3-haiku-20240307', maxTokens: 2000 },
     features: {
       batchAnalysis: true,
       urlScraping: true,
@@ -1512,7 +1530,17 @@ Remember: Your goal is to help users understand their issues and learn from them
         
         let result;
         
-        if (config.provider === 'anthropic') {
+        if (config.provider === 'gemini') {
+          result = await callGemini(
+            prompt, 
+            config.model, 
+            detectedLanguage, 
+            detectedErrorType, 
+            stackTrace, 
+            features.conversationHistory ? conversationHistory : []
+          );
+        }
+        else if (config.provider === 'anthropic') {
           result = await callAnthropic(
             prompt, 
             systemMessage, 
