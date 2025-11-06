@@ -9,7 +9,18 @@
  */
 
 require('dotenv').config();
-const nodemailer = require('nodemailer');
+
+// Try to import nodemailer - handle both default and named exports
+let nodemailer;
+try {
+  nodemailer = require('nodemailer');
+  // Handle ES module default export if needed
+  if (nodemailer.default) {
+    nodemailer = nodemailer.default;
+  }
+} catch (error) {
+  console.error('❌ Failed to load nodemailer:', error.message);
+}
 
 // Email configuration - using SendGrid API key
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
@@ -31,6 +42,12 @@ const FROM_NAME = process.env.FROM_NAME || 'ErrorWise';
 let transporter = null;
 
 function createTransporter() {
+  // Check if nodemailer loaded properly
+  if (!nodemailer || typeof nodemailer.createTransporter !== 'function') {
+    console.error('❌ Nodemailer not properly loaded. Email functionality disabled.');
+    return null;
+  }
+
   if (!SENDGRID_API_KEY) {
     console.warn('⚠️  No SMTP configuration found, using EMAIL_SERVICE fallback');
     console.warn('⚠️ SMTP credentials not configured. Emails will be logged to console only.');
@@ -40,7 +57,7 @@ function createTransporter() {
   try {
     return nodemailer.createTransporter(EMAIL_CONFIG);
   } catch (error) {
-    console.error('Error creating email transporter:', error);
+    console.error('❌ Error creating email transporter:', error);
     return null;
   }
 }
