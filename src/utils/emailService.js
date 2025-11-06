@@ -42,15 +42,16 @@ const FROM_NAME = process.env.FROM_NAME || 'ErrorWise';
 let transporter = null;
 
 function createTransporter() {
-  // Check if nodemailer loaded properly
-  if (!nodemailer || typeof nodemailer.createTransporter !== 'function') {
-    console.error('❌ Nodemailer not properly loaded. Email functionality disabled.');
-    return null;
-  }
-
+  // Check if SENDGRID_API_KEY is set first
   if (!SENDGRID_API_KEY) {
     console.warn('⚠️  No SMTP configuration found, using EMAIL_SERVICE fallback');
     console.warn('⚠️ SMTP credentials not configured. Emails will be logged to console only.');
+    return null;
+  }
+
+  // Check if nodemailer loaded properly
+  if (!nodemailer || typeof nodemailer.createTransporter !== 'function') {
+    console.error('❌ Nodemailer not properly loaded. Email functionality disabled.');
     return null;
   }
 
@@ -66,21 +67,27 @@ function createTransporter() {
  * Initialize email service
  */
 async function initialize() {
+  // Create transporter
   transporter = createTransporter();
   
-  if (transporter) {
-    try {
-      await transporter.verify();
-      console.log('✅ Email service initialized successfully');
-      return true;
-    } catch (error) {
-      console.error('❌ Email service verification failed:', error.message);
-      transporter = null;
-      return false;
-    }
+  // If no transporter (no API key or nodemailer issue), skip verification
+  if (!transporter) {
+    console.log('✅ Email service initialized (console mode)');
+    return true; // Return true to not block server startup
   }
   
-  return false;
+  // Verify SMTP connection
+  try {
+    await transporter.verify();
+    console.log('✅ Email service initialized successfully');
+    return true;
+  } catch (error) {
+    console.error('❌ Email service initialization failed:', error.message);
+    // Don't use transporter if verification failed
+    transporter = null;
+    console.log('⚠️  Falling back to console mode for emails');
+    return true; // Still return true to not block server
+  }
 }
 
 /**
