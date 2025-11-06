@@ -11,31 +11,34 @@
 require('dotenv').config();
 const nodemailer = require('nodemailer');
 
-// Email configuration from environment variables
+// Email configuration - using SendGrid API key
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+
 const EMAIL_CONFIG = {
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
   port: parseInt(process.env.SMTP_PORT) || 587,
   secure: process.env.SMTP_SECURE === 'true' || false, // true for 465, false for other ports
   auth: {
-    user: process.env.SMTP_USER || '',
-    pass: process.env.SMTP_PASS || ''
+    user: 'apikey', // SendGrid requires literal 'apikey' as username
+    pass: SENDGRID_API_KEY || ''
   }
 };
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@errorwise.com';
+const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@errorwise.tech';
 const FROM_NAME = process.env.FROM_NAME || 'ErrorWise';
 
 // Create reusable transporter
 let transporter = null;
 
 function createTransporter() {
-  if (!EMAIL_CONFIG.auth.user || !EMAIL_CONFIG.auth.pass) {
+  if (!SENDGRID_API_KEY) {
+    console.warn('⚠️  No SMTP configuration found, using EMAIL_SERVICE fallback');
     console.warn('⚠️ SMTP credentials not configured. Emails will be logged to console only.');
     return null;
   }
 
   try {
-    return nodemailer.createTransport(EMAIL_CONFIG);
+    return nodemailer.createTransporter(EMAIL_CONFIG);
   } catch (error) {
     console.error('Error creating email transporter:', error);
     return null;
