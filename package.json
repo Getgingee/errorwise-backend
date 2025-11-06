@@ -25,7 +25,6 @@
     "url": "https://github.com/Getgingee/errorwise-backend/issues"
   },
   "homepage": "https://github.com/Getgingee/errorwise-backend#readme",
-
   "name": "errorwise-backend",
   "version": "1.0.0",
   "description": "AI-powered error resolution platform with multi-tier intelligence - Backend API",
@@ -37,6 +36,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.67.0",
     "@google/generative-ai": "^0.24.1",
+    "@sendgrid/mail": "^8.1.6",
     "abbrev": "^2.0.0",
     "accepts": "^1.3.8",
     "acorn": "^8.15.0",

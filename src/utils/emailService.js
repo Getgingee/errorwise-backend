@@ -10,27 +10,20 @@
 
 require('dotenv').config();
 
-// Try to import nodemailer - handle both default and named exports
-let nodemailer;
-try {
-  nodemailer = require('nodemailer');
-  // Handle ES module default export if needed
-  if (nodemailer.default) {
-    nodemailer = nodemailer.default;
-  }
-} catch (error) {
-  console.error('❌ Failed to load nodemailer:', error.message);
-}
+// Use SendGrid Web API instead of SMTP (Railway blocks SMTP ports)
+const sgMail = require('@sendgrid/mail');
 
 // Email configuration defaults
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@errorwise.tech';
 const FROM_NAME = process.env.FROM_NAME || 'ErrorWise';
 
-// Create reusable transporter
-let transporter = null;
+// SendGrid initialized flag
+let sendgridInitialized = false;
 
-function createTransporter() {
-  // Read SENDGRID_API_KEY at runtime, not at module load time
+/**
+ * Initialize email service with SendGrid Web API
+ */
+async function initialize() {
   const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
   
   // Debug logging
@@ -39,75 +32,35 @@ function createTransporter() {
   console.log('  SENDGRID_API_KEY length:', SENDGRID_API_KEY ? SENDGRID_API_KEY.length : 0);
   console.log('  SENDGRID_API_KEY starts with SG.:', SENDGRID_API_KEY ? SENDGRID_API_KEY.startsWith('SG.') : false);
   
-  // Check if SENDGRID_API_KEY is set first
+  // Check if SENDGRID_API_KEY is set
   if (!SENDGRID_API_KEY) {
-    console.warn('⚠️  No SMTP configuration found, using EMAIL_SERVICE fallback');
-    console.warn('⚠️ SMTP credentials not configured. Emails will be logged to console only.');
-    return null;
-  }
-
-  // Check if nodemailer loaded properly
-  if (!nodemailer || typeof nodemailer.createTransporter !== 'function') {
-    console.error('❌ Nodemailer not properly loaded. Email functionality disabled.');
-    return null;
-  }
-
-  // Create email configuration with API key
-  const EMAIL_CONFIG = {
-    host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: process.env.SMTP_SECURE === 'true' || false,
-    auth: {
-      user: 'apikey', // SendGrid requires literal 'apikey' as username
-      pass: SENDGRID_API_KEY
-    }
-  };
-
-  try {
-    const transport = nodemailer.createTransporter(EMAIL_CONFIG);
-    console.log('✅ Email transporter created successfully');
-    return transport;
-  } catch (error) {
-    console.error('❌ Error creating email transporter:', error);
-    return null;
-  }
-}
-
-/**
- * Initialize email service
- */
-async function initialize() {
-  // Create transporter
-  transporter = createTransporter();
-  
-  // If no transporter (no API key or nodemailer issue), skip verification
-  if (!transporter) {
+    console.warn('⚠️  No SendGrid API key found, using console mode');
     console.log('✅ Email service initialized (console mode)');
-    return true; // Return true to not block server startup
+    return true;
   }
-  
-  // Verify SMTP connection
+
   try {
-    await transporter.verify();
-    console.log('✅ Email service initialized successfully');
+    // Initialize SendGrid with API key
+    sgMail.setApiKey(SENDGRID_API_KEY);
+    sendgridInitialized = true;
+    console.log('✅ SendGrid Web API initialized successfully');
+    console.log('✅ Email service ready (using SendGrid Web API)');
     return true;
   } catch (error) {
-    console.error('❌ Email service initialization failed:', error.message);
-    // Don't use transporter if verification failed
-    transporter = null;
+    console.error('❌ Failed to initialize SendGrid:', error.message);
     console.log('⚠️  Falling back to console mode for emails');
-    return true; // Still return true to not block server
+    return true; // Don't block server startup
   }
 }
 
 /**
- * Send an email
+ * Send an email using SendGrid Web API
  */
 async function sendEmail({ to, subject, html, text }) {
-  // If no transporter, log email to console (development mode)
-  if (!transporter) {
+  // If SendGrid not initialized, log email to console
+  if (!sendgridInitialized) {
     console.log('\n' + '='.repeat(60));
-    console.log('📧 EMAIL (Console Mode - SMTP not configured)');
+    console.log('📧 EMAIL (Console Mode - SendGrid not configured)');
     console.log('='.repeat(60));
     console.log('To:', to);
     console.log('Subject:', subject);
@@ -115,7 +68,7 @@ async function sendEmail({ to, subject, html, text }) {
     console.log('HTML:', html ? 'HTML content provided' : 'No HTML');
     console.log('='.repeat(60) + '\n');
     
-    // Return success in development mode
+    // Return success in console mode
     return {
       success: true,
       messageId: 'console-mode-' + Date.now(),
@@ -124,25 +77,36 @@ async function sendEmail({ to, subject, html, text }) {
   }
 
   try {
-    const mailOptions = {
-      from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+    const msg = {
       to,
+      from: {
+        email: FROM_EMAIL,
+        name: FROM_NAME
+      },
       subject,
-      text,
+      text: text || subject,
       html
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const response = await sgMail.send(msg);
     
-    console.log('✅ Email sent successfully:', info.messageId);
+    console.log('✅ Email sent successfully via SendGrid Web API');
+    console.log('   To:', to);
+    console.log('   Subject:', subject);
+    console.log('   Status:', response[0].statusCode);
+    
     return {
       success: true,
-      messageId: info.messageId,
-      mode: 'smtp'
+      messageId: response[0].headers['x-message-id'] || 'sendgrid-' + Date.now(),
+      mode: 'sendgrid-api',
+      statusCode: response[0].statusCode
     };
     
   } catch (error) {
-    console.error('❌ Error sending email:', error);
+    console.error('❌ Error sending email via SendGrid:', error.message);
+    if (error.response) {
+      console.error('   SendGrid Error:', error.response.body);
+    }
     throw new Error(`Failed to send email: ${error.message}`);
   }
 }
