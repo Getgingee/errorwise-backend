@@ -19,13 +19,44 @@ app.use(helmet({
   crossOriginEmbedderPolicy: process.env.NODE_ENV === 'production'
 }));
 
-// CORS configuration - use CORS_ORIGIN env variable for multiple origins
+// CORS configuration - supports wildcards like https://*.vercel.app
 const corsOrigin = process.env.CORS_ORIGIN 
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : (process.env.FRONTEND_URL || 'http://localhost:5173');
 
+// Function to check if origin matches wildcard pattern
+const isOriginAllowed = (origin, allowedOrigins) => {
+  if (!origin) return false;
+  
+  for (const allowed of allowedOrigins) {
+    // Exact match
+    if (allowed === origin) return true;
+    
+    // Wildcard match (e.g., https://*.vercel.app)
+    if (allowed.includes('*')) {
+      const pattern = allowed
+        .replace(/\./g, '\\.')  // Escape dots
+        .replace(/\*/g, '.*');  // Convert * to regex .*
+      const regex = new RegExp(`^${pattern}$`);
+      if (regex.test(origin)) return true;
+    }
+  }
+  return false;
+};
+
 app.use(cors({ 
-  origin: corsOrigin,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = Array.isArray(corsOrigin) ? corsOrigin : [corsOrigin];
+    
+    if (isOriginAllowed(origin, allowedOrigins)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token']
