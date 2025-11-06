@@ -22,25 +22,7 @@ try {
   console.error('❌ Failed to load nodemailer:', error.message);
 }
 
-// Email configuration - using SendGrid API key
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-
-// Debug logging for Railway
-console.log('🔍 Email Service Debug:');
-console.log('  SENDGRID_API_KEY exists:', !!SENDGRID_API_KEY);
-console.log('  SENDGRID_API_KEY length:', SENDGRID_API_KEY ? SENDGRID_API_KEY.length : 0);
-console.log('  SENDGRID_API_KEY starts with SG.:', SENDGRID_API_KEY ? SENDGRID_API_KEY.startsWith('SG.') : false);
-
-const EMAIL_CONFIG = {
-  host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
-  port: parseInt(process.env.SMTP_PORT) || 587,
-  secure: process.env.SMTP_SECURE === 'true' || false, // true for 465, false for other ports
-  auth: {
-    user: 'apikey', // SendGrid requires literal 'apikey' as username
-    pass: SENDGRID_API_KEY || ''
-  }
-};
-
+// Email configuration defaults
 const FROM_EMAIL = process.env.FROM_EMAIL || 'noreply@errorwise.tech';
 const FROM_NAME = process.env.FROM_NAME || 'ErrorWise';
 
@@ -48,6 +30,15 @@ const FROM_NAME = process.env.FROM_NAME || 'ErrorWise';
 let transporter = null;
 
 function createTransporter() {
+  // Read SENDGRID_API_KEY at runtime, not at module load time
+  const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+  
+  // Debug logging
+  console.log('🔍 Email Service Debug:');
+  console.log('  SENDGRID_API_KEY exists:', !!SENDGRID_API_KEY);
+  console.log('  SENDGRID_API_KEY length:', SENDGRID_API_KEY ? SENDGRID_API_KEY.length : 0);
+  console.log('  SENDGRID_API_KEY starts with SG.:', SENDGRID_API_KEY ? SENDGRID_API_KEY.startsWith('SG.') : false);
+  
   // Check if SENDGRID_API_KEY is set first
   if (!SENDGRID_API_KEY) {
     console.warn('⚠️  No SMTP configuration found, using EMAIL_SERVICE fallback');
@@ -61,8 +52,21 @@ function createTransporter() {
     return null;
   }
 
+  // Create email configuration with API key
+  const EMAIL_CONFIG = {
+    host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
+    port: parseInt(process.env.SMTP_PORT) || 587,
+    secure: process.env.SMTP_SECURE === 'true' || false,
+    auth: {
+      user: 'apikey', // SendGrid requires literal 'apikey' as username
+      pass: SENDGRID_API_KEY
+    }
+  };
+
   try {
-    return nodemailer.createTransporter(EMAIL_CONFIG);
+    const transport = nodemailer.createTransporter(EMAIL_CONFIG);
+    console.log('✅ Email transporter created successfully');
+    return transport;
   } catch (error) {
     console.error('❌ Error creating email transporter:', error);
     return null;
