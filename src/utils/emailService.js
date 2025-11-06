@@ -25,6 +25,12 @@ try {
 // Email configuration - using SendGrid API key
 const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
 
+// Debug logging for Railway
+console.log('🔍 Email Service Debug:');
+console.log('  SENDGRID_API_KEY exists:', !!SENDGRID_API_KEY);
+console.log('  SENDGRID_API_KEY length:', SENDGRID_API_KEY ? SENDGRID_API_KEY.length : 0);
+console.log('  SENDGRID_API_KEY starts with SG.:', SENDGRID_API_KEY ? SENDGRID_API_KEY.startsWith('SG.') : false);
+
 const EMAIL_CONFIG = {
   host: process.env.SMTP_HOST || 'smtp.sendgrid.net',
   port: parseInt(process.env.SMTP_PORT) || 587,
