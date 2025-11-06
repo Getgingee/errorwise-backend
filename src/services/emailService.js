@@ -1,104 +1,78 @@
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 const logger = require('../utils/logger');
 
 class EmailService {
   constructor() {
-    this.transporter = null;
+    this.sendgridInitialized = false;
     this.initialize();
   }
 
   async initialize() {
     try {
-      // Configure transporter using environment variables (SendGrid SMTP)
-      if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-        // Use configured SMTP (SendGrid, etc.)
-        console.log('📧 Initializing email service with SMTP:', process.env.SMTP_HOST);
-        this.transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: parseInt(process.env.SMTP_PORT) || 587,
-          secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
-          auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS
-          }
-        });
-        
-        console.log('✅ SMTP transporter created with host:', process.env.SMTP_HOST);
-      } else if (process.env.NODE_ENV === 'production') {
-        // Fallback for production if SMTP not configured
-        console.warn('⚠️  No SMTP configuration found, using EMAIL_SERVICE fallback');
-        this.transporter = nodemailer.createTransport({
-          service: process.env.EMAIL_SERVICE || 'gmail',
-          auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-          }
-        });
-      } else {
-        // Development fallback - use Ethereal for testing
-        console.log('📧 No SMTP configured, using Ethereal (fake) email for testing');
-        const testAccount = await nodemailer.createTestAccount();
-        this.transporter = nodemailer.createTransport({
-          host: 'smtp.ethereal.email',
-          port: 587,
-          secure: false,
-          auth: {
-            user: testAccount.user,
-            pass: testAccount.pass
-          }
-        });
+      const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+      
+      if (!SENDGRID_API_KEY) {
+        console.warn('⚠️  No SendGrid API key found, email service in console mode');
+        logger.warn('SendGrid API key not configured');
+        return;
       }
 
-      // Verify connection
-      await this.transporter.verify();
-      console.log('✅ Email service connection verified successfully');
-      logger.info('Email service initialized successfully');
+      // Initialize SendGrid Web API (Railway blocks SMTP ports)
+      sgMail.setApiKey(SENDGRID_API_KEY);
+      this.sendgridInitialized = true;
+      
+      console.log('✅ EmailService class: SendGrid Web API initialized');
+      logger.info('EmailService initialized with SendGrid Web API');
     } catch (error) {
-      console.error('❌ Email service initialization failed:', error);
-      logger.error('Email service initialization failed:', error);
+      console.error('❌ EmailService initialization failed:', error);
+      logger.error('EmailService initialization failed:', error);
     }
   }
 
   async sendEmail(to, subject, htmlContent, textContent = null) {
     try {
-      if (!this.transporter) {
-        throw new Error('Email service not initialized');
+      if (!this.sendgridInitialized) {
+        console.log('📧 Email (Console Mode) - SendGrid not initialized');
+        console.log('   To:', to);
+        console.log('   Subject:', subject);
+        logger.info('Email would be sent (console mode):', { to, subject });
+        return {
+          success: true,
+          messageId: 'console-' + Date.now(),
+          mode: 'console'
+        };
       }
 
       const fromName = process.env.FROM_NAME || 'ErrorWise';
       const fromEmail = process.env.FROM_EMAIL || 'noreply@errorwise.app';
       
-      const mailOptions = {
-        from: `"${fromName}" <${fromEmail}>`,
+      const msg = {
         to,
+        from: {
+          email: fromEmail,
+          name: fromName
+        },
         subject,
         html: htmlContent,
         text: textContent || this.stripHtml(htmlContent)
       };
 
-      console.log('📧 Sending email to:', to);
-      console.log('📧 From:', mailOptions.from);
+      console.log('📧 Sending email via SendGrid to:', to);
       console.log('📧 Subject:', subject);
 
-      const info = await this.transporter.sendMail(mailOptions);
+      const response = await sgMail.send(msg);
       
-      console.log('✅ Email sent successfully! Message ID:', info.messageId);
-      
-      if (process.env.NODE_ENV === 'development') {
-        const previewUrl = nodemailer.getTestMessageUrl(info);
-        if (previewUrl) {
-          console.log('📬 [DEV MODE] Email preview URL:', previewUrl);
-        }
-        logger.info('Email sent (dev):', {
-          messageId: info.messageId,
-          previewUrl
-        });
-      }
+      console.log('✅ Email sent successfully via SendGrid Web API');
+      logger.info('Email sent successfully:', {
+        to,
+        subject,
+        statusCode: response[0].statusCode
+      });
 
       return {
         success: true,
-        messageId: info.messageId,
-        previewUrl: process.env.NODE_ENV === 'development' ? nodemailer.getTestMessageUrl(info) : null
+        messageId: response[0].headers['x-message-id'] || 'sendgrid-' + Date.now(),
+        statusCode: response[0].statusCode
       };
     } catch (error) {
       console.error('❌ Failed to send email:', error);

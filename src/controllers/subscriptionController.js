@@ -285,7 +285,7 @@ exports.createSubscription = async (req, res) => {
       });
 
       // Send subscription confirmation email
-      const emailService = require('../services/emailService');
+      const emailService = require('../utils/emailService');
       try {
         await emailService.sendSubscriptionConfirmation(user, {
           planName: plan.name,
@@ -389,7 +389,7 @@ exports.cancelSubscription = async (req, res) => {
     );
 
     // Send cancellation confirmation email
-    const emailService = require('../services/emailService');
+    const emailService = require('../utils/emailService');
     try {
       await emailService.sendCancellationConfirmation(
         user.email,

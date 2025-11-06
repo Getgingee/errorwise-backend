@@ -1,5 +1,5 @@
 const { Op } = require('sequelize');
-const emailService = require('./emailService');
+const emailService = require('../utils/emailService');
 const User = require('../models/User');
 const TeamMember = require('../models/TeamMember');
 

@@ -160,7 +160,7 @@ exports.register = async (req, res) => {
         logger.info('User registered successfully', { userId: user.id, email: user.email });
 
         // Send welcome email
-        const emailService = require('../services/emailService');
+        const emailService = require('../utils/emailService');
         try {
             await emailService.sendWelcomeEmail(user);
             logger.info('Welcome email sent successfully', { email: user.email });
@@ -368,7 +368,7 @@ exports.resetPassword = async (req, res) => {
         logger.info('Password reset successfully', { userId: user.id, email: user.email });
 
         // Send password change confirmation email
-        const emailService = require('../services/emailService');
+        const emailService = require('../utils/emailService');
         try {
             await emailService.sendPasswordChangeConfirmation(user.email, user.username);
             logger.info('Password change confirmation email sent', { email: user.email });

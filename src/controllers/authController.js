@@ -1,6 +1,6 @@
 ﻿const User = require('../models/User');
 const authService = require('../services/authService');
-const emailService = require('../services/emailService');
+const emailService = require('../utils/emailService');
 const logger = require('../utils/logger');
 const { trackFailedAttempt, resetFailedAttempts } = require('../middleware/accountLock');
 
