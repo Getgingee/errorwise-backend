@@ -197,10 +197,62 @@ const start = async () => {
     await sequelize.authenticate();
     console.log('✅ Database connected successfully');
     
+    // Run migrations in production (create ErrorQueries table if missing)
+    if (process.env.NODE_ENV === 'production') {
+      try {
+        console.log('📝 Checking for required tables...');
+        
+        // Check if ErrorQueries table exists
+        const [results] = await sequelize.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'ErrorQueries'
+          );
+        `);
+        
+        if (!results[0].exists) {
+          console.log('⚠️  ErrorQueries table missing. Creating...');
+          
+          // Create ErrorQueries table
+          await sequelize.query(`
+            CREATE TABLE "ErrorQueries" (
+              "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              "userId" UUID NOT NULL REFERENCES "Users"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+              "errorMessage" TEXT NOT NULL,
+              "explanation" TEXT NOT NULL,
+              "solution" TEXT,
+              "errorCategory" VARCHAR(255) DEFAULT 'general',
+              "aiProvider" VARCHAR(255) DEFAULT 'mock',
+              "userSubscriptionTier" VARCHAR(255) NOT NULL DEFAULT 'free' CHECK ("userSubscriptionTier" IN ('free', 'pro', 'team')),
+              "responseTime" INTEGER,
+              "tags" JSONB DEFAULT '[]'::jsonb,
+              "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+          `);
+          
+          // Create indexes
+          await sequelize.query(`
+            CREATE INDEX "error_queries_user_created_idx" ON "ErrorQueries" ("userId", "createdAt");
+          `);
+          await sequelize.query(`
+            CREATE INDEX "error_queries_category_idx" ON "ErrorQueries" ("errorCategory");
+          `);
+          
+          console.log('✅ ErrorQueries table created successfully');
+        } else {
+          console.log('✅ ErrorQueries table exists');
+        }
+      } catch (migrationError) {
+        console.error('❌ Migration check failed:', migrationError);
+        // Don't fail startup if table already exists
+      }
+    }
+    
     // Sync database (creates tables if they don't exist)
     // In production, use migrations instead of sync()
     if (process.env.NODE_ENV === 'production') {
-      console.log('⚠️  Production mode: Skipping auto-sync. Use migrations instead!');
+      console.log('⚠️  Production mode: Skipping auto-sync. Using manual migrations.');
       // await sequelize.sync({ alter: false });
     } else {
       await sequelize.sync();
