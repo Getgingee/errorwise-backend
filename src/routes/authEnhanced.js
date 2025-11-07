@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
 const authService = require('../services/authService');
 const userTrackingService = require('../services/userTrackingService');
@@ -371,7 +373,6 @@ router.post('/login/enhanced', accountLockoutMiddleware, async (req, res) => {
     // Check if email is verified
     if (!user.isEmailVerified) {
       // Generate a temporary verification session token
-      const crypto = require('crypto');
       const verificationToken = `verify:session:${crypto.randomUUID()}`;
       
       // Store token in Redis with 15-minute expiry
@@ -719,7 +720,6 @@ router.post('/forgot-password', async (req, res) => {
     }
     
     // Generate reset token
-    const crypto = require('crypto');
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     
@@ -784,12 +784,11 @@ router.post('/reset-password', async (req, res) => {
     // Find user with reset token
     const user = await User.findOne({ 
       where: { 
-        '$reset_password_token$': token,
-        '$reset_password_expires$': { [require('sequelize').Op.gt]: new Date() }
+        resetPasswordToken: token,
+        resetPasswordExpires: { [require('sequelize').Op.gt]: new Date() }
       } 
     });
     
-    console.log('✓ User query completed, found:', !!user);
     console.log('✓ User query completed, found:', !!user);
     
     if (!user) {
