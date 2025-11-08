@@ -14,16 +14,22 @@ const pool = require('../config/db');
 // Submit feedback
 exports.submitFeedback = async (req, res) => {
   try {
-    const { feedback_type, subject, message, rating } = req.body;
-    const user_id = req.user?.id || null;
-    const user_email = req.user?.email || req.body.email;
-    const user_name = req.user?.username || req.body.name;
+    const { email, message, feedback_type = 'demo_feedback', subject, source = 'demo_limit' } = req.body;
 
     // Validation
-    if (!feedback_type || !message) {
+    if (!email || !message) {
       return res.status(400).json({
         success: false,
-        message: 'Feedback type and message are required'
+        message: 'Email and message are required'
+      });
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address'
       });
     }
 
@@ -35,18 +41,10 @@ exports.submitFeedback = async (req, res) => {
       });
     }
 
-    if (message.length > 5000) {
+    if (message.length > 500) {
       return res.status(400).json({
         success: false,
-        message: 'Message is too long (max 5000 characters)'
-      });
-    }
-
-    const validTypes = ['feature_request', 'bug_report', 'general_feedback', 'improvement_suggestion'];
-    if (!validTypes.includes(feedback_type)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid feedback type. Must be one of: ' + validTypes.join(', ')
+        message: 'Message is too long (max 500 characters)'
       });
     }
 
@@ -56,13 +54,13 @@ exports.submitFeedback = async (req, res) => {
 
     const result = await pool.query(
       `INSERT INTO Feedback 
-        (user_id, user_email, user_name, feedback_type, subject, message, rating, user_agent, ip_address)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       RETURNING id, feedback_type, status, created_at`,
-      [user_id, user_email, user_name, feedback_type, subject, message, rating, user_agent, ip_address]
+        (user_email, feedback_type, subject, message, user_agent, ip_address, source)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, feedback_type, source, created_at`,
+      [email, feedback_type, subject, message, user_agent, ip_address, source]
     );
 
-    console.log('✅ Feedback submitted:', result.rows[0].id);
+    console.log('✅ Feedback submitted:', result.rows[0].id, `from ${email} (${source})`);
 
     res.status(201).json({
       success: true,
