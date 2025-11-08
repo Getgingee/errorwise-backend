@@ -28,6 +28,15 @@ const authMiddleware = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
     let token = authHeader && authHeader.split(' ')[1];
 
+    // Debug logging
+    logger.info('🔐 Auth middleware check', {
+      path: req.path,
+      method: req.method,
+      hasAuthHeader: !!authHeader,
+      authHeaderPreview: authHeader ? authHeader.substring(0, 20) + '...' : 'none',
+      hasToken: !!token
+    });
+
     // If no header token, try to get from cookies
     if (!token) {
       token = req.cookies.accessToken;
@@ -39,6 +48,10 @@ const authMiddleware = async (req, res, next) => {
     }
 
     if (!token) {
+      logger.warn('❌ No token found in request', {
+        path: req.path,
+        headers: Object.keys(req.headers)
+      });
       return res.status(401).json({ 
         success: false,
         error: 'Access token required. Please log in.' 
@@ -88,6 +101,12 @@ const authMiddleware = async (req, res, next) => {
     next();
 
   } catch (error) {
+    logger.error('❌ Auth middleware error:', {
+      errorName: error.name,
+      errorMessage: error.message,
+      path: req.path
+    });
+
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({ 
         success: false,
