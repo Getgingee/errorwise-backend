@@ -157,11 +157,15 @@ app.get('/api/stats', async (req, res) => {
   app.use('/api/subscriptions', subscriptionRoutes);
   app.use('/api/history', historyRoutes);
   app.use('/api/settings', settingsRoutes);
+  app.use('/api/support', supportRoutes); // Feedback, Contact, Help Center , newsletter
+  
   // TODO: Temporarily disabled for short-term - will enable in future
-  // app.use('/api/support', supportRoutes); // Feedback, Contact, Help Center
   // app.use('/api/content', require('./src/routes/content')); // Privacy, Terms, About, Community
   // app.use('/api/teams', teamRoutes); // TODO: Add team models first
-  // app.use('/api/webhooks', webhookRoutes); // TODO: Add webhook routes// 404 handler
+  // app.use('/api/webhooks', webhookRoutes); // TODO: Add webhook routes
+
+
+// 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({ error: 'Not Found' });
 });
@@ -250,14 +254,10 @@ const start = async () => {
     }
     
     // Sync database (creates tables if they don't exist)
-    // In production, use migrations instead of sync()
-    if (process.env.NODE_ENV === 'production') {
-      console.log('⚠️  Production mode: Skipping auto-sync. Using manual migrations.');
-      // await sequelize.sync({ alter: false });
-    } else {
-      await sequelize.sync();
-      console.log('✅ Database synced (development mode)');
-    }
+    // TEMPORARY: Enable sync in production to create base tables on first deploy
+    // TODO: Disable after initial deployment and use migrations
+    await sequelize.sync({ alter: false });
+    console.log(`✅ Database synced (${process.env.NODE_ENV || 'development'} mode)`);
     
     // Initialize email service
     try {
