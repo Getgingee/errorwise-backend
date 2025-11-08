@@ -217,7 +217,7 @@ const start = async () => {
           await sequelize.query(`
             CREATE TABLE "ErrorQueries" (
               "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-              "userId" UUID NOT NULL REFERENCES "Users"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+              "userId" UUID NOT NULL REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE,
               "errorMessage" TEXT NOT NULL,
               "explanation" TEXT NOT NULL,
               "solution" TEXT,
