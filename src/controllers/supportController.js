@@ -756,7 +756,7 @@ exports.subscribeToNewsletter = async (req, res) => {
 
     // Check if email already subscribed
     const existingCheck = await pool.query(
-      'SELECT id, status FROM NewsletterSubscriptions WHERE email = $1',
+      'SELECT id, status FROM newslettersubscriptions WHERE email = $1',
       [email]
     );
 
@@ -775,7 +775,7 @@ exports.subscribeToNewsletter = async (req, res) => {
 
       // Re-activate subscription
       result = await pool.query(
-        `UPDATE NewsletterSubscriptions 
+        `UPDATE newslettersubscriptions 
          SET status = 'active', 
              subscription_type = $1,
              source = $2,
@@ -799,7 +799,7 @@ exports.subscribeToNewsletter = async (req, res) => {
 
     // New subscription
     result = await pool.query(
-      `INSERT INTO NewsletterSubscriptions 
+      `INSERT INTO newslettersubscriptions 
         (user_id, email, name, status, subscription_type, source, unsubscribe_token, ip_address, user_agent, confirmed_at)
        VALUES ($1, $2, $3, 'active', $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)
        RETURNING id, email, name, status, subscription_type, source, created_at`,
@@ -850,7 +850,7 @@ exports.unsubscribeFromNewsletter = async (req, res) => {
     }
 
     const result = await pool.query(
-      `UPDATE NewsletterSubscriptions 
+      `UPDATE newslettersubscriptions 
        SET status = 'unsubscribed',
            unsubscribed_at = CURRENT_TIMESTAMP,
            unsubscribe_reason = $1
@@ -895,7 +895,7 @@ exports.getNewsletterStatus = async (req, res) => {
     }
 
     const result = await pool.query(
-      'SELECT id, email, name, status, subscription_type, source, created_at FROM NewsletterSubscriptions WHERE email = $1',
+      'SELECT id, email, name, status, subscription_type, source, created_at FROM newslettersubscriptions WHERE email = $1',
       [email]
     );
 
@@ -925,12 +925,12 @@ exports.getNewsletterStatus = async (req, res) => {
 };
 
 // Get all newsletter subscriptions (admin only)
-exports.getAllNewsletterSubscriptions = async (req, res) => {
+exports.getAllnewslettersubscriptions = async (req, res) => {
   try {
     const { status, subscription_type, limit = 100, offset = 0 } = req.query;
 
     let query = `SELECT id, email, name, user_id, status, subscription_type, source, email_count, last_email_sent_at, created_at, unsubscribed_at
-                 FROM NewsletterSubscriptions
+                 FROM newslettersubscriptions
                  WHERE 1=1`;
     const params = [];
     let paramCount = 1;
@@ -958,7 +958,7 @@ exports.getAllNewsletterSubscriptions = async (req, res) => {
         COUNT(*) FILTER (WHERE status = 'bounced') as bounced_count,
         COUNT(*) FILTER (WHERE status = 'complained') as complained_count,
         COUNT(*) as total_count
-      FROM NewsletterSubscriptions
+      FROM newslettersubscriptions
     `);
 
     res.json({
