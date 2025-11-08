@@ -925,7 +925,7 @@ exports.getNewsletterStatus = async (req, res) => {
 };
 
 // Get all newsletter subscriptions (admin only)
-exports.getAllnewslettersubscriptions = async (req, res) => {
+exports.getAllNewsletterSubscriptions = async (req, res) => {
   try {
     const { status, subscription_type, limit = 100, offset = 0 } = req.query;
 
