@@ -141,24 +141,74 @@ class DodoPaymentService {
     try {
       const { type, data } = event;
 
+      console.log(`Processing webhook event: ${type}`);
+
       switch (type) {
-        // Dodo Payments events
-        case 'subscription.active':
-          return await this.handleDodoSubscriptionActive(data);
-        case 'subscription.renewed':
-          return await this.handlePaymentSuccess(data);
-        case 'subscription.cancelled':
-          return await this.handleSubscriptionCancelled(data);
-        case 'subscription.failed':
-          return await this.handlePaymentFailed(data);
-        case 'subscription.expired':
-          return await this.handleSubscriptionCancelled(data);
+        // ============================================================
+        // PAYMENT EVENTS
+        // ============================================================
         case 'payment.succeeded':
           return await this.handlePaymentSuccess(data);
         case 'payment.failed':
           return await this.handlePaymentFailed(data);
+        case 'payment.processing':
+          return await this.handlePaymentProcessing(data);
+        case 'payment.cancelled':
+          return await this.handlePaymentCancelled(data);
 
-        // Backwards compatibility with Stripe-like events (if configured)
+        // ============================================================
+        // SUBSCRIPTION EVENTS
+        // ============================================================
+        case 'subscription.active':
+          return await this.handleSubscriptionActive(data);
+        case 'subscription.on_hold':
+          return await this.handleSubscriptionOnHold(data);
+        case 'subscription.renewed':
+          return await this.handleSubscriptionRenewed(data);
+        case 'subscription.plan_changed':
+          return await this.handleSubscriptionPlanChanged(data);
+        case 'subscription.cancelled':
+          return await this.handleSubscriptionCancelled(data);
+        case 'subscription.failed':
+          return await this.handleSubscriptionFailed(data);
+        case 'subscription.expired':
+          return await this.handleSubscriptionExpired(data);
+
+        // ============================================================
+        // REFUND EVENTS
+        // ============================================================
+        case 'refund.succeeded':
+          return await this.handleRefundSucceeded(data);
+        case 'refund.failed':
+          return await this.handleRefundFailed(data);
+
+        // ============================================================
+        // DISPUTE EVENTS
+        // ============================================================
+        case 'dispute.opened':
+          return await this.handleDisputeOpened(data);
+        case 'dispute.expired':
+          return await this.handleDisputeExpired(data);
+        case 'dispute.accepted':
+          return await this.handleDisputeAccepted(data);
+        case 'dispute.cancelled':
+          return await this.handleDisputeCancelled(data);
+        case 'dispute.challenged':
+          return await this.handleDisputeChallenged(data);
+        case 'dispute.won':
+          return await this.handleDisputeWon(data);
+        case 'dispute.lost':
+          return await this.handleDisputeLost(data);
+
+        // ============================================================
+        // LICENSE KEY EVENTS
+        // ============================================================
+        case 'license_key.created':
+          return await this.handleLicenseKeyCreated(data);
+
+        // ============================================================
+        // BACKWARDS COMPATIBILITY (Stripe-like events)
+        // ============================================================
         case 'checkout.session.completed':
           return await this.handleSubscriptionSuccess(data.object);
         case 'invoice.payment_succeeded':
@@ -167,6 +217,7 @@ class DodoPaymentService {
           return await this.handlePaymentFailed(data.object);
         case 'customer.subscription.deleted':
           return await this.handleSubscriptionCancelled(data.object);
+
         default:
           console.log(`Unhandled webhook event type: ${type}`);
           return { success: true, message: 'Event ignored' };
@@ -295,20 +346,25 @@ class DodoPaymentService {
   async handleSubscriptionCancelled(subscription) {
     try {
       const subscriptionId = subscription.id || subscription.subscription_id;
-      
-      // Update subscription status
       const Subscription = require('../models/Subscription');
+      const User = require('../models/User');
+      
       await Subscription.update(
         { status: 'cancelled' },
         { where: { dodoSubscriptionId: subscriptionId } }
       );
 
-      console.log(`Subscription cancelled: ${subscriptionId}`);
-      
-      return {
-        success: true,
-        message: 'Subscription cancellation handled'
-      };
+      // Update user record
+      const subRecord = await Subscription.findOne({ where: { dodoSubscriptionId: subscriptionId } });
+      if (subRecord?.userId) {
+        await User.update(
+          { subscriptionStatus: 'cancelled' },
+          { where: { id: subRecord.userId } }
+        );
+      }
+
+      console.log(`✅ Subscription cancelled: ${subscriptionId}`);
+      return { success: true, message: 'Subscription cancellation handled' };
 
     } catch (error) {
       console.error('Subscription cancellation handling failed:', error);
@@ -316,13 +372,42 @@ class DodoPaymentService {
     }
   }
 
-  // Handle Dodo subscription.active event
-  async handleDodoSubscriptionActive(payload) {
+  // ============================================================
+  // COMPREHENSIVE WEBHOOK HANDLERS
+  // ============================================================
+
+  // Payment Event Handlers
+  async handlePaymentProcessing(data) {
+    try {
+      console.log('Payment processing:', data);
+      // You can track payment status in a separate table if needed
+      return { success: true, message: 'Payment processing acknowledged' };
+    } catch (error) {
+      console.error('Payment processing handler failed:', error);
+      throw error;
+    }
+  }
+
+  async handlePaymentCancelled(data) {
+    try {
+      const paymentId = data?.id;
+      console.log(`Payment cancelled: ${paymentId}`);
+      // Update any pending payment records
+      return { success: true, message: 'Payment cancellation handled' };
+    } catch (error) {
+      console.error('Payment cancellation handler failed:', error);
+      throw error;
+    }
+  }
+
+  // Subscription Event Handlers
+  async handleSubscriptionActive(data) {
     try {
       const Subscription = require('../models/Subscription');
-      const userId = payload?.metadata?.userId;
-      const planId = payload?.metadata?.planId;
-      const subscriptionId = payload?.id || payload?.subscription_id;
+      const User = require('../models/User');
+      const userId = data?.metadata?.userId;
+      const planId = data?.metadata?.planId;
+      const subscriptionId = data?.id || data?.subscription_id;
 
       const startDate = new Date();
       const endDate = new Date();
@@ -336,16 +421,295 @@ class DodoPaymentService {
           startDate,
           endDate,
           dodoSubscriptionId: subscriptionId
-        }, {
-          where: { userId: parseInt(userId) }
-        });
+        }, { where: { userId: parseInt(userId) } });
+
+        await User.update(
+          { subscriptionStatus: 'active', subscriptionTier: planId || 'pro' },
+          { where: { id: parseInt(userId) } }
+        );
       }
 
-      return { success: true, message: 'Dodo subscription activated' };
+      console.log(`✅ Subscription activated for user ${userId}`);
+      return { success: true, message: 'Subscription activated' };
     } catch (error) {
-      console.error('Dodo subscription.active handling failed:', error);
+      console.error('Subscription active handler failed:', error);
       throw error;
     }
+  }
+
+  async handleSubscriptionOnHold(data) {
+    try {
+      const subscriptionId = data?.id || data?.subscription_id;
+      const Subscription = require('../models/Subscription');
+      const User = require('../models/User');
+      
+      await Subscription.update(
+        { status: 'on_hold' },
+        { where: { dodoSubscriptionId: subscriptionId } }
+      );
+
+      const subRecord = await Subscription.findOne({ where: { dodoSubscriptionId: subscriptionId } });
+      if (subRecord?.userId) {
+        await User.update(
+          { subscriptionStatus: 'on_hold' },
+          { where: { id: subRecord.userId } }
+        );
+      }
+
+      console.log(`⚠️ Subscription on hold: ${subscriptionId}`);
+      return { success: true, message: 'Subscription placed on hold' };
+    } catch (error) {
+      console.error('Subscription on hold handler failed:', error);
+      throw error;
+    }
+  }
+
+  async handleSubscriptionRenewed(data) {
+    try {
+      const subscriptionId = data?.id || data?.subscription_id;
+      const Subscription = require('../models/Subscription');
+      const User = require('../models/User');
+      
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + 1);
+
+      await Subscription.update(
+        { status: 'active', endDate },
+        { where: { dodoSubscriptionId: subscriptionId } }
+      );
+
+      const subRecord = await Subscription.findOne({ where: { dodoSubscriptionId: subscriptionId } });
+      if (subRecord?.userId) {
+        await User.update(
+          { subscriptionStatus: 'active', subscriptionEndDate: endDate },
+          { where: { id: subRecord.userId } }
+        );
+      }
+
+      console.log(`✅ Subscription renewed: ${subscriptionId}`);
+      return { success: true, message: 'Subscription renewed successfully' };
+    } catch (error) {
+      console.error('Subscription renewed handler failed:', error);
+      throw error;
+    }
+  }
+
+  async handleSubscriptionPlanChanged(data) {
+    try {
+      const subscriptionId = data?.id || data?.subscription_id;
+      const newPlanId = data?.metadata?.planId;
+      const Subscription = require('../models/Subscription');
+      const User = require('../models/User');
+      
+      await Subscription.update(
+        { tier: newPlanId },
+        { where: { dodoSubscriptionId: subscriptionId } }
+      );
+
+      const subRecord = await Subscription.findOne({ where: { dodoSubscriptionId: subscriptionId } });
+      if (subRecord?.userId) {
+        await User.update(
+          { subscriptionTier: newPlanId },
+          { where: { id: subRecord.userId } }
+        );
+      }
+
+      console.log(`✅ Subscription plan changed: ${subscriptionId} -> ${newPlanId}`);
+      return { success: true, message: 'Subscription plan updated' };
+    } catch (error) {
+      console.error('Subscription plan changed handler failed:', error);
+      throw error;
+    }
+  }
+
+  async handleSubscriptionFailed(data) {
+    try {
+      const subscriptionId = data?.id || data?.subscription_id;
+      const Subscription = require('../models/Subscription');
+      const User = require('../models/User');
+      
+      await Subscription.update(
+        { status: 'failed' },
+        { where: { dodoSubscriptionId: subscriptionId } }
+      );
+
+      const subRecord = await Subscription.findOne({ where: { dodoSubscriptionId: subscriptionId } });
+      if (subRecord?.userId) {
+        await User.update(
+          { subscriptionStatus: 'failed' },
+          { where: { id: subRecord.userId } }
+        );
+      }
+
+      console.log(`❌ Subscription failed: ${subscriptionId}`);
+      return { success: true, message: 'Subscription failure handled' };
+    } catch (error) {
+      console.error('Subscription failed handler failed:', error);
+      throw error;
+    }
+  }
+
+  async handleSubscriptionExpired(data) {
+    try {
+      const subscriptionId = data?.id || data?.subscription_id;
+      const Subscription = require('../models/Subscription');
+      const User = require('../models/User');
+      
+      await Subscription.update(
+        { status: 'expired' },
+        { where: { dodoSubscriptionId: subscriptionId } }
+      );
+
+      const subRecord = await Subscription.findOne({ where: { dodoSubscriptionId: subscriptionId } });
+      if (subRecord?.userId) {
+        await User.update(
+          { subscriptionStatus: 'expired', subscriptionTier: 'free' },
+          { where: { id: subRecord.userId } }
+        );
+      }
+
+      console.log(`⏰ Subscription expired: ${subscriptionId}`);
+      return { success: true, message: 'Subscription expiration handled' };
+    } catch (error) {
+      console.error('Subscription expired handler failed:', error);
+      throw error;
+    }
+  }
+
+  // Refund Event Handlers
+  async handleRefundSucceeded(data) {
+    try {
+      const refundId = data?.id;
+      const paymentId = data?.payment_id;
+      console.log(`✅ Refund succeeded: ${refundId} for payment ${paymentId}`);
+      
+      // You can track refunds in a separate table if needed
+      // For now, just log it
+      return { success: true, message: 'Refund processed successfully' };
+    } catch (error) {
+      console.error('Refund succeeded handler failed:', error);
+      throw error;
+    }
+  }
+
+  async handleRefundFailed(data) {
+    try {
+      const refundId = data?.id;
+      console.log(`❌ Refund failed: ${refundId}`);
+      return { success: true, message: 'Refund failure acknowledged' };
+    } catch (error) {
+      console.error('Refund failed handler failed:', error);
+      throw error;
+    }
+  }
+
+  // Dispute Event Handlers
+  async handleDisputeOpened(data) {
+    try {
+      const disputeId = data?.id;
+      const paymentId = data?.payment_id;
+      console.log(`⚠️ Dispute opened: ${disputeId} for payment ${paymentId}`);
+      
+      // You can send email notifications to admin here
+      // Track disputes in a separate table if needed
+      return { success: true, message: 'Dispute opened notification received' };
+    } catch (error) {
+      console.error('Dispute opened handler failed:', error);
+      throw error;
+    }
+  }
+
+  async handleDisputeExpired(data) {
+    try {
+      const disputeId = data?.id;
+      console.log(`⏰ Dispute expired: ${disputeId}`);
+      return { success: true, message: 'Dispute expiration handled' };
+    } catch (error) {
+      console.error('Dispute expired handler failed:', error);
+      throw error;
+    }
+  }
+
+  async handleDisputeAccepted(data) {
+    try {
+      const disputeId = data?.id;
+      console.log(`✅ Dispute accepted: ${disputeId}`);
+      return { success: true, message: 'Dispute acceptance handled' };
+    } catch (error) {
+      console.error('Dispute accepted handler failed:', error);
+      throw error;
+    }
+  }
+
+  async handleDisputeCancelled(data) {
+    try {
+      const disputeId = data?.id;
+      console.log(`🚫 Dispute cancelled: ${disputeId}`);
+      return { success: true, message: 'Dispute cancellation handled' };
+    } catch (error) {
+      console.error('Dispute cancelled handler failed:', error);
+      throw error;
+    }
+  }
+
+  async handleDisputeChallenged(data) {
+    try {
+      const disputeId = data?.id;
+      console.log(`⚔️ Dispute challenged: ${disputeId}`);
+      return { success: true, message: 'Dispute challenge acknowledged' };
+    } catch (error) {
+      console.error('Dispute challenged handler failed:', error);
+      throw error;
+    }
+  }
+
+  async handleDisputeWon(data) {
+    try {
+      const disputeId = data?.id;
+      console.log(`🎉 Dispute won: ${disputeId}`);
+      return { success: true, message: 'Dispute victory handled' };
+    } catch (error) {
+      console.error('Dispute won handler failed:', error);
+      throw error;
+    }
+  }
+
+  async handleDisputeLost(data) {
+    try {
+      const disputeId = data?.id;
+      const paymentId = data?.payment_id;
+      console.log(`😞 Dispute lost: ${disputeId} for payment ${paymentId}`);
+      
+      // Handle refund if needed
+      return { success: true, message: 'Dispute loss handled' };
+    } catch (error) {
+      console.error('Dispute lost handler failed:', error);
+      throw error;
+    }
+  }
+
+  // License Key Event Handler
+  async handleLicenseKeyCreated(data) {
+    try {
+      const licenseKey = data?.key;
+      const productId = data?.product_id;
+      console.log(`🔑 License key created: ${licenseKey} for product ${productId}`);
+      
+      // You can store license keys in a table if you use this feature
+      return { success: true, message: 'License key creation handled' };
+    } catch (error) {
+      console.error('License key created handler failed:', error);
+      throw error;
+    }
+  }
+
+  // ============================================================
+  // LEGACY HANDLERS (kept for backwards compatibility)
+  // ============================================================
+
+  async handleDodoSubscriptionActive(payload) {
+    // Redirect to new handler
+    return await this.handleSubscriptionActive(payload);
   }
 
   // Cancel subscription
