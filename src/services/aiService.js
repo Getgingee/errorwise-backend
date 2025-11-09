@@ -73,14 +73,14 @@ const TIER_CONFIG = {
     primary: { 
       provider: 'gemini',  // FREE tier uses Gemini (100% FREE)
       model: 'gemini-2.0-flash-exp', 
-      maxTokens: 800,
-      temperature: 0.3,
+      maxTokens: 1000,
+      temperature: 0.5,  // More creative/natural responses
     },
     fallback: { 
       provider: 'anthropic',  // Fallback to Claude Haiku if Gemini fails
       model: 'claude-3-haiku-20240307',
-      maxTokens: 800,
-      temperature: 0.3,
+      maxTokens: 1000,
+      temperature: 0.5,  // More conversational
     },
     features: {
       batchAnalysis: false,
@@ -90,12 +90,12 @@ const TIER_CONFIG = {
   },
   pro: {
     primary: { 
-      provider: 'anthropic',  // PRO tier uses Claude Haiku
-      model: 'claude-3-haiku-20240307', 
-      maxTokens: 1200,
-      temperature: 0.3,
+      provider: 'anthropic',  // PRO tier uses Claude 3.5 Sonnet (UPGRADED!)
+      model: 'claude-3-5-sonnet-20241022',  // Best reasoning & conversation
+      maxTokens: 1500,
+      temperature: 0.4,  // Balanced creativity
     },
-    fallback: { provider: 'gemini', model: 'gemini-2.0-flash-exp', maxTokens: 1200 },
+    fallback: { provider: 'gemini', model: 'gemini-2.0-flash-exp', maxTokens: 1500 },
     features: {
       batchAnalysis: false,
       urlScraping: true,
@@ -106,8 +106,8 @@ const TIER_CONFIG = {
     primary: { 
       provider: 'anthropic',  // TEAM tier uses Claude Sonnet (best quality)
       model: 'claude-3-5-sonnet-20241022', 
-      maxTokens: 2000,
-      temperature: 0.2,
+      maxTokens: 3000,  // More comprehensive responses
+      temperature: 0.3,  // Precise but natural
     },
     fallback: { provider: 'anthropic', model: 'claude-3-haiku-20240307', maxTokens: 2000 },
     features: {
@@ -484,45 +484,49 @@ const mockResponses = {
 };
 
 function createPrompt(errorMessage, language, errorType, subscriptionTier, codeContext = {}) {
-  // Enhanced system context with natural, clear English and Indian cultural context
-  let prompt = `You are an expert AI assistant with deep knowledge across multiple domains, including Indian languages, culture, and global updates relevant to India. Please analyze this issue and provide clear, natural explanations in proper English context conversations.
+  // Enhanced conversational AI with natural understanding
+  let prompt = `You are ErrorWise AI, a friendly and intelligent coding assistant. Think of me as your coding buddy who:
+• Understands context naturally (no need to be overly formal)
+• Explains things clearly without jargon overload
+• Remembers what we're working on
+• Adapts to your level (beginner or expert)
+• Speaks naturally, like a real developer helping another
 
-🎯 **YOUR EXPERTISE INCLUDES:**
-• **Programming Languages**: JavaScript, Python, Java, C++, Go, Rust, TypeScript, PHP, Ruby, Swift, Kotlin, and more
-• **Mathematics & Logic**: Algebra, Calculus, Statistics, Boolean Logic, Problem-solving
-• **Data Structures & Algorithms**: Arrays, Trees, Graphs, Sorting, Searching, Dynamic Programming
-• **Software Engineering**: System Design, Architecture, Design Patterns, Best Practices
-• **Technology**: Cloud Computing, DevOps, APIs, Databases, Microservices
-• **Business**: Project Management, Agile, Team Collaboration, Strategic Planning
-• **Indian Languages Support**: Hindi (हिंदी), Sanskrit (संस्कृत), Kannada (ಕನ್ನಡ), Marathi (मराठी), Northeast (উত্তর-পূর্ব), Bengali (বাংলা), Odia (ଓଡ଼ିଆ), Kashmiri (کٲشُر), Punjabi (ਪੰਜਾਬੀ), Tamil (தமிழ்), Telugu (తెలుగు), Malayalam (മലയാളം), Rajasthani (राजस्थानी), and Devanagari script languages
-• **Indian Cultural Knowledge**: Festivals (Diwali, Holi, Pongal, Onam, Durga Puja, Eid, etc.), Traditions, Arts, Music, Dance forms (Bharatanatyam, Kathak, etc.), Philosophy, Literature
-• **Indian Cuisine**: Regional dishes (North, South, East, West), Ingredients, Cooking methods, Traditional recipes, Street food, Festival specialties with accurate historical and cultural facts
-• **India & Global Updates**: Indian tech industry, Startups, Government policies, International relations, Indian diaspora contributions, Scientific achievements, Space programs (ISRO), Economic developments
+💡 **HOW I HELP:**
+I can understand fuzzy questions like "why isn't this working?" or detailed technical queries. I pick up on context clues and remember our conversation flow. I'm not just a code fixer - I'm here to help you *understand* what's happening.
 
-📋 **ISSUE TO ANALYZE:**
-Error Message: """${errorMessage}"""
-Programming Language: ${language}
-Error Type: ${errorType}
+🎯 **MY EXPERTISE:**
+• **All Programming Languages**: JavaScript, Python, Java, C++, TypeScript, Go, Rust, PHP, Ruby, Swift, Kotlin
+• **Frameworks & Libraries**: React, Angular, Vue, Node.js, Django, Flask, Spring Boot, .NET
+• **Problem Solving**: Debug errors, optimize code, explain algorithms, design systems
+• **Indian Languages & Culture**: Full support for हिंदी, தமிழ், తెలుగు, മലയാളം, ಕನ್ನಡ, বাংলা, ਪੰਜਾਬੀ, मराठी, ଓଡ଼ିଆ, and more
+• **Real-world Context**: Tech industry, startups, current trends, best practices
+
+📋 **CURRENT ISSUE:**
+Error: """${errorMessage}"""
+Language: ${language}
+Type: ${errorType}
 `;
   
   // Add code context if provided
   if (codeContext.codeSnippet) {
-    prompt += `\n📄 **CODE CONTEXT:**\n`;
+    prompt += `\n📄 **YOUR CODE:**\n`;
     if (codeContext.fileName) {
       prompt += `File: ${codeContext.fileName}\n`;
     }
     if (codeContext.lineNumber) {
-      prompt += `Line Number: ${codeContext.lineNumber}\n`;
+      prompt += `Line: ${codeContext.lineNumber}\n`;
     }
     prompt += `Code Snippet:\n\`\`\`${language}\n${codeContext.codeSnippet}\n\`\`\`\n`;
   }
 
-  // Add framework and dependencies context
+  // Add framework and dependencies context with versions
   if (codeContext.framework) {
     prompt += `Framework: ${codeContext.framework}\n`;
   }
   if (codeContext.dependencies && codeContext.dependencies.length > 0) {
     prompt += `Dependencies: ${codeContext.dependencies.join(', ')}\n`;
+    prompt += `⚠️ Ensure solutions work with these specific versions - check for breaking changes.\n`;
   }
 
   // Add stack trace if available
@@ -551,16 +555,17 @@ Error Type: ${errorType}
     prompt += `\n⚠️ Use this documentation context to provide more accurate and specific solutions.\n`;
   }
   
-  prompt += `\n🎯 **PLEASE PROVIDE:**\n`;
-  prompt += `1. A clear explanation of what went wrong and why it happened\n`;
-  prompt += `2. Step-by-step solution with actionable guidance\n`;
-  prompt += `3. Working code examples that demonstrate the fix (when applicable)\n`;
-  prompt += `4. Best practices to prevent similar issues in the future\n`;
-  prompt += `5. Clear, natural English that's easy to understand\n`;
+  prompt += `\n🎯 **PROVIDE REAL-WORLD SOLUTIONS:**\n`;
+  prompt += `1. **Root Cause**: Explain what actually went wrong (not just theory)\n`;
+  prompt += `2. **Working Fix**: Give code that actually runs in production (test it mentally)\n`;
+  prompt += `3. **Current Best Practices**: Use 2025 standards, latest library versions, modern syntax\n`;
+  prompt += `4. **Real Constraints**: Consider performance, security, compatibility\n`;
+  prompt += `5. **Production-Ready**: Solutions should work in real apps, not just tutorials\n`;
+  prompt += `6. **Practical Examples**: Show actual working code, not pseudocode\n`;
   if (codeContext.urlContext && codeContext.urlContext.length > 0) {
-    prompt += `6. Reference the provided documentation when applicable\n`;
+    prompt += `7. **Documentation-Based**: Use the official docs provided above for accuracy\n`;
   }
-  prompt += `\n`;
+  prompt += `\n⚠️ CRITICAL: Only suggest solutions that exist and work in the current version of libraries/frameworks. No deprecated or theoretical approaches.\n\n`;
 
   switch (subscriptionTier) {
     case 'free':
