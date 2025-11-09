@@ -11,6 +11,21 @@ const { connectRedis } = require('./src/utils/redisClient');
 const { sessionMiddleware } = require('./src/middleware/session');
 const { rateLimiters } = require('./src/middleware/rateLimiter');
 
+// ============================================================================
+// CRASH PREVENTION - Handle uncaught errors to prevent server crashes
+// ============================================================================
+process.on('uncaughtException', (error) => {
+  console.error('❌ UNCAUGHT EXCEPTION - Server continuing:', error);
+  logger.error('Uncaught exception:', error);
+  // Don't exit - keep server running
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ UNHANDLED REJECTION - Server continuing:', reason);
+  logger.error('Unhandled rejection:', { reason, promise });
+  // Don't exit - keep server running
+});
+
 const app = express();
 
 // Middleware
@@ -172,14 +187,45 @@ app.get('/api/stats', async (req, res) => {
 
 // 404 handler
 app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Not Found' });
+  logger.warn(`404 Not Found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ 
+    error: 'Not Found',
+    message: `Route ${req.originalUrl} not found`,
+    path: req.originalUrl
+  });
 });
 
-// Global error handler
+// Global error handler - MUST be last middleware
 app.use((err, req, res, next) => {
-  logger.error(err);
-  console.error(err);
-  res.status(500).json({ error: 'Server error' });
+  // Log the error with full details
+  logger.error('Global error handler caught error:', {
+    error: err.message,
+    stack: err.stack,
+    url: req.originalUrl,
+    method: req.method,
+    ip: req.ip,
+    user: req.user?.id || 'anonymous'
+  });
+  
+  console.error('❌ Global Error Handler:', {
+    message: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    url: req.originalUrl
+  });
+
+  // Don't expose internal errors in production
+  const statusCode = err.statusCode || err.status || 500;
+  const message = process.env.NODE_ENV === 'production' && statusCode === 500
+    ? 'Internal server error'
+    : err.message || 'Server error';
+
+  res.status(statusCode).json({
+    error: message,
+    ...(process.env.NODE_ENV === 'development' && {
+      stack: err.stack,
+      details: err
+    })
+  });
 });
 
 // Database connection and server start
