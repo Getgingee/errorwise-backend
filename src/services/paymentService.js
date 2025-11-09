@@ -82,7 +82,7 @@ class DodoPaymentService {
         }
       };
 
-      const response = await axios.post(`${this.baseURL}/checkout-sessions`, payload, {
+      const response = await axios.post(`${this.baseURL}/checkouts`, payload, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.secretKey}`
@@ -106,7 +106,7 @@ class DodoPaymentService {
         status: error.response?.status,
         data: error.response?.data,
         headers: error.response?.headers,
-        requestURL: `${this.baseURL}/checkout-sessions`
+        requestURL: `${this.baseURL}/checkouts`
       });
       return {
         success: false,
