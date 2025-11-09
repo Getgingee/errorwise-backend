@@ -106,8 +106,7 @@ class DodoPaymentService {
         status: error.response?.status,
         data: error.response?.data,
         headers: error.response?.headers,
-        requestURL: `${this.baseURL}/checkout-sessions`,
-        requestPayload: payload
+        requestURL: `${this.baseURL}/checkout-sessions`
       });
       return {
         success: false,
