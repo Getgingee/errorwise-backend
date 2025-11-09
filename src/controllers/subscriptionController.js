@@ -194,13 +194,13 @@ exports.getPlans = async (req, res) => {
           return {
             id: tierKey, // Use tier key ('free', 'pro', 'team') instead of database ID
             name: plan.name,
-            price: parseFloat(plan.price) || 0,
+            price: tierConfig.price || parseFloat(plan.price) || 0, // Use SUBSCRIPTION_TIERS price first
             interval: plan.billing_interval || plan.interval || 'month',
             trialDays: plan.trial_period_days || plan.trial_days || (tierKey === 'pro' ? 7 : tierKey === 'team' ? 14 : 0),
             features: tierConfig.features, // Use features from SUBSCRIPTION_TIERS
             popular: tierKey === 'pro', // Mark Pro as popular
             description: plan.description || getPlanDescription(tierKey),
-            dodo_plan_id: plan.dodo_plan_id
+            dodo_plan_id: tierConfig.dodo_plan_id || plan.dodo_plan_id // Use SUBSCRIPTION_TIERS Product ID first
           };
         });
       
