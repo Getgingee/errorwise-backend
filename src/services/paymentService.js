@@ -102,6 +102,13 @@ class DodoPaymentService {
 
     } catch (error) {
       console.error('Dodo checkout session creation failed:', error.response?.data || error.message);
+      console.error('Full error details:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        headers: error.response?.headers,
+        requestURL: `${this.baseURL}/checkout-sessions`,
+        requestPayload: payload
+      });
       return {
         success: false,
         error: error.response?.data?.message || 'Checkout session creation failed',
