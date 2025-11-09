@@ -89,12 +89,27 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 // Security middleware - MUST be before routes
-const { sanitizeInput, detectSpam, securityHeaders } = require('./src/middleware/security');
+const { 
+  sanitizeInput, 
+  detectSpam, 
+  securityHeaders,
+  preventTabAbuse,
+  preventRequestFlooding,
+  preventDuplicateRequests,
+  detectSuspiciousBehavior
+} = require('./src/middleware/security');
+
 app.use(securityHeaders); // Add security headers to all responses
 app.use(sanitizeInput); // Sanitize all inputs (XSS, SQL injection, code injection)
 
 // Session middleware (loads user session from Redis)
 app.use(sessionMiddleware);
+
+// Tab abuse & resource protection - Apply globally
+app.use(preventRequestFlooding); // Rate limit based on user tier
+app.use(preventTabAbuse); // Limit concurrent sessions/tabs
+app.use(preventDuplicateRequests); // Prevent double-click submissions
+app.use(detectSuspiciousBehavior); // Detect bot/abuse patterns
 
 // General rate limiting DISABLED for development/testing
 // app.use(rateLimiters.general);

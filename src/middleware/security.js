@@ -266,6 +266,288 @@ const apiKeyAuth = (req, res, next) => {
   next();
 };
 
+// ============================================================================
+// TAB SWITCHING & RESOURCE ABUSE PREVENTION
+// ============================================================================
+
+/**
+ * Prevent resource abuse from multiple tabs/sessions
+ * Tracks concurrent sessions per user and limits requests
+ */
+const sessionTracker = new Map(); // userId -> { sessions: Set, lastCleanup: Date }
+const requestTracker = new Map(); // userId -> { count: number, resetTime: Date }
+
+const preventTabAbuse = (req, res, next) => {
+  const userId = req.user?.id || req.ip; // Use IP for anonymous users
+  const sessionId = req.headers['x-session-id'] || req.sessionID || 'unknown';
+  
+  // Initialize tracking for this user
+  if (!sessionTracker.has(userId)) {
+    sessionTracker.set(userId, {
+      sessions: new Set(),
+      lastCleanup: new Date()
+    });
+  }
+  
+  const userSessions = sessionTracker.get(userId);
+  userSessions.sessions.add(sessionId);
+  
+  // Limit concurrent sessions (prevent opening many tabs)
+  const MAX_SESSIONS = req.user ? 5 : 2; // Authenticated users get more tabs
+  
+  if (userSessions.sessions.size > MAX_SESSIONS) {
+    logger.warn('⚠️ Too many concurrent sessions:', {
+      userId,
+      sessionCount: userSessions.sessions.size,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+    
+    return res.status(429).json({
+      success: false,
+      error: 'Too many active sessions',
+      message: `You have ${userSessions.sessions.size} tabs open. Maximum allowed is ${MAX_SESSIONS}. Please close some tabs.`,
+      maxSessions: MAX_SESSIONS,
+      currentSessions: userSessions.sessions.size
+    });
+  }
+  
+  // Cleanup old sessions every 5 minutes
+  const now = new Date();
+  if (now - userSessions.lastCleanup > 5 * 60 * 1000) {
+    userSessions.sessions.clear();
+    userSessions.lastCleanup = now;
+  }
+  
+  next();
+};
+
+/**
+ * Prevent rapid-fire requests (request flooding)
+ * Tracks requests per user per minute
+ */
+const preventRequestFlooding = (req, res, next) => {
+  const userId = req.user?.id || req.ip;
+  const now = new Date();
+  
+  // Initialize tracking
+  if (!requestTracker.has(userId)) {
+    requestTracker.set(userId, {
+      count: 0,
+      resetTime: new Date(now.getTime() + 60 * 1000) // Reset in 1 minute
+    });
+  }
+  
+  const userRequests = requestTracker.get(userId);
+  
+  // Reset counter if time window passed
+  if (now > userRequests.resetTime) {
+    userRequests.count = 0;
+    userRequests.resetTime = new Date(now.getTime() + 60 * 1000);
+  }
+  
+  userRequests.count++;
+  
+  // Set limits based on user tier
+  const limits = {
+    free: 30,      // 30 requests per minute
+    pro: 100,      // 100 requests per minute
+    team: 300,     // 300 requests per minute
+    anonymous: 10  // 10 requests per minute for non-authenticated
+  };
+  
+  const userTier = req.user?.subscriptionTier || 'anonymous';
+  const limit = limits[userTier] || limits.anonymous;
+  
+  if (userRequests.count > limit) {
+    const secondsUntilReset = Math.ceil((userRequests.resetTime - now) / 1000);
+    
+    logger.warn('⚠️ Request flooding detected:', {
+      userId,
+      tier: userTier,
+      requestCount: userRequests.count,
+      limit,
+      ip: req.ip
+    });
+    
+    return res.status(429).json({
+      success: false,
+      error: 'Rate limit exceeded',
+      message: `You've exceeded ${limit} requests per minute. Please wait ${secondsUntilReset} seconds.`,
+      limit,
+      requestsMade: userRequests.count,
+      retryAfter: secondsUntilReset,
+      tier: userTier,
+      upgradeMessage: userTier === 'free' ? 'Upgrade to PRO for higher limits!' : undefined
+    });
+  }
+  
+  // Add rate limit headers
+  res.setHeader('X-RateLimit-Limit', limit);
+  res.setHeader('X-RateLimit-Remaining', Math.max(0, limit - userRequests.count));
+  res.setHeader('X-RateLimit-Reset', userRequests.resetTime.toISOString());
+  
+  next();
+};
+
+/**
+ * Prevent duplicate simultaneous requests (double-click prevention)
+ */
+const pendingRequests = new Map(); // userId:endpoint -> timestamp
+
+const preventDuplicateRequests = (req, res, next) => {
+  // Only check for POST/PUT/DELETE (data-modifying operations)
+  if (!['POST', 'PUT', 'DELETE'].includes(req.method)) {
+    return next();
+  }
+  
+  const userId = req.user?.id || req.ip;
+  const endpoint = `${req.method}:${req.path}`;
+  const requestKey = `${userId}:${endpoint}`;
+  
+  const now = Date.now();
+  const lastRequest = pendingRequests.get(requestKey);
+  
+  // If same request within 2 seconds, block it (likely double-click)
+  if (lastRequest && (now - lastRequest) < 2000) {
+    logger.warn('⚠️ Duplicate request blocked:', {
+      userId,
+      endpoint,
+      timeSinceLastRequest: `${now - lastRequest}ms`,
+      ip: req.ip
+    });
+    
+    return res.status(409).json({
+      success: false,
+      error: 'Duplicate request',
+      message: 'Please wait - your previous request is still processing'
+    });
+  }
+  
+  // Track this request
+  pendingRequests.set(requestKey, now);
+  
+  // Cleanup on response
+  res.on('finish', () => {
+    setTimeout(() => {
+      pendingRequests.delete(requestKey);
+    }, 2000); // Keep for 2 seconds
+  });
+  
+  next();
+};
+
+/**
+ * Detect suspicious behavior patterns
+ */
+const behaviorTracker = new Map(); // userId -> { actions: [], score: number }
+
+const detectSuspiciousBehavior = (req, res, next) => {
+  const userId = req.user?.id || req.ip;
+  
+  if (!behaviorTracker.has(userId)) {
+    behaviorTracker.set(userId, {
+      actions: [],
+      score: 0,
+      firstSeen: new Date()
+    });
+  }
+  
+  const behavior = behaviorTracker.get(userId);
+  const now = Date.now();
+  
+  // Track action
+  behavior.actions.push({
+    type: req.method,
+    path: req.path,
+    timestamp: now
+  });
+  
+  // Keep only last 100 actions
+  if (behavior.actions.length > 100) {
+    behavior.actions = behavior.actions.slice(-100);
+  }
+  
+  // Calculate suspicion score
+  let suspicionScore = 0;
+  
+  // Check for rapid actions (bot-like behavior)
+  const recentActions = behavior.actions.filter(a => (now - a.timestamp) < 10000); // Last 10 seconds
+  if (recentActions.length > 20) {
+    suspicionScore += 30; // Very rapid actions
+  }
+  
+  // Check for same endpoint spam
+  const lastFiveActions = behavior.actions.slice(-5);
+  const uniquePaths = new Set(lastFiveActions.map(a => a.path));
+  if (uniquePaths.size === 1) {
+    suspicionScore += 20; // Hammering same endpoint
+  }
+  
+  // Check for new account suspicious activity
+  const accountAge = now - new Date(behavior.firstSeen).getTime();
+  if (accountAge < 60000 && behavior.actions.length > 15) {
+    suspicionScore += 25; // New account, high activity
+  }
+  
+  behavior.score = suspicionScore;
+  
+  // Block if suspicion score too high
+  if (suspicionScore > 50) {
+    logger.error('🚨 SUSPICIOUS BEHAVIOR DETECTED:', {
+      userId,
+      score: suspicionScore,
+      recentActionsCount: recentActions.length,
+      accountAge: `${Math.floor(accountAge / 1000)}s`,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+    
+    return res.status(403).json({
+      success: false,
+      error: 'Suspicious activity detected',
+      message: 'Your account has been temporarily restricted due to unusual behavior. Contact support if this is a mistake.'
+    });
+  }
+  
+  next();
+};
+
+/**
+ * Cleanup tracking data periodically (prevent memory leaks)
+ */
+setInterval(() => {
+  const now = Date.now();
+  const maxAge = 30 * 60 * 1000; // 30 minutes
+  
+  // Cleanup session tracker
+  for (const [userId, data] of sessionTracker.entries()) {
+    if (now - data.lastCleanup.getTime() > maxAge) {
+      sessionTracker.delete(userId);
+    }
+  }
+  
+  // Cleanup request tracker
+  for (const [userId, data] of requestTracker.entries()) {
+    if (now - data.resetTime.getTime() > maxAge) {
+      requestTracker.delete(userId);
+    }
+  }
+  
+  // Cleanup behavior tracker
+  for (const [userId, data] of behaviorTracker.entries()) {
+    if (now - new Date(data.firstSeen).getTime() > maxAge) {
+      behaviorTracker.delete(userId);
+    }
+  }
+  
+  logger.info('🧹 Security trackers cleaned up', {
+    sessionTrackerSize: sessionTracker.size,
+    requestTrackerSize: requestTracker.size,
+    behaviorTrackerSize: behaviorTracker.size
+  });
+}, 10 * 60 * 1000); // Run every 10 minutes
+
 module.exports = {
   sanitizeInput,
   detectSpam,
@@ -274,5 +556,9 @@ module.exports = {
   requestTimeout,
   requestSizeLimiter,
   ipWhitelist,
-  apiKeyAuth
+  apiKeyAuth,
+  preventTabAbuse,
+  preventRequestFlooding,
+  preventDuplicateRequests,
+  detectSuspiciousBehavior
 };
