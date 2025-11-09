@@ -182,7 +182,7 @@ class NotificationService {
           <h3 style="color: #1e40af; margin-top: 0;">🚀 Get Started:</h3>
           <ul>
             <li><strong>Free Plan:</strong> 3 error explanations per day</li>
-            <li><strong>Pro Plan:</strong> Unlimited queries + detailed solutions ($2/month)</li>
+            <li><strong>Pro Plan:</strong> Unlimited queries + detailed solutions ($3/month)</li>
             <li><strong>Team Plan:</strong> Everything + team collaboration ($8/month)</li>
           </ul>
         </div>
@@ -322,7 +322,7 @@ class NotificationService {
         <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h3 style="color: #92400e; margin-top: 0;">🚀 Upgrade to Pro for unlimited queries!</h3>
           <ul>
-            <li><strong>$2/month</strong> - Best value for individual developers</li>
+            <li><strong>$3/month</strong> - Best value for individual developers</li>
             <li>Unlimited error analysis</li>
             <li>Detailed solutions and code examples</li>
             <li>Complete error history</li>

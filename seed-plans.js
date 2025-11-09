@@ -42,7 +42,7 @@ const defaultPlans = [
   },
   {
     name: 'Pro Plan',
-    price: 2.00,
+    price: 3.00,
     billing_interval: 'month',
     trial_period_days: 7, // 7-day free trial
     features: {

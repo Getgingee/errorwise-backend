@@ -26,9 +26,10 @@ const SUBSCRIPTION_TIERS = {
   },
   pro: {
     name: 'Pro',
-    price: 2,
+    price: 3,
     interval: 'month',
     trialDays: 7,
+    dodo_plan_id: 'PASTE_YOUR_PRO_PLAN_ID_HERE', // TODO: Replace with actual DodoPayments plan ID
     features: {
       dailyQueries: -1, // unlimited
       errorExplanation: true,
@@ -52,6 +53,7 @@ const SUBSCRIPTION_TIERS = {
     price: 8,
     interval: 'month',
     trialDays: 14,
+    dodo_plan_id: 'PASTE_YOUR_TEAM_PLAN_ID_HERE', // TODO: Replace with actual DodoPayments plan ID
     features: {
       dailyQueries: -1, // unlimited
       errorExplanation: true,

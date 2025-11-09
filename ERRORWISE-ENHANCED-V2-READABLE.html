@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ErrorWise Enhanced v2 - Premium + Readable</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            overflow-x: hidden;
+            background: #000;
+        }
+
+        /* ENHANCED DESIGN WITH BETTER READABILITY */
+        .enhanced-design {
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            padding: 40px;
+            /* Enhanced gradient with more depth */
+            background: linear-gradient(135deg, 
+                #0a0f1e 0%, 
+                #0c1930 15%, 
+                #1e3a8a 40%, 
+                #0e7490 60%, 
+                #06b6d4 75%, 
+                #0c1930 100%
+            );
+        }
+
+        /* Animated gradient background layer */
+        .enhanced-design::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 50% 80%, rgba(14, 116, 144, 0.1) 0%, transparent 50%);
+            animation: gradient-shift 15s ease infinite;
+            pointer-events: none;
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(5%, -5%) rotate(120deg); }
+            66% { transform: translate(-5%, 5%) rotate(240deg); }
+        }
+
+        /* Enhanced glass card with IMPROVED READABILITY */
+        .enhanced-glass {
+            position: relative;
+            /* Slightly darker background for better text contrast */
+            background: linear-gradient(135deg, 
+                rgba(15, 23, 42, 0.85) 0%, 
+                rgba(15, 23, 42, 0.75) 100%
+            );
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 24px;
+            padding: 35px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+                0 0 0 1px rgba(6, 182, 212, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Floating glow effect on hover */
+        .enhanced-glass::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, 
+                rgba(6, 182, 212, 0.3) 0%, 
+                rgba(59, 130, 246, 0.3) 50%, 
+                rgba(14, 116, 144, 0.3) 100%
+            );
+            border-radius: 24px;
+            opacity: 0;
+            z-index: -1;
+            filter: blur(20px);
+            transition: opacity 0.4s ease;
+        }
+
+        .enhanced-glass:hover {
+            background: linear-gradient(135deg, 
+                rgba(15, 23, 42, 0.95) 0%, 
+                rgba(15, 23, 42, 0.85) 100%
+            );
+            border-color: rgba(6, 182, 212, 0.4);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                0 20px 60px 0 rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+                0 0 0 1px rgba(6, 182, 212, 0.3);
+        }
+
+        .enhanced-glass:hover::before {
+            opacity: 1;
+        }
+
+        /* Premium gradient buttons */
+        .enhanced-btn {
+            position: relative;
+            background: linear-gradient(135deg, 
+                #06b6d4 0%, 
+                #3b82f6 50%, 
+                #0e7490 100%
+            );
+            color: white;
+            padding: 14px 32px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 4px 20px rgba(6, 182, 212, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        /* Shimmer effect on buttons */
+        .enhanced-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.3) 50%, 
+                transparent 100%
+            );
+            transition: left 0.6s ease;
+        }
+
+        .enhanced-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 12px 40px rgba(6, 182, 212, 0.5),
+                0 0 20px rgba(59, 130, 246, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .enhanced-btn:hover::before {
+            left: 100%;
+        }
+
+        /* Badge styles with better readability */
+        .enhanced-badge {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            background: linear-gradient(135deg, 
+                rgba(6, 182, 212, 0.25) 0%, 
+                rgba(59, 130, 246, 0.25) 100%
+            );
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(6, 182, 212, 0.5);
+            border-radius: 12px;
+            /* IMPROVED: Brighter, more readable cyan */
+            color: #a5f3fc;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            box-shadow: 
+                0 4px 12px rgba(6, 182, 212, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .enhanced-badge::before {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #22d3ee;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #22d3ee;
+            animation: pulse-glow 2s ease infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        /* Pricing card enhancements with BETTER READABILITY */
+        .enhanced-pricing-card {
+            position: relative;
+            /* Darker, more solid background for readability */
+            background: linear-gradient(135deg, 
+                rgba(15, 23, 42, 0.9) 0%, 
+                rgba(15, 23, 42, 0.8) 100%
+            );
+            backdrop-filter: blur(25px) saturate(200%);
+            border-radius: 28px;
+            padding: 40px;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 12px 40px 0 rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .enhanced-pricing-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 28px;
+            padding: 1.5px;
+            background: linear-gradient(135deg, 
+                rgba(6, 182, 212, 0.5) 0%, 
+                rgba(59, 130, 246, 0.5) 50%, 
+                transparent 100%
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .enhanced-pricing-card:hover {
+            transform: translateY(-12px) scale(1.03);
+            border-color: rgba(6, 182, 212, 0.5);
+            background: linear-gradient(135deg, 
+                rgba(15, 23, 42, 0.95) 0%, 
+                rgba(15, 23, 42, 0.85) 100%
+            );
+            box-shadow: 
+                0 25px 70px 0 rgba(6, 182, 212, 0.3),
+                0 0 40px rgba(59, 130, 246, 0.2),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .enhanced-pricing-card:hover::after {
+            opacity: 1;
+        }
+
+        /* Floating particles effect */
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.8) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: float-up 8s linear infinite;
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.6;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* Layout */
+        .section-title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            /* IMPROVED: Brighter white with stronger shadow */
+            color: #ffffff;
+            text-shadow: 
+                0 2px 20px rgba(6, 182, 212, 0.4),
+                0 0 40px rgba(59, 130, 246, 0.3);
+            letter-spacing: -0.5px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 16px;
+            /* IMPROVED: Better contrast */
+            color: #cbd5e1;
+            margin-bottom: 40px;
+            font-weight: 500;
+        }
+
+        .comparison-grid {
+            display: grid;
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 700;
+            /* IMPROVED: Pure white for headings */
+            color: #ffffff;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        p {
+            /* IMPROVED: Lighter gray for better readability */
+            color: #cbd5e1;
+            line-height: 1.7;
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .feature-list li {
+            /* IMPROVED: Lighter text */
+            color: #e2e8f0;
+            padding: 10px 0;
+            padding-left: 32px;
+            position: relative;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            /* IMPROVED: Brighter cyan check */
+            color: #22d3ee;
+            font-weight: bold;
+            font-size: 20px;
+            text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+        }
+
+        .price {
+            font-size: 56px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 20px 0;
+            filter: drop-shadow(0 2px 10px rgba(6, 182, 212, 0.3));
+        }
+
+        .price-period {
+            font-size: 20px;
+            /* IMPROVED: Better contrast */
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .comparison-label {
+            text-align: center;
+            padding: 12px;
+            background: rgba(6, 182, 212, 0.15);
+            border-radius: 12px;
+            /* IMPROVED: Brighter cyan */
+            color: #a5f3fc;
+            font-weight: 700;
+            margin-bottom: 30px;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        /* Grid layouts */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        /* Glow text effect - SUBTLE */
+        .glow-text {
+            text-shadow: 
+                0 0 20px rgba(6, 182, 212, 0.3),
+                0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Stats display */
+        .stats {
+            display: flex;
+            gap: 30px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .enhanced-design {
+                padding: 20px;
+            }
+            .section-title {
+                font-size: 24px;
+            }
+            .price {
+                font-size: 40px;
+            }
+            .enhanced-pricing-card {
+                padding: 30px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="enhanced-design">
+        <!-- Floating particles -->
+        <div class="particle" style="width: 4px; height: 4px; left: 10%; animation-delay: 0s;"></div>
+        <div class="particle" style="width: 6px; height: 6px; left: 30%; animation-delay: 2s;"></div>
+        <div class="particle" style="width: 3px; height: 3px; left: 50%; animation-delay: 4s;"></div>
+        <div class="particle" style="width: 5px; height: 5px; left: 70%; animation-delay: 6s;"></div>
+        <div class="particle" style="width: 4px; height: 4px; left: 90%; animation-delay: 3s;"></div>
+
+        <h1 class="section-title glow-text">ErrorWise Enhanced Design</h1>
+        <p class="section-subtitle">Premium glassmorphism with perfect readability</p>
+        
+        <!-- Hero Section -->
+        <div class="comparison-grid">
+            <div class="enhanced-glass">
+                <div class="enhanced-badge">
+                    <span>⚡</span>
+                    <span>AI-POWERED</span>
+                </div>
+                <h2 class="glow-text">Get Smarter with ErrorWise AI</h2>
+                <p>Transform cryptic error messages into clear, actionable solutions instantly with advanced AI intelligence. Powered by Claude 3.5 Sonnet and Gemini models.</p>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value">99.2%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">1.3s</div>
+                        <div class="stat-label">Avg Response</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">15+</div>
+                        <div class="stat-label">Languages</div>
+                    </div>
+                </div>
+
+                <button class="enhanced-btn">Get Solutions Now →</button>
+            </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div style="margin-top: 50px;">
+            <div class="comparison-label">✨ POWERFUL FEATURES ✨</div>
+            <div class="features-grid">
+                <div class="enhanced-glass">
+                    <h2 class="glow-text">🚀 Lightning Fast</h2>
+                    <p>Get immediate insights with our AI-powered analysis engine. Solutions delivered in under 2 seconds with industry-leading accuracy.</p>
+                    <div class="enhanced-badge">Real-time Analysis</div>
+                </div>
+
+                <div class="enhanced-glass">
+                    <h2 class="glow-text">🧠 Smart AI</h2>
+                    <p>Advanced Claude 3.5 Sonnet and Gemini models understand context, explain errors clearly, and suggest best practices automatically.</p>
+                    <div class="enhanced-badge">Multi-Model AI</div>
+                </div>
+
+                <div class="enhanced-glass">
+                    <h2 class="glow-text">🔒 Secure & Safe</h2>
+                    <p>Enterprise-grade security with XSS protection, SQL injection prevention, spam detection, and comprehensive abuse prevention systems.</p>
+                    <div class="enhanced-badge">Bank-Level Security</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Premium Pricing Cards -->
+        <div style="margin-top: 60px;">
+            <div class="comparison-label">💎 CHOOSE YOUR PLAN 💎</div>
+            <div class="pricing-grid">
+                <!-- FREE TIER -->
+                <div class="enhanced-pricing-card">
+                    <div class="enhanced-badge" style="margin-bottom: 20px;">
+                        <span>🎯</span>
+                        <span>STARTER</span>
+                    </div>
+                    <h2 class="glow-text">FREE</h2>
+                    <div class="price">$0<span class="price-period">/mo</span></div>
+                    <p>Perfect for getting started with AI-powered debugging.</p>
+                    <ul class="feature-list">
+                        <li>Gemini 2.0 Flash AI</li>
+                        <li>1000 requests/month</li>
+                        <li>Basic error analysis</li>
+                        <li>Community support</li>
+                        <li>All core features</li>
+                        <li>15+ languages</li>
+                    </ul>
+                    <button class="enhanced-btn" style="width: 100%; margin-top: 20px;">Start Free</button>
+                </div>
+
+                <!-- PRO TIER -->
+                <div class="enhanced-pricing-card">
+                    <div class="enhanced-badge" style="margin-bottom: 20px;">
+                        <span>🚀</span>
+                        <span>MOST POPULAR</span>
+                    </div>
+                    <h2 class="glow-text">PRO</h2>
+                    <div class="price">$19<span class="price-period">/mo</span></div>
+                    <p>Perfect for professional developers and small teams.</p>
+                    <ul class="feature-list">
+                        <li>Claude 3.5 Sonnet AI</li>
+                        <li>1500 requests/month</li>
+                        <li>Priority support 24/7</li>
+                        <li>Advanced analytics</li>
+                        <li>Custom integrations</li>
+                        <li>API access</li>
+                    </ul>
+                    <button class="enhanced-btn" style="width: 100%; margin-top: 20px;">Choose PRO Plan →</button>
+                </div>
+
+                <!-- TEAM TIER -->
+                <div class="enhanced-pricing-card">
+                    <div class="enhanced-badge" style="margin-bottom: 20px;">
+                        <span>👑</span>
+                        <span>ENTERPRISE</span>
+                    </div>
+                    <h2 class="glow-text">TEAM</h2>
+                    <div class="price">$49<span class="price-period">/mo</span></div>
+                    <p>Built for teams that need unlimited power and control.</p>
+                    <ul class="feature-list">
+                        <li>Claude 3.5 Sonnet AI</li>
+                        <li>3000 requests/month</li>
+                        <li>Dedicated support</li>
+                        <li>Team collaboration</li>
+                        <li>Advanced security</li>
+                        <li>Priority processing</li>
+                    </ul>
+                    <button class="enhanced-btn" style="width: 100%; margin-top: 20px;">Choose TEAM Plan →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div style="margin-top: 80px;">
+            <div class="enhanced-glass" style="text-align: center; max-width: 800px; margin: 0 auto;">
+                <h2 class="glow-text" style="font-size: 32px; margin-bottom: 20px;">Ready to Debug Smarter?</h2>
+                <p style="font-size: 17px; margin-bottom: 30px;">Join thousands of developers who are already debugging faster and more efficiently with ErrorWise. Start your journey to error-free development today.</p>
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <button class="enhanced-btn">Start Free Trial →</button>
+                    <button class="enhanced-btn" style="background: rgba(255, 255, 255, 0.1); box-shadow: none;">View Documentation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

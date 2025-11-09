@@ -38,7 +38,7 @@ const dodoPaymentsConfig = {
     pro: {
       id: process.env.DODO_PRO_PLAN_ID || 'plan_pro_monthly',
       name: 'Pro Plan',
-      price: 2, // $2/month - accessible pricing
+      price: 3, // $3/month - accessible pricing
       interval: 'month',
       trialDays: 7,
       dodoProductId: process.env.DODO_PRO_PRODUCT_ID,

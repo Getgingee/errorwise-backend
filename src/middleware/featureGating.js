@@ -283,7 +283,7 @@ function filterResponseByTier(data, userTier) {
     filtered.upgradePrompt = {
       message: 'Upgrade to Pro for detailed solutions, code examples, and unlimited queries',
       tier: 'pro',
-      price: '$2/month',
+      price: '$3/month',
       features: ['Unlimited queries', 'Fix suggestions', 'Code examples', 'Error history'],
       upgradeUrl: '/pricing'
     };
@@ -312,7 +312,7 @@ function getFeatureComparison() {
     },
     pro: {
       name: 'Pro',
-      price: 2,
+      price: 3,
       interval: 'month',
       features: Object.keys(FEATURE_TIERS).filter(f => FEATURE_TIERS[f].includes('pro'))
     },

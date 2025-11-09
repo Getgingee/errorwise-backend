@@ -36,7 +36,7 @@ exports.getPlans = async (req, res) => {
         id: process.env.DODO_PRO_PLAN_ID || 'pro',
         productId: process.env.DODO_PRO_PRODUCT_ID,
         name: 'Pro',
-        price: 2,
+        price: 3,
         currency: 'USD',
         interval: 'month',
         description: 'For professional developers',
@@ -108,7 +108,7 @@ exports.getPlanById = async (req, res) => {
     // In production, query database or Dodo Payments API
     const allPlans = [
       { id: 'free', name: 'Free', price: 0 },
-      { id: process.env.DODO_PRO_PLAN_ID, name: 'Pro', price: 2 },
+      { id: process.env.DODO_PRO_PLAN_ID, name: 'Pro', price: 3 },
       { id: process.env.DODO_TEAM_PLAN_ID, name: 'Team', price: null }
     ];
 
