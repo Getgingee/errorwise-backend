@@ -82,7 +82,7 @@ class DodoPaymentService {
         }
       };
 
-      const response = await axios.post(`${this.baseURL}/checkouts`, payload, {
+      const response = await axios.post(`${this.baseURL}/checkout-sessions`, payload, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.apiKey}`
