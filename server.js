@@ -73,6 +73,11 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
+// Security middleware - MUST be before routes
+const { sanitizeInput, detectSpam, securityHeaders } = require('./src/middleware/security');
+app.use(securityHeaders); // Add security headers to all responses
+app.use(sanitizeInput); // Sanitize all inputs (XSS, SQL injection, code injection)
+
 // Session middleware (loads user session from Redis)
 app.use(sessionMiddleware);
 
@@ -149,7 +154,7 @@ app.get('/api/stats', async (req, res) => {
 });
 
   // Mount API routes
-  app.use('/api/public/demo', publicDemoRoutes); // Public demo - no auth required
+  app.use('/api/public/demo', detectSpam, publicDemoRoutes); // Public demo - with spam detection
   app.use('/api/auth', authRoutes);
   app.use('/api/auth', authEnhancedRoutes); // Enhanced auth with tracking
   app.use('/api/errors', errorRoutes);
@@ -157,7 +162,7 @@ app.get('/api/stats', async (req, res) => {
   app.use('/api/subscriptions', subscriptionRoutes);
   app.use('/api/history', historyRoutes);
   app.use('/api/settings', settingsRoutes);
-  app.use('/api/support', supportRoutes); // Feedback, Contact, Help Center , newsletter
+  app.use('/api/support', detectSpam, supportRoutes); // Feedback, Contact, Help Center, Newsletter - with spam detection
   
   // TODO: Temporarily disabled for short-term - will enable in future
   // app.use('/api/content', require('./src/routes/content')); // Privacy, Terms, About, Community

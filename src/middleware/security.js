@@ -1,5 +1,98 @@
 const logger = require('../utils/logger');
 
+// ============================================================================
+// INPUT SANITIZATION & INJECTION PREVENTION
+// ============================================================================
+
+/**
+ * Sanitize all user inputs to prevent XSS, code injection, SQL injection
+ */
+const sanitizeInput = (req, res, next) => {
+  try {
+    const sanitize = (obj) => {
+      if (typeof obj === 'string') {
+        // Remove script tags and dangerous HTML
+        let clean = obj.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+        clean = clean.replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '');
+        clean = clean.replace(/on\w+\s*=\s*["'][^"']*["']/gi, ''); // Remove event handlers
+        clean = clean.replace(/javascript:/gi, '');
+        
+        // Remove SQL injection patterns
+        clean = clean.replace(/(\b(UNION|SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC)\b)/gi, (match) => {
+          logger.warn('⚠️ Potential SQL injection blocked', { pattern: match, ip: req.ip });
+          return '';
+        });
+        
+        // Remove dangerous code patterns
+        clean = clean.replace(/(eval|Function|setTimeout|setInterval|execScript)\s*\(/gi, (match) => {
+          logger.warn('⚠️ Potential code injection blocked', { pattern: match, ip: req.ip });
+          return '';
+        });
+        
+        return clean.trim();
+      } else if (Array.isArray(obj)) {
+        return obj.map(item => sanitize(item));
+      } else if (obj && typeof obj === 'object') {
+        const sanitized = {};
+        for (const key in obj) {
+          sanitized[key] = sanitize(obj[key]);
+        }
+        return sanitized;
+      }
+      return obj;
+    };
+
+    // Sanitize all inputs
+    if (req.body) req.body = sanitize(req.body);
+    if (req.query) req.query = sanitize(req.query);
+    if (req.params) req.params = sanitize(req.params);
+
+    next();
+  } catch (error) {
+    logger.error('Sanitization error:', error);
+    res.status(400).json({ success: false, message: 'Invalid input' });
+  }
+};
+
+/**
+ * Detect and block spam content
+ */
+const detectSpam = (req, res, next) => {
+  const spamPatterns = [
+    /\b(viagra|cialis|casino|lottery|winner|prize)\b/gi,
+    /\b(click here|buy now|limited time|act now)\b/gi,
+    /(http:\/\/|https:\/\/)[^\s]{60,}/gi, // Very long URLs
+    /(.)\1{15,}/g, // Repeated characters (aaaaaaa...)
+  ];
+
+  const checkSpam = (text) => {
+    if (typeof text !== 'string') return false;
+    
+    for (const pattern of spamPatterns) {
+      if (pattern.test(text)) return true;
+    }
+    
+    // Check URL count
+    const urlCount = (text.match(/https?:\/\//g) || []).length;
+    if (urlCount > 5) return true;
+    
+    // Check special char ratio
+    const specialChars = (text.match(/[^a-zA-Z0-9\s]/g) || []).length;
+    if (specialChars > text.length * 0.4) return true;
+    
+    return false;
+  };
+
+  const content = JSON.stringify(req.body);
+  
+  if (checkSpam(content)) {
+    logger.warn('⚠️ Spam detected:', { ip: req.ip, path: req.path });
+    return res.status(400).json({ success: false, message: 'Spam content detected' });
+  }
+
+  next();
+};
+
 // Request logging middleware
 const requestLogger = (req, res, next) => {
   const start = Date.now();
@@ -174,6 +267,8 @@ const apiKeyAuth = (req, res, next) => {
 };
 
 module.exports = {
+  sanitizeInput,
+  detectSpam,
   requestLogger,
   securityHeaders,
   requestTimeout,
