@@ -29,7 +29,7 @@ const SUBSCRIPTION_TIERS = {
     price: 3,
     interval: 'month',
     trialDays: 7,
-    dodo_plan_id: 'PASTE_YOUR_PRO_PLAN_ID_HERE', // TODO: Replace with actual DodoPayments plan ID
+    dodo_plan_id: 'pdt_OKdKW76gtO6vBWltBBV5d', // DodoPayments Product ID for Pro
     features: {
       dailyQueries: -1, // unlimited
       errorExplanation: true,
@@ -53,7 +53,7 @@ const SUBSCRIPTION_TIERS = {
     price: 8,
     interval: 'month',
     trialDays: 14,
-    dodo_plan_id: 'PASTE_YOUR_TEAM_PLAN_ID_HERE', // TODO: Replace with actual DodoPayments plan ID
+    dodo_plan_id: 'pdt_Zbn5YM2pCgkKcdQyV0ouY', // DodoPayments Product ID for Team
     features: {
       dailyQueries: -1, // unlimited
       errorExplanation: true,
