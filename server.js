@@ -141,7 +141,7 @@ const historyRoutes = require('./src/routes/history');
 const settingsRoutes = require('./src/routes/settings');
 const publicDemoRoutes = require('./src/routes/publicDemo');
 const supportRoutes = require('./src/routes/support');
-// const teamRoutes = require('./src/routes/teams'); // TODO: Add team models first
+const teamRoutes = require('./src/routes/teams');
 const webhookRoutes = require('./src/routes/webhooks'); // Dodo Payments webhooks
 
 // Health check - Multiple endpoints for Railway compatibility
@@ -193,10 +193,10 @@ app.get('/api/stats', async (req, res) => {
   app.use('/api/history', historyRoutes);
   app.use('/api/settings', settingsRoutes);
   app.use('/api/support', detectSpam, supportRoutes); // Feedback, Contact, Help Center, Newsletter - with spam detection
+  app.use('/api/teams', teamRoutes); // Team management - requires TEAM subscription
   
   // TODO: Temporarily disabled for short-term - will enable in future
   // app.use('/api/content', require('./src/routes/content')); // Privacy, Terms, About, Community
-  // app.use('/api/teams', teamRoutes); // TODO: Add team models first
   app.use('/api/webhooks', webhookRoutes); // Dodo Payments webhook endpoint(s)
 
 
