@@ -12,8 +12,26 @@
 const cluster = require('cluster');
 const os = require('os');
 
-// Number of CPU cores available
-const numCPUs = os.cpus().length;
+// Detect available memory and CPU cores
+const totalMemoryGB = os.totalmem() / (1024 ** 3);
+const availableCPUs = os.cpus().length;
+
+// Calculate optimal worker count based on available resources
+let numCPUs;
+
+if (totalMemoryGB < 1) {
+  // Less than 1GB RAM - run single process (Railway free tier: 512MB)
+  numCPUs = 1;
+} else if (totalMemoryGB < 2) {
+  // 1-2GB RAM - run 2 workers max
+  numCPUs = Math.min(2, availableCPUs);
+} else if (totalMemoryGB < 4) {
+  // 2-4GB RAM - run half of CPU cores (max 4)
+  numCPUs = Math.min(Math.ceil(availableCPUs / 2), 4);
+} else {
+  // 4GB+ RAM - use all cores (up to 8 for efficiency)
+  numCPUs = Math.min(availableCPUs, 8);
+}
 
 // Only use clustering in production (Railway)
 const USE_CLUSTERING = process.env.NODE_ENV === 'production' && process.env.ENABLE_CLUSTERING !== 'false';
@@ -22,8 +40,18 @@ if (USE_CLUSTERING && cluster.isMaster) {
   console.log(`\n${'='.repeat(60)}`);
   console.log(`🚀 ErrorWise Cluster Manager Started`);
   console.log(`${'='.repeat(60)}`);
-  console.log(`💻 CPU Cores: ${numCPUs}`);
-  console.log(`👷 Spawning ${numCPUs} worker processes...`);
+  console.log(`� Total Memory: ${totalMemoryGB.toFixed(2)}GB`);
+  console.log(`�💻 CPU Cores Available: ${availableCPUs}`);
+  console.log(`👷 Workers to Spawn: ${numCPUs} (optimized for available memory)`);
+  
+  if (totalMemoryGB < 1) {
+    console.log(`⚠️  LOW MEMORY MODE: Running single process to prevent OOM kills`);
+  } else if (totalMemoryGB < 2) {
+    console.log(`💡 LIMITED MEMORY: Running ${numCPUs} workers for balance`);
+  } else {
+    console.log(`🚀 HIGH MEMORY: Running ${numCPUs} workers for max performance`);
+  }
+  
   console.log(`${'='.repeat(60)}\n`);
 
   // Fork workers (one per CPU core)
