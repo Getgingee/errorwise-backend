@@ -902,3 +902,10 @@ async function getUsageLimits(userId, tier) {
     limitReached: dailyRemaining === 0
   };
 }
+
+// Helper function to get features by tier
+function getFeaturesByTier(tier) {
+  const tierConfig = SUBSCRIPTION_TIERS[tier] || SUBSCRIPTION_TIERS.free;
+  return tierConfig.features;
+}
+
