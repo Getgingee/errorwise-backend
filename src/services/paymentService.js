@@ -85,7 +85,7 @@ class DodoPaymentService {
       const response = await axios.post(`${this.baseURL}/checkout-sessions`, payload, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
+          'Authorization': `Bearer ${this.secretKey}`
         },
         timeout: 15000
       });
