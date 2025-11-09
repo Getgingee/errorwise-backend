@@ -5,11 +5,11 @@ class DodoPaymentService {
   constructor() {
     this.apiKey = process.env.DODO_API_KEY;
     this.secretKey = process.env.DODO_SECRET_KEY;
-    this.baseURL = process.env.DODO_BASE_URL || 'https://api.dodo.co/v1';
+    this.baseURL = process.env.DODO_BASE_URL || process.env.DODO_API_URL || 'https://api.dodopayments.com/v1';
     this.webhookSecret = process.env.DODO_WEBHOOK_SECRET;
     
-    if (!this.apiKey || !this.secretKey) {
-      console.warn('Dodo payment credentials not configured. Payment functionality will be limited.');
+    if (!this.apiKey) {
+      console.warn('Dodo payment API key not configured. Payment functionality will be limited.');
     }
   }
 
@@ -19,87 +19,92 @@ class DodoPaymentService {
     return crypto.createHmac('sha256', this.secretKey).update(message).digest('hex');
   }
 
-  // Create payment session for subscription
+  // Create payment session for subscription (Hosted Checkout)
   async createPaymentSession(subscriptionData) {
     try {
-      const { userId, planId, planName, amount, currency = 'USD', successUrl, cancelUrl } = subscriptionData;
-      
-      // Check if Dodo credentials are configured
-      if (!this.apiKey || !this.secretKey) {
-        console.log('⚠️  Dodo credentials not configured. Using mock payment flow for development.');
-        
-        // For development: Create mock payment session
+      const {
+        userId,
+        userEmail,
+        planId,
+        planName,
+        productId,
+        amount,
+        currency = 'USD',
+        successUrl,
+        cancelUrl,
+        interval,
+        trialDays = 0,
+        allowedPaymentMethodTypes = ['credit', 'debit', 'upi_collect', 'upi_intent']
+      } = subscriptionData;
+
+      // Development fallback (no credentials)
+      if (!this.apiKey) {
+        console.log('⚠️  Dodo API key not configured. Using mock payment flow for development.');
+
         const mockSessionId = `mock_session_${Date.now()}_${userId}`;
-        const mockSessionUrl = `${successUrl.split('/subscription')[0]}/subscription/mock-payment?sessionId=${mockSessionId}&planId=${planId}&userId=${userId}`;
-        
+        const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const mockSessionUrl = `${baseUrl}/subscription/mock-payment?sessionId=${mockSessionId}&planId=${planId}&userId=${userId}`;
+
         return {
           success: true,
           sessionId: mockSessionId,
           sessionUrl: mockSessionUrl,
           data: {
-            id: mockSessionId,
-            url: mockSessionUrl,
+            session_id: mockSessionId,
+            checkout_url: mockSessionUrl,
             mode: 'mock',
             metadata: { userId, planId, planName }
           }
         };
       }
-      
-      const timestamp = Math.floor(Date.now() / 1000).toString();
-      const path = '/payments/sessions';
-      const body = JSON.stringify({
-        amount: Math.round(amount * 100), // Convert to cents
-        currency,
-        payment_method_types: ['card'],
-        mode: 'subscription',
-        success_url: successUrl,
-        cancel_url: cancelUrl,
-        client_reference_id: userId.toString(),
+
+      // Build Checkout Session payload as per latest Dodo docs
+      const payload = {
+        product_cart: [
+          {
+            product_id: productId,
+            quantity: 1
+          }
+        ],
+        allowed_payment_method_types: allowedPaymentMethodTypes,
+        billing_currency: currency,
+        customer: {
+          email: userEmail
+        },
+        subscription_data: {
+          trial_period_days: trialDays
+        },
+        return_url: successUrl || `${process.env.FRONTEND_URL}/dashboard?payment=success`,
         metadata: {
-          userId: userId.toString(),
+          userId: String(userId),
           planId,
           planName
-        },
-        line_items: [{
-          price_data: {
-            currency,
-            product_data: {
-              name: `${planName} Subscription`,
-              description: `ErrorWise ${planName} Plan`
-            },
-            unit_amount: Math.round(amount * 100),
-            recurring: {
-              interval: 'month'
-            }
-          },
-          quantity: 1
-        }]
-      });
+        }
+      };
 
-      const signature = this.generateSignature(timestamp, 'POST', path, body);
-
-      const response = await axios.post(`${this.baseURL}${path}`, JSON.parse(body), {
+      const response = await axios.post(`${this.baseURL}/checkouts`, payload, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Dodo-Timestamp': timestamp,
-          'Dodo-Signature': signature
+          'Authorization': `Bearer ${this.apiKey}`
         },
-        timeout: 10000
+        timeout: 15000
       });
+
+      const sessionId = response?.data?.session_id || response?.data?.id;
+      const checkoutUrl = response?.data?.checkout_url || response?.data?.url;
 
       return {
         success: true,
-        sessionId: response.data.id,
-        sessionUrl: response.data.url,
+        sessionId,
+        sessionUrl: checkoutUrl,
         data: response.data
       };
 
     } catch (error) {
-      console.error('Dodo payment session creation failed:', error.response?.data || error.message);
+      console.error('Dodo checkout session creation failed:', error.response?.data || error.message);
       return {
         success: false,
-        error: error.response?.data?.message || 'Payment session creation failed',
+        error: error.response?.data?.message || 'Checkout session creation failed',
         code: error.response?.status
       };
     }
@@ -131,18 +136,31 @@ class DodoPaymentService {
       const { type, data } = event;
 
       switch (type) {
+        // Dodo Payments events
+        case 'subscription.active':
+          return await this.handleDodoSubscriptionActive(data);
+        case 'subscription.renewed':
+          return await this.handlePaymentSuccess(data);
+        case 'subscription.cancelled':
+          return await this.handleSubscriptionCancelled(data);
+        case 'subscription.failed':
+          return await this.handlePaymentFailed(data);
+        case 'subscription.expired':
+          return await this.handleSubscriptionCancelled(data);
+        case 'payment.succeeded':
+          return await this.handlePaymentSuccess(data);
+        case 'payment.failed':
+          return await this.handlePaymentFailed(data);
+
+        // Backwards compatibility with Stripe-like events (if configured)
         case 'checkout.session.completed':
           return await this.handleSubscriptionSuccess(data.object);
-        
         case 'invoice.payment_succeeded':
           return await this.handlePaymentSuccess(data.object);
-        
         case 'invoice.payment_failed':
           return await this.handlePaymentFailed(data.object);
-        
         case 'customer.subscription.deleted':
           return await this.handleSubscriptionCancelled(data.object);
-        
         default:
           console.log(`Unhandled webhook event type: ${type}`);
           return { success: true, message: 'Event ignored' };
@@ -160,11 +178,12 @@ class DodoPaymentService {
   // Handle successful subscription payment
   async handleSubscriptionSuccess(session) {
     try {
-      const { client_reference_id: userId, metadata, subscription: subscriptionId } = session;
-      const { planId, planName } = metadata;
+      const { client_reference_id: userId, metadata, subscription: subscriptionId } = session || {};
+      const { planId, planName } = metadata || {};
 
       // Update subscription in database
       const Subscription = require('../models/Subscription');
+      const User = require('../models/User');
       
       const startDate = new Date();
       const endDate = new Date();
@@ -172,15 +191,25 @@ class DodoPaymentService {
 
       await Subscription.upsert({
         userId: parseInt(userId),
-        tier: planId,
+        tier: planId || 'pro',
         status: 'active',
         startDate,
         endDate,
         dodoSubscriptionId: subscriptionId,
-        dodoSessionId: session.id
+        dodoSessionId: session?.id
       }, {
         where: { userId: parseInt(userId) }
       });
+
+      // Also update User record so UI reflects active subscription
+      if (userId) {
+        await User.update({
+          subscriptionTier: planId || 'pro',
+          subscriptionStatus: 'active',
+          subscriptionStartDate: startDate,
+          subscriptionEndDate: endDate
+        }, { where: { id: userId } });
+      }
 
       console.log(`Subscription activated for user ${userId}, plan: ${planName}`);
       
@@ -196,16 +225,27 @@ class DodoPaymentService {
   }
 
   // Handle payment success
-  async handlePaymentSuccess(invoice) {
+  async handlePaymentSuccess(invoiceOrPayload) {
     try {
-      const subscriptionId = invoice.subscription;
-      
+      const subscriptionId = invoiceOrPayload?.subscription || invoiceOrPayload?.subscription_id;
+
       // Update subscription status if needed
       const Subscription = require('../models/Subscription');
+      const User = require('../models/User');
+
       await Subscription.update(
         { status: 'active' },
         { where: { dodoSubscriptionId: subscriptionId } }
       );
+
+      // If possible, update the user status too (lookup by subscription)
+      const subRecord = await Subscription.findOne({ where: { dodoSubscriptionId: subscriptionId } });
+      if (subRecord?.userId) {
+        await User.update(
+          { subscriptionStatus: 'active', subscriptionTier: subRecord.tier },
+          { where: { id: subRecord.userId } }
+        );
+      }
 
       console.log(`Payment successful for subscription: ${subscriptionId}`);
       
@@ -248,7 +288,7 @@ class DodoPaymentService {
   // Handle subscription cancellation
   async handleSubscriptionCancelled(subscription) {
     try {
-      const subscriptionId = subscription.id;
+      const subscriptionId = subscription.id || subscription.subscription_id;
       
       // Update subscription status
       const Subscription = require('../models/Subscription');
@@ -266,6 +306,38 @@ class DodoPaymentService {
 
     } catch (error) {
       console.error('Subscription cancellation handling failed:', error);
+      throw error;
+    }
+  }
+
+  // Handle Dodo subscription.active event
+  async handleDodoSubscriptionActive(payload) {
+    try {
+      const Subscription = require('../models/Subscription');
+      const userId = payload?.metadata?.userId;
+      const planId = payload?.metadata?.planId;
+      const subscriptionId = payload?.id || payload?.subscription_id;
+
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + 1);
+
+      if (userId) {
+        await Subscription.upsert({
+          userId: parseInt(userId),
+          tier: planId || 'pro',
+          status: 'active',
+          startDate,
+          endDate,
+          dodoSubscriptionId: subscriptionId
+        }, {
+          where: { userId: parseInt(userId) }
+        });
+      }
+
+      return { success: true, message: 'Dodo subscription activated' };
+    } catch (error) {
+      console.error('Dodo subscription.active handling failed:', error);
       throw error;
     }
   }

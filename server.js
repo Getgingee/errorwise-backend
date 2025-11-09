@@ -84,7 +84,7 @@ if (process.env.NODE_ENV === 'production') {
   app.use(morgan('dev')); // Colored output for development
 }
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '10mb', verify: (req, res, buf) => { req.rawBody = buf; } }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
@@ -142,7 +142,7 @@ const settingsRoutes = require('./src/routes/settings');
 const publicDemoRoutes = require('./src/routes/publicDemo');
 const supportRoutes = require('./src/routes/support');
 // const teamRoutes = require('./src/routes/teams'); // TODO: Add team models first
-// const webhookRoutes = require('./src/routes/webhooks'); // TODO: Add webhook routes
+const webhookRoutes = require('./src/routes/webhooks'); // Dodo Payments webhooks
 
 // Health check - Multiple endpoints for Railway compatibility
 app.get('/health', (req, res) => {
@@ -197,7 +197,7 @@ app.get('/api/stats', async (req, res) => {
   // TODO: Temporarily disabled for short-term - will enable in future
   // app.use('/api/content', require('./src/routes/content')); // Privacy, Terms, About, Community
   // app.use('/api/teams', teamRoutes); // TODO: Add team models first
-  // app.use('/api/webhooks', webhookRoutes); // TODO: Add webhook routes
+  app.use('/api/webhooks', webhookRoutes); // Dodo Payments webhook endpoint(s)
 
 
 // 404 handler

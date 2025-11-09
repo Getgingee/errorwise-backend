@@ -313,18 +313,20 @@ exports.createSubscription = async (req, res) => {
       });
     }
 
-    // Create payment session with Dodo Payments
+    // Create payment session with Dodo Payments (Hosted Checkout)
     const paymentService = require('../services/paymentService');
     const paymentSession = await paymentService.createPaymentSession({
       userId: user.id,
       userEmail: user.email,
       planId,
       planName: plan.name,
+      productId: plan.dodo_plan_id,
       amount: plan.price,
       currency: 'USD',
       interval: plan.interval,
       trialDays: plan.trialDays || 0,
-      successUrl: successUrl || `${process.env.FRONTEND_URL}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      allowedPaymentMethodTypes: ['credit', 'debit', 'upi_collect', 'upi_intent'],
+      successUrl: successUrl || `${process.env.FRONTEND_URL}/dashboard?payment=success`,
       cancelUrl: cancelUrl || `${process.env.FRONTEND_URL}/pricing?payment=cancelled`
     });
 
@@ -448,28 +450,33 @@ exports.getUsage = async (req, res) => {
 // Handle Dodo payment webhooks
 exports.handleWebhook = async (req, res) => {
   try {
-    const signature = req.headers['dodo-signature'];
-    const payload = JSON.stringify(req.body);
+    // Dodo sends signature header (case-insensitive). Express lowercases header keys.
+    const signature = req.headers['dodo-signature'] || req.headers['x-dodo-signature'];
+    if (!signature) {
+      return res.status(400).json({ error: 'Missing webhook signature' });
+    }
+
+    // Use the raw request body for HMAC verification to avoid JSON re-serialization issues
+    const rawBody = req.rawBody ? req.rawBody.toString('utf8') : JSON.stringify(req.body);
 
     const paymentService = require('../services/paymentService');
     
     // Verify webhook signature
-    if (!paymentService.verifyWebhookSignature(payload, signature)) {
+    if (!paymentService.verifyWebhookSignature(rawBody, signature)) {
       return res.status(400).json({ error: 'Invalid webhook signature' });
     }
 
-    // Process webhook event
+    // Process webhook event (req.body already parsed JSON)
     const result = await paymentService.processWebhookEvent(req.body);
 
     if (result.success) {
-      res.status(200).json({ message: 'Webhook processed successfully' });
-    } else {
-      res.status(500).json({ error: result.error });
+      return res.status(200).json({ message: 'Webhook processed successfully' });
     }
+    return res.status(500).json({ error: result.error || 'Processing error' });
 
   } catch (error) {
     console.error('Webhook processing failed:', error);
-    res.status(500).json({ error: 'Webhook processing failed' });
+    return res.status(500).json({ error: 'Webhook processing failed' });
   }
 };
 
@@ -595,17 +602,19 @@ exports.createCheckout = async (req, res) => {
       });
     }
 
-    // Production: Create payment session
+    // Production: Create payment session (Hosted Checkout)
     const paymentService = require('../services/paymentService');
     const paymentSession = await paymentService.createPaymentSession({
       userId: user.id,
       userEmail: user.email,
       planId,
       planName: plan.name,
+      productId: plan.dodo_plan_id,
       amount: plan.price,
       currency: 'USD',
       interval: plan.interval,
       trialDays: plan.trialDays || 0,
+      allowedPaymentMethodTypes: ['credit', 'debit', 'upi_collect', 'upi_intent'],
       successUrl: successUrl || `${process.env.FRONTEND_URL}/dashboard?payment=success`,
       cancelUrl: cancelUrl || `${process.env.FRONTEND_URL}/pricing?payment=cancelled`
     });
