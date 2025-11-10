@@ -71,16 +71,16 @@ try {
 const TIER_CONFIG = {
   free: {
     primary: { 
-      provider: 'anthropic',  // FREE tier uses Claude Haiku (temporary - Gemini quota exhausted)
-      model: 'claude-3-haiku-20240307',  // Fast and efficient
+      provider: 'anthropic',  // FREE tier uses Claude Haiku (cheapest)
+      model: 'claude-3-haiku-20240307',  // Fast and affordable
       maxTokens: 1000,
-      temperature: 0.5,  // More conversational
+      temperature: 0.5,  // Balanced responses
     },
     fallback: { 
-      provider: 'gemini',  // Fallback to Gemini if Anthropic fails
-      model: 'gemini-2.0-flash-exp',
+      provider: 'anthropic',  // Fallback to newer Haiku
+      model: 'claude-3-5-haiku-20241022',
       maxTokens: 1000,
-      temperature: 0.5,  // More creative/natural responses
+      temperature: 0.5,
     },
     features: {
       batchAnalysis: false,
@@ -90,12 +90,16 @@ const TIER_CONFIG = {
   },
   pro: {
     primary: { 
-      provider: 'anthropic',  // PRO tier uses Claude 3.5 Sonnet (UPGRADED!)
-      model: 'claude-3-5-sonnet-20241022',  // Best reasoning & conversation
-      maxTokens: 1500,
+      provider: 'anthropic',  // PRO tier uses Claude Haiku 3.5 (upgraded)
+      model: 'claude-3-5-haiku-20241022',  // Latest Haiku model
+      maxTokens: 2000,  // More tokens for pro
       temperature: 0.4,  // Balanced creativity
     },
-    fallback: { provider: 'gemini', model: 'gemini-2.0-flash-exp', maxTokens: 1500 },
+    fallback: { 
+      provider: 'anthropic',  // Fallback to Claude Sonnet 4
+      model: 'claude-sonnet-4-20250514',
+      maxTokens: 2000,
+    },
     features: {
       batchAnalysis: false,
       urlScraping: true,
@@ -104,12 +108,16 @@ const TIER_CONFIG = {
   },
   team: {
     primary: { 
-      provider: 'anthropic',  // TEAM tier uses Claude Sonnet (best quality)
-      model: 'claude-3-5-sonnet-20241022', 
-      maxTokens: 3000,  // More comprehensive responses
-      temperature: 0.3,  // Precise but natural
+      provider: 'anthropic',  // TEAM tier uses Claude Sonnet 4 (BEST!)
+      model: 'claude-sonnet-4-20250514',  // Latest and most powerful
+      maxTokens: 4000,  // Maximum tokens for team tier
+      temperature: 0.3,  // Precise responses
     },
-    fallback: { provider: 'anthropic', model: 'claude-3-haiku-20240307', maxTokens: 2000 },
+    fallback: { 
+      provider: 'anthropic',  // Fallback to Haiku 3.5
+      model: 'claude-3-5-haiku-20241022',
+      maxTokens: 4000,
+    },
     features: {
       batchAnalysis: true,
       urlScraping: true,
