@@ -1652,8 +1652,10 @@ async function analyzeError({
 8. **For Indian cultural/food queries**: Include historical context, regional authenticity, and verified facts
 9. **For India updates**: Cover latest developments with credible information
 
-**OUTPUT REQUIREMENTS:**
-- Always respond in valid, parseable JSON format
+**CRITICAL OUTPUT REQUIREMENTS:**
+- ONLY return valid JSON - NO explanatory text before or after
+- Do NOT write "Here is my response" or any preamble
+- Your FIRST character must be { and LAST character must be }
 - Write explanations that flow naturally and read well
 - Make solutions practical and immediately applicable
 - Ensure all code examples are complete, correct, and well-commented
