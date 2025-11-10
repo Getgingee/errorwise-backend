@@ -71,16 +71,16 @@ try {
 const TIER_CONFIG = {
   free: {
     primary: { 
-      provider: 'gemini',  // FREE tier uses Gemini (100% FREE)
-      model: 'gemini-2.0-flash-exp', 
-      maxTokens: 1000,
-      temperature: 0.5,  // More creative/natural responses
-    },
-    fallback: { 
-      provider: 'anthropic',  // Fallback to Claude Haiku if Gemini fails
-      model: 'claude-3-haiku-20240307',
+      provider: 'anthropic',  // FREE tier uses Claude Haiku (temporary - Gemini quota exhausted)
+      model: 'claude-3-haiku-20240307',  // Fast and efficient
       maxTokens: 1000,
       temperature: 0.5,  // More conversational
+    },
+    fallback: { 
+      provider: 'gemini',  // Fallback to Gemini if Anthropic fails
+      model: 'gemini-2.0-flash-exp',
+      maxTokens: 1000,
+      temperature: 0.5,  // More creative/natural responses
     },
     features: {
       batchAnalysis: false,
