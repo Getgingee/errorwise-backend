@@ -71,14 +71,21 @@ try {
 const TIER_CONFIG = {
   free: {
     primary: { 
-      provider: 'anthropic',  // FREE tier uses Claude Haiku (cheapest)
-      model: 'claude-3-haiku-20240307',  // Fast and affordable
+      provider: 'anthropic',  // FREE tier uses Claude Haiku 3 (fastest & cheapest)
+      model: 'claude-3-haiku-20240307',  // 0.33x cost - perfect for free tier
       maxTokens: 1000,
-      temperature: 0.5,  // Balanced responses
+      temperature: 0.5,
     },
+    // FUTURE: Gemini alternative (uncomment when API key available)
+    // primary: { 
+    //   provider: 'gemini',
+    //   model: 'gemini-2.0-flash-exp',  // Free tier model
+    //   maxTokens: 1000,
+    //   temperature: 0.5,
+    // },
     fallback: { 
-      provider: 'anthropic',  // Fallback to newer Haiku
-      model: 'claude-3-5-haiku-20241022',
+      provider: 'anthropic',
+      model: 'claude-3-5-haiku-20241022',  // Newer Haiku if primary fails
       maxTokens: 1000,
       temperature: 0.5,
     },
@@ -91,14 +98,22 @@ const TIER_CONFIG = {
   pro: {
     primary: { 
       provider: 'anthropic',  // PRO tier uses Claude Haiku 3.5 (upgraded)
-      model: 'claude-3-5-haiku-20241022',  // Latest Haiku model
-      maxTokens: 2000,  // More tokens for pro
-      temperature: 0.4,  // Balanced creativity
-    },
-    fallback: { 
-      provider: 'anthropic',  // Fallback to Claude Sonnet 4
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-3-5-haiku-20241022',  // Latest Haiku - 1x cost, faster responses
       maxTokens: 2000,
+      temperature: 0.4,
+    },
+    // FUTURE: Gemini Pro alternative (uncomment when API key available)
+    // primary: { 
+    //   provider: 'gemini',
+    //   model: 'gemini-1.5-pro',  // Gemini Pro for advanced analysis
+    //   maxTokens: 2000,
+    //   temperature: 0.4,
+    // },
+    fallback: { 
+      provider: 'anthropic',
+      model: 'claude-3-haiku-20240307',  // Fallback to older Haiku
+      maxTokens: 2000,
+      temperature: 0.4,
     },
     features: {
       batchAnalysis: false,
@@ -108,21 +123,29 @@ const TIER_CONFIG = {
   },
   team: {
     primary: { 
-      provider: 'anthropic',  // TEAM tier uses Claude Sonnet 4 (BEST!)
-      model: 'claude-sonnet-4-20250514',  // Latest and most powerful
-      maxTokens: 4000,  // Maximum tokens for team tier
-      temperature: 0.3,  // Precise responses
-    },
-    fallback: { 
-      provider: 'anthropic',  // Fallback to Haiku 3.5
-      model: 'claude-3-5-haiku-20241022',
+      provider: 'anthropic',  // TEAM tier uses Claude Sonnet 4 (BEST quality)
+      model: 'claude-sonnet-4-20250514',  // Latest 2025 model - most advanced
       maxTokens: 4000,
+      temperature: 0.3,
+    },
+    // FUTURE: Gemini Pro alternative (uncomment when API key available)
+    // primary: { 
+    //   provider: 'gemini',
+    //   model: 'gemini-1.5-pro',  // Gemini Pro for team tier
+    //   maxTokens: 4000,
+    //   temperature: 0.3,
+    // },
+    fallback: { 
+      provider: 'anthropic',
+      model: 'claude-3-5-haiku-20241022',  // Fallback to Haiku 3.5
+      maxTokens: 4000,
+      temperature: 0.3,
     },
     features: {
       batchAnalysis: true,
       urlScraping: true,
       conversationHistory: true,
-    },
+    }
   },
 };
 
