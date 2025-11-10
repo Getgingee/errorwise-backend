@@ -18,23 +18,4 @@ router.post('/refresh-token', authController.refreshToken);
 router.post('/logout', authMiddleware, authController.logout);
 router.get('/profile', authMiddleware, authController.getProfile);
 
-// ============================================================================
-// EMAIL CHANGE ROUTES (Edge Cases)
-// ============================================================================
-router.post('/change-email', authMiddleware, authController.changeEmail);
-router.get('/verify-email-change', authController.verifyEmailChange);
-
-// ============================================================================
-// SESSION MANAGEMENT ROUTES (Edge Cases)
-// ============================================================================
-router.get('/sessions', authMiddleware, authController.getSessions);
-router.delete('/sessions/:sessionId', authMiddleware, authController.revokeSession);
-router.post('/revoke-all-sessions', authMiddleware, authController.revokeAllOtherSessions);
-
-// ============================================================================
-// ACCOUNT MANAGEMENT ROUTES (Edge Cases)
-// ============================================================================
-router.delete('/account', authMiddleware, authController.deleteAccount);
-router.post('/restore-account', authController.restoreAccount);
-
 module.exports = router;
