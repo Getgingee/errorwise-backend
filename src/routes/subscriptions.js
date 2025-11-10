@@ -42,4 +42,26 @@ router.get('/upgrade-options', subscriptionController.getUpgradeOptions);
 // Verify payment
 router.post('/verify-payment', subscriptionController.verifyPayment);
 
+// ============================================================================
+// EDGE CASE ENDPOINTS - Upgrade, Downgrade, Pause, Resume
+// ============================================================================
+
+// Upgrade subscription with proration
+router.post('/upgrade', subscriptionController.upgradeSubscription);
+
+// Downgrade subscription (immediate or end-of-period)
+router.post('/downgrade', subscriptionController.downgradeSubscription);
+
+// Get proration preview before upgrade
+router.get('/proration-preview', subscriptionController.getProrationPreview);
+
+// Pause subscription (maintain access until end of paid period)
+router.post('/pause', subscriptionController.pauseSubscription);
+
+// Resume paused subscription
+router.post('/resume', subscriptionController.resumeSubscription);
+
+// Handle payment failure (webhook or manual retry)
+router.post('/payment-failure', subscriptionController.handlePaymentFailureEndpoint);
+
 module.exports = router;

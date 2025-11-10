@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
 const logger = require('../utils/logger');
+const subscriptionService = require('../services/subscriptionService');
 
 // Subscription tier configuration
 const SUBSCRIPTION_TIERS = {
@@ -450,6 +451,22 @@ exports.getUsage = async (req, res) => {
 // Handle Dodo payment webhooks
 exports.handleWebhook = async (req, res) => {
   try {
+    // Extract webhook ID for idempotency
+    const webhookId = req.headers['x-webhook-id'] 
+      || req.body.id 
+      || req.body.event_id 
+      || `webhook_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    
+    // Check if already processed (idempotency protection)
+    const alreadyProcessed = await subscriptionService.isWebhookProcessed(webhookId);
+    if (alreadyProcessed) {
+      logger.info('⚠️  Webhook already processed (idempotent):', webhookId);
+      return res.status(200).json({ 
+        message: 'Webhook already processed',
+        idempotent: true 
+      });
+    }
+    
     // Dodo sends signature header (case-insensitive). Express lowercases header keys.
     const signature = req.headers['dodo-signature'] || req.headers['x-dodo-signature'];
     if (!signature) {
@@ -466,16 +483,29 @@ exports.handleWebhook = async (req, res) => {
       return res.status(400).json({ error: 'Invalid webhook signature' });
     }
 
+    // Mark as processed BEFORE processing to prevent duplicate processing
+    await subscriptionService.markWebhookProcessed(webhookId, {
+      event: req.body.event || req.body.type,
+      receivedAt: new Date().toISOString(),
+      signature: signature.substring(0, 20) + '...' // Store partial for debugging
+    });
+
     // Process webhook event (req.body already parsed JSON)
     const result = await paymentService.processWebhookEvent(req.body);
 
     if (result.success) {
-      return res.status(200).json({ message: 'Webhook processed successfully' });
+      logger.info('✅ Webhook processed successfully:', webhookId);
+      return res.status(200).json({ 
+        message: 'Webhook processed successfully',
+        webhookId 
+      });
     }
+    
+    logger.error('❌ Webhook processing error:', result.error);
     return res.status(500).json({ error: result.error || 'Processing error' });
 
   } catch (error) {
-    console.error('Webhook processing failed:', error);
+    logger.error('Webhook processing failed:', error);
     return res.status(500).json({ error: 'Webhook processing failed' });
   }
 };
@@ -654,25 +684,59 @@ exports.getBillingInfo = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Get subscription records
-    const subscriptions = await Subscription.findAll({
-      where: { userId },
-      order: [['createdAt', 'DESC']],
-      limit: 10
+    // Get active subscription from database
+    const currentSubscription = await Subscription.findOne({
+      where: { 
+        userId,
+        status: ['active', 'trial', 'past_due', 'cancelled']
+      },
+      order: [['createdAt', 'DESC']]
     });
 
-    const currentSubscription = subscriptions.find(s => s.status === 'active' || s.status === 'trial');
     const plan = SUBSCRIPTION_TIERS[user.subscriptionTier] || SUBSCRIPTION_TIERS.free;
+
+    // If user has DodoPayments subscription, fetch real data from their API
+    let dodoSubscriptionData = null;
+    if (currentSubscription?.dodoSubscriptionId) {
+      try {
+        const paymentService = require('../services/paymentService');
+        dodoSubscriptionData = await paymentService.getSubscriptionDetails(currentSubscription.dodoSubscriptionId);
+      } catch (error) {
+        console.error('Failed to fetch DodoPayments subscription:', error);
+        // Continue with database data if API fails
+      }
+    }
+
+    // Use DodoPayments data if available, otherwise use database data
+    const subscriptionData = dodoSubscriptionData || {
+      status: currentSubscription?.status || user.subscriptionStatus || 'free',
+      current_period_end: currentSubscription?.endDate || user.subscriptionEndDate,
+      current_period_start: currentSubscription?.startDate || user.subscriptionStartDate,
+      cancel_at_period_end: currentSubscription?.cancelAtPeriodEnd || false,
+      product: {
+        name: plan.name,
+        price: plan.price
+      }
+    };
 
     // Calculate next billing date
     let nextBillingDate = null;
-    if (user.subscriptionEndDate && user.subscriptionStatus === 'active') {
+    if (subscriptionData.current_period_end && subscriptionData.status === 'active') {
+      nextBillingDate = new Date(subscriptionData.current_period_end);
+    } else if (user.subscriptionEndDate && user.subscriptionStatus === 'active') {
       nextBillingDate = new Date(user.subscriptionEndDate);
     }
 
-    // Calculate billing amount
-    const billingAmount = plan.price;
-    const billingInterval = plan.interval;
+    // Get actual payment method from subscription record or DodoPayments
+    let paymentMethod = 'Not set';
+    if (dodoSubscriptionData?.payment_method) {
+      paymentMethod = `${dodoSubscriptionData.payment_method.type} ending in ${dodoSubscriptionData.payment_method.last4}`;
+    } else if (currentSubscription?.paymentMethod) {
+      paymentMethod = currentSubscription.paymentMethod;
+    }
+
+    // Last payment date from subscription or user record
+    const lastPaymentDate = currentSubscription?.startDate || user.subscriptionStartDate;
 
     res.json({
       success: true,
@@ -680,23 +744,24 @@ exports.getBillingInfo = async (req, res) => {
         currentPlan: {
           name: plan.name,
           tier: user.subscriptionTier,
-          price: billingAmount,
-          interval: billingInterval,
-          status: user.subscriptionStatus
+          price: plan.price,
+          interval: plan.interval,
+          status: subscriptionData.status || user.subscriptionStatus || 'free'
         },
         billing: {
           nextBillingDate,
-          amount: billingAmount,
+          amount: plan.price,
           currency: 'USD',
-          interval: billingInterval,
-          paymentMethod: currentSubscription?.paymentMethod || 'card',
-          lastPaymentDate: user.subscriptionStartDate
+          interval: plan.interval,
+          paymentMethod,
+          lastPaymentDate
         },
         subscription: {
-          startDate: user.subscriptionStartDate,
-          endDate: user.subscriptionEndDate,
+          startDate: subscriptionData.current_period_start || user.subscriptionStartDate,
+          endDate: subscriptionData.current_period_end || user.subscriptionEndDate,
           trialEndsAt: user.trialEndsAt,
-          cancelAtPeriodEnd: user.subscriptionStatus === 'cancelled'
+          cancelAtPeriodEnd: subscriptionData.cancel_at_period_end || (user.subscriptionStatus === 'cancelled'),
+          dodoSubscriptionId: currentSubscription?.dodoSubscriptionId || null
         }
       }
     });
@@ -919,4 +984,264 @@ function getFeaturesByTier(tier) {
   const tierConfig = SUBSCRIPTION_TIERS[tier] || SUBSCRIPTION_TIERS.free;
   return tierConfig.features;
 }
+
+// ============================================================================
+// EDGE CASE HANDLERS - Upgrade, Downgrade, Pause, Resume, Payment Failures
+// ============================================================================
+
+/**
+ * Upgrade subscription with proration
+ * POST /api/subscriptions/upgrade
+ */
+exports.upgradeSubscription = async (req, res) => {
+  try {
+    const { targetTier, paymentMethod } = req.body;
+    
+    if (!targetTier || !['pro', 'team'].includes(targetTier)) {
+      return res.status(400).json({ error: 'Invalid target tier' });
+    }
+    
+    const user = await User.findByPk(req.user.id);
+    const currentTier = user.subscriptionTier || 'free';
+    
+    if (currentTier === targetTier) {
+      return res.status(400).json({ error: 'Already on this tier' });
+    }
+    
+    // Prevent downgrade through upgrade endpoint
+    const tierOrder = { free: 0, pro: 1, team: 2 };
+    if (tierOrder[targetTier] <= tierOrder[currentTier]) {
+      return res.status(400).json({ error: 'Use downgrade endpoint for downgrades' });
+    }
+    
+    const result = await subscriptionService.processUpgrade(
+      user,
+      currentTier,
+      targetTier,
+      paymentMethod
+    );
+    
+    logger.info(`Subscription upgraded successfully`, {
+      userId: user.id,
+      fromTier: currentTier,
+      toTier: targetTier
+    });
+    
+    res.json(result);
+  } catch (error) {
+    logger.error('Upgrade failed:', error);
+    res.status(500).json({ 
+      error: error.message || 'Upgrade failed',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};
+
+/**
+ * Downgrade subscription (immediate or end-of-period)
+ * POST /api/subscriptions/downgrade
+ */
+exports.downgradeSubscription = async (req, res) => {
+  try {
+    const { targetTier, immediate = false, reason } = req.body;
+    
+    if (!targetTier || !['free', 'pro'].includes(targetTier)) {
+      return res.status(400).json({ error: 'Invalid target tier' });
+    }
+    
+    const user = await User.findByPk(req.user.id);
+    const currentTier = user.subscriptionTier || 'free';
+    
+    if (currentTier === targetTier) {
+      return res.status(400).json({ error: 'Already on this tier' });
+    }
+    
+    // Prevent upgrade through downgrade endpoint
+    const tierOrder = { free: 0, pro: 1, team: 2 };
+    if (tierOrder[targetTier] >= tierOrder[currentTier]) {
+      return res.status(400).json({ error: 'Use upgrade endpoint for upgrades' });
+    }
+    
+    const result = await subscriptionService.processDowngrade(
+      user,
+      currentTier,
+      targetTier,
+      immediate,
+      reason
+    );
+    
+    logger.info(`Subscription downgrade ${immediate ? 'completed' : 'scheduled'}`, {
+      userId: user.id,
+      fromTier: currentTier,
+      toTier: targetTier,
+      immediate
+    });
+    
+    res.json(result);
+  } catch (error) {
+    logger.error('Downgrade failed:', error);
+    res.status(500).json({ 
+      error: error.message || 'Downgrade failed',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};
+
+/**
+ * Pause subscription
+ * POST /api/subscriptions/pause
+ */
+exports.pauseSubscription = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    const subscription = await Subscription.findOne({
+      where: { userId: user.id, status: 'active' }
+    });
+    
+    if (!subscription) {
+      return res.status(404).json({ error: 'No active subscription found' });
+    }
+    
+    if (user.subscriptionTier === 'free') {
+      return res.status(400).json({ error: 'Cannot pause free tier' });
+    }
+    
+    const result = await subscriptionService.pauseSubscription(subscription, user);
+    
+    logger.info(`Subscription paused`, {
+      userId: user.id,
+      subscriptionId: subscription.id
+    });
+    
+    res.json(result);
+  } catch (error) {
+    logger.error('Pause failed:', error);
+    res.status(500).json({ 
+      error: error.message || 'Pause failed',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};
+
+/**
+ * Resume paused subscription
+ * POST /api/subscriptions/resume
+ */
+exports.resumeSubscription = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    const subscription = await Subscription.findOne({
+      where: { userId: user.id, status: 'paused' }
+    });
+    
+    if (!subscription) {
+      return res.status(404).json({ error: 'No paused subscription found' });
+    }
+    
+    const result = await subscriptionService.resumeSubscription(subscription, user);
+    
+    logger.info(`Subscription resumed`, {
+      userId: user.id,
+      subscriptionId: subscription.id
+    });
+    
+    res.json(result);
+  } catch (error) {
+    logger.error('Resume failed:', error);
+    res.status(500).json({ 
+      error: error.message || 'Resume failed',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};
+
+/**
+ * Handle payment failure (webhook or manual)
+ * POST /api/subscriptions/payment-failure
+ */
+exports.handlePaymentFailureEndpoint = async (req, res) => {
+  try {
+    const { subscriptionId, error: paymentError, attemptNumber = 1 } = req.body;
+    
+    if (!subscriptionId) {
+      return res.status(400).json({ error: 'Subscription ID required' });
+    }
+    
+    const subscription = await Subscription.findByPk(subscriptionId);
+    if (!subscription) {
+      return res.status(404).json({ error: 'Subscription not found' });
+    }
+    
+    const user = await User.findByPk(subscription.userId);
+    
+    const result = await subscriptionService.handlePaymentFailure(
+      subscription,
+      user,
+      paymentError || { message: 'Payment failed' },
+      attemptNumber
+    );
+    
+    logger.info(`Payment failure handled`, {
+      subscriptionId,
+      userId: user.id,
+      attemptNumber
+    });
+    
+    res.json(result);
+  } catch (error) {
+    logger.error('Payment failure handling error:', error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to handle payment failure',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};
+
+/**
+ * Get proration details for upgrade (preview)
+ * GET /api/subscriptions/proration-preview?targetTier=pro
+ */
+exports.getProrationPreview = async (req, res) => {
+  try {
+    const { targetTier } = req.query;
+    
+    if (!targetTier) {
+      return res.status(400).json({ error: 'Target tier required' });
+    }
+    
+    const user = await User.findByPk(req.user.id);
+    const currentTier = user.subscriptionTier || 'free';
+    
+    if (currentTier === targetTier) {
+      return res.status(400).json({ error: 'Already on this tier' });
+    }
+    
+    // Calculate days remaining
+    const subscription = await Subscription.findOne({
+      where: { userId: user.id, status: 'active' }
+    });
+    
+    const daysRemaining = subscription && subscription.endDate
+      ? Math.ceil((new Date(subscription.endDate) - new Date()) / (1000 * 60 * 60 * 24))
+      : 0;
+    
+    const proration = subscriptionService.calculateProration(
+      currentTier,
+      targetTier,
+      daysRemaining
+    );
+    
+    res.json({
+      preview: true,
+      ...proration
+    });
+  } catch (error) {
+    logger.error('Proration preview failed:', error);
+    res.status(500).json({ 
+      error: error.message || 'Failed to calculate proration',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};
+
 

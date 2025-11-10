@@ -86,6 +86,33 @@ const User = sequelize.define('User', {
     defaultValue: false,
     field: 'is_email_verified'
   },
+  // Email change workflow
+  pendingEmail: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'pending_email'
+  },
+  emailChangeToken: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'email_change_token'
+  },
+  emailChangeTokenExpiry: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'email_change_token_expiry'
+  },
+  // Account deletion
+  deletionReason: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    field: 'deletion_reason'
+  },
+  restorationDeadline: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'restoration_deadline'
+  },
   // OAuth providers
   googleId: {
     type: DataTypes.STRING,

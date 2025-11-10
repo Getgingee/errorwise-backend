@@ -123,6 +123,103 @@ const TIER_CONFIG = {
 // ============================================================================
 
 /**
+ * Timeout wrapper for AI requests
+ */
+function withTimeout(promise, timeoutMs = CONFIG.REQUEST_TIMEOUT_MS) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new Error(`AI request timeout after ${timeoutMs}ms`)), timeoutMs)
+    )
+  ]);
+}
+
+/**
+ * Validate and sanitize input error message
+ */
+function validateAndSanitizeInput(errorMessage) {
+  if (!errorMessage || typeof errorMessage !== 'string') {
+    throw new Error('Invalid error message: must be a non-empty string');
+  }
+  
+  // Trim and limit length
+  let sanitized = errorMessage.trim().slice(0, CONFIG.MAX_PROMPT_LENGTH);
+  
+  // Remove potential injection attacks
+  sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  sanitized = sanitized.replace(/javascript:/gi, '');
+  sanitized = sanitized.replace(/on\w+=/gi, ''); // Remove event handlers
+  
+  // Check for minimum meaningful content
+  if (sanitized.length < 10) {
+    throw new Error('Error message too short (minimum 10 characters)');
+  }
+  
+  return sanitized;
+}
+
+/**
+ * User request rate limiting (in-memory)
+ */
+const userRequestCounts = new Map();
+
+function checkUserRateLimit(userId, tier) {
+  if (!userId) return () => {}; // No cleanup needed if no userId
+  
+  const limits = {
+    free: { concurrent: 1, perMinute: 5 },
+    pro: { concurrent: 3, perMinute: 20 },
+    team: { concurrent: 10, perMinute: 100 }
+  };
+  
+  const limit = limits[tier] || limits.free;
+  const userRequests = userRequestCounts.get(userId) || { concurrent: 0, perMinute: [] };
+  
+  // Check concurrent requests
+  if (userRequests.concurrent >= limit.concurrent) {
+    throw new Error(`Too many concurrent AI requests (max ${limit.concurrent} for ${tier} tier)`);
+  }
+  
+  // Check per-minute limit
+  const oneMinuteAgo = Date.now() - 60000;
+  const recentRequests = userRequests.perMinute.filter(t => t > oneMinuteAgo);
+  
+  if (recentRequests.length >= limit.perMinute) {
+    const retryAfter = Math.ceil((recentRequests[0] + 60000 - Date.now()) / 1000);
+    throw new Error(`AI rate limit exceeded (${limit.perMinute}/min for ${tier} tier). Retry after ${retryAfter}s`);
+  }
+  
+  // Track request
+  userRequests.concurrent++;
+  userRequests.perMinute.push(Date.now());
+  userRequestCounts.set(userId, userRequests);
+  
+  // Return cleanup function
+  return () => {
+    userRequests.concurrent = Math.max(0, userRequests.concurrent - 1);
+    userRequestCounts.set(userId, userRequests);
+  };
+}
+
+/**
+ * Validate AI response structure
+ */
+function validateAIResponse(response) {
+  if (!response || typeof response !== 'object') {
+    throw new Error('Invalid AI response format: not an object');
+  }
+  
+  const required = ['explanation', 'solution'];
+  for (const field of required) {
+    if (!response[field] || typeof response[field] !== 'string' || response[field].length < 50) {
+      throw new Error(`AI response invalid: ${field} is missing or too short (min 50 chars)`);
+    }
+  }
+  
+  return true;
+}
+
+/**
  * Generate cache key from request parameters
  */
 function generateCacheKey(errorMessage, language, errorType, subscriptionTier) {
@@ -1418,12 +1515,19 @@ async function analyzeError({
   subscriptionTier = 'free', 
   framework, 
   dependencies, 
-  conversationHistory = [] 
+  conversationHistory = [],
+  userId = null
 }) {
+  // Rate limit check and cleanup tracking
+  let cleanupRateLimit = () => {};
+  
   try {
-    // Validate and sanitize input
-    const sanitizedMessage = validateInput(errorMessage, subscriptionTier);
+    // 1. Input validation and sanitization (prevents injection attacks)
+    const sanitizedMessage = validateAndSanitizeInput(errorMessage);
     const validTier = ['free', 'pro', 'team'].includes(subscriptionTier) ? subscriptionTier : 'free';
+    
+    // 2. User rate limiting (prevents abuse)
+    cleanupRateLimit = checkUserRateLimit(userId, validTier);
     
     // Auto-detect language and error type if not provided
     const detectedLanguage = language || detectLanguage(sanitizedMessage, codeSnippet);
@@ -1549,26 +1653,32 @@ Remember: Your goal is to help users understand their issues and learn from them
         let result;
         
         if (config.provider === 'gemini') {
-          result = await callGemini(
-            prompt, 
-            config.model, 
-            detectedLanguage, 
-            detectedErrorType, 
-            stackTrace, 
-            features.conversationHistory ? conversationHistory : []
+          result = await withTimeout(
+            callGemini(
+              prompt, 
+              config.model, 
+              detectedLanguage, 
+              detectedErrorType, 
+              stackTrace, 
+              features.conversationHistory ? conversationHistory : []
+            ),
+            CONFIG.REQUEST_TIMEOUT_MS
           );
         }
         else if (config.provider === 'anthropic') {
-          result = await callAnthropic(
-            prompt, 
-            systemMessage, 
-            config.model, 
-            config.maxTokens, 
-            detectedLanguage, 
-            detectedErrorType, 
-            stackTrace, 
-            features.conversationHistory ? conversationHistory : [],
-            config.temperature
+          result = await withTimeout(
+            callAnthropic(
+              prompt, 
+              systemMessage, 
+              config.model, 
+              config.maxTokens, 
+              detectedLanguage, 
+              detectedErrorType, 
+              stackTrace, 
+              features.conversationHistory ? conversationHistory : [],
+              config.temperature
+            ),
+            CONFIG.REQUEST_TIMEOUT_MS
           );
         } 
         else if (config.provider === 'mock') {
@@ -1577,6 +1687,11 @@ Remember: Your goal is to help users understand their issues and learn from them
         }
         else {
           continue; // Skip disabled providers
+        }
+        
+        // Validate AI response structure
+        if (result && !result.error) {
+          validateAIResponse(result);
         }
         
         // Cache successful response (except for conversations)
@@ -1617,6 +1732,7 @@ Remember: Your goal is to help users understand their issues and learn from them
     
   } catch (error) {
     console.error('❌ Unexpected error in analyzeError:', error);
+    cleanupRateLimit(); // Clean up rate limit tracking on error
     return {
       explanation: 'An unexpected error occurred while analyzing your request.',
       solution: 'Please try again. If the problem persists, contact support.',
@@ -1630,6 +1746,9 @@ Remember: Your goal is to help users understand their issues and learn from them
       timestamp: new Date().toISOString(),
       error: error?.message
     };
+  } finally {
+    // Always cleanup rate limit tracking (for successful requests)
+    cleanupRateLimit();
   }
 }
 

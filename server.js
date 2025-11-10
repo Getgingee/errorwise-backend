@@ -199,49 +199,14 @@ app.get('/api/stats', async (req, res) => {
   // app.use('/api/content', require('./src/routes/content')); // Privacy, Terms, About, Community
   app.use('/api/webhooks', webhookRoutes); // Dodo Payments webhook endpoint(s)
 
+// Import professional error handlers
+const { errorHandler, notFoundHandler } = require('./src/utils/errors');
 
-// 404 handler
-app.use('*', (req, res) => {
-  logger.warn(`404 Not Found: ${req.method} ${req.originalUrl}`);
-  res.status(404).json({ 
-    error: 'Not Found',
-    message: `Route ${req.originalUrl} not found`,
-    path: req.originalUrl
-  });
-});
+// 404 handler - use professional handler
+app.use('*', notFoundHandler);
 
-// Global error handler - MUST be last middleware
-app.use((err, req, res, next) => {
-  // Log the error with full details
-  logger.error('Global error handler caught error:', {
-    error: err.message,
-    stack: err.stack,
-    url: req.originalUrl,
-    method: req.method,
-    ip: req.ip,
-    user: req.user?.id || 'anonymous'
-  });
-  
-  console.error('❌ Global Error Handler:', {
-    message: err.message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-    url: req.originalUrl
-  });
-
-  // Don't expose internal errors in production
-  const statusCode = err.statusCode || err.status || 500;
-  const message = process.env.NODE_ENV === 'production' && statusCode === 500
-    ? 'Internal server error'
-    : err.message || 'Server error';
-
-  res.status(statusCode).json({
-    error: message,
-    ...(process.env.NODE_ENV === 'development' && {
-      stack: err.stack,
-      details: err
-    })
-  });
-});
+// Global error handler - MUST be last middleware - use professional handler
+app.use(errorHandler);
 
 // Database connection and server start
 const start = async () => {

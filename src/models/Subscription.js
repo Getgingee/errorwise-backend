@@ -50,6 +50,16 @@ const Subscription = sequelize.define('Subscription', {
   lastPaymentDate: { 
     type: DataTypes.DATE, 
     allowNull: true 
+  },
+  paymentMethod: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    comment: 'Payment method (e.g., card, upi)'
+  },
+  cancelAtPeriodEnd: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    comment: 'Whether subscription will cancel at period end'
   }
 }, {
   indexes: [

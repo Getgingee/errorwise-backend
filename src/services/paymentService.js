@@ -346,11 +346,16 @@ class DodoPaymentService {
   async handleSubscriptionCancelled(subscription) {
     try {
       const subscriptionId = subscription.id || subscription.subscription_id;
+      const cancelAtPeriodEnd = subscription.cancel_at_period_end !== undefined ? subscription.cancel_at_period_end : true;
+      
       const Subscription = require('../models/Subscription');
       const User = require('../models/User');
       
       await Subscription.update(
-        { status: 'cancelled' },
+        { 
+          status: 'cancelled',
+          cancelAtPeriodEnd
+        },
         { where: { dodoSubscriptionId: subscriptionId } }
       );
 
@@ -363,7 +368,7 @@ class DodoPaymentService {
         );
       }
 
-      console.log(`✅ Subscription cancelled: ${subscriptionId}`);
+      console.log(`✅ Subscription cancelled: ${subscriptionId} (cancel at period end: ${cancelAtPeriodEnd})`);
       return { success: true, message: 'Subscription cancellation handled' };
 
     } catch (error) {
@@ -413,6 +418,10 @@ class DodoPaymentService {
       const endDate = new Date();
       endDate.setMonth(endDate.getMonth() + 1);
 
+      // Extract payment method from webhook data
+      const paymentMethod = data?.payment_method?.type || data?.payment_method || 'card';
+      const cancelAtPeriodEnd = data?.cancel_at_period_end || false;
+
       if (userId) {
         await Subscription.upsert({
           userId: parseInt(userId),
@@ -420,11 +429,19 @@ class DodoPaymentService {
           status: 'active',
           startDate,
           endDate,
-          dodoSubscriptionId: subscriptionId
+          dodoSubscriptionId: subscriptionId,
+          paymentMethod,
+          cancelAtPeriodEnd,
+          lastPaymentDate: startDate
         }, { where: { userId: parseInt(userId) } });
 
         await User.update(
-          { subscriptionStatus: 'active', subscriptionTier: planId || 'pro' },
+          { 
+            subscriptionStatus: 'active', 
+            subscriptionTier: planId || 'pro',
+            subscriptionStartDate: startDate,
+            subscriptionEndDate: endDate
+          },
           { where: { id: parseInt(userId) } }
         );
       }
@@ -826,6 +843,60 @@ class DodoPaymentService {
         success: false,
         error: error.response?.data?.message || 'Payment creation failed'
       };
+    }
+  }
+
+  // Get subscription details from DodoPayments
+  async getSubscriptionDetails(subscriptionId) {
+    try {
+      if (!this.apiKey) {
+        console.warn('Dodo API key not configured');
+        return null;
+      }
+
+      const timestamp = Date.now().toString();
+      const path = `/subscriptions/${subscriptionId}`;
+      const signature = this.generateSignature(timestamp, 'GET', path);
+
+      const response = await axios.get(`${this.baseURL}${path}`, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Dodo-Timestamp': timestamp,
+          'Dodo-Signature': signature
+        }
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch subscription from DodoPayments:', error.response?.data || error.message);
+      return null;
+    }
+  }
+
+  // Get customer details from DodoPayments
+  async getCustomerDetails(customerId) {
+    try {
+      if (!this.apiKey) {
+        console.warn('Dodo API key not configured');
+        return null;
+      }
+
+      const timestamp = Date.now().toString();
+      const path = `/customers/${customerId}`;
+      const signature = this.generateSignature(timestamp, 'GET', path);
+
+      const response = await axios.get(`${this.baseURL}${path}`, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Dodo-Timestamp': timestamp,
+          'Dodo-Signature': signature
+        }
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch customer from DodoPayments:', error.response?.data || error.message);
+      return null;
     }
   }
 }
