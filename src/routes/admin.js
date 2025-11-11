@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
-const { authenticate } = require('../middleware/auth');
+const { authMiddleware } = require('../middleware/auth');
 
 // Admin middleware - check if user is admin
 const isAdmin = async (req, res, next) => {
@@ -75,7 +75,7 @@ router.post('/upgrade-hi-user', async (req, res) => {
 });
 
 // Upgrade user to Pro
-router.post('/upgrade-user', authenticate, isAdmin, async (req, res) => {
+router.post('/upgrade-user', authMiddleware, isAdmin, async (req, res) => {
   try {
     const { email } = req.body;
     
@@ -141,7 +141,7 @@ router.post('/upgrade-user', authenticate, isAdmin, async (req, res) => {
 });
 
 // List all users (admin only)
-router.get('/users', authenticate, isAdmin, async (req, res) => {
+router.get('/users', authMiddleware, isAdmin, async (req, res) => {
   try {
     const users = await User.findAll({
       attributes: ['id', 'email', 'username', 'subscriptionTier', 'subscriptionStatus', 'createdAt'],
