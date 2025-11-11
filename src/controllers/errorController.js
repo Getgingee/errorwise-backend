@@ -70,6 +70,11 @@ exports.analyzeError = async (req, res) => {
         tier: subscriptionTier
       };
 
+      // Add sources for all tiers (Free tier gets 2, Pro/Team may get more)
+      if (filteredAnalysis.sources && Array.isArray(filteredAnalysis.sources)) {
+        response.sources = filteredAnalysis.sources;
+      }
+
       // Add premium fields for Pro/Team users
       if (subscriptionTier === 'pro' || subscriptionTier === 'team') {
         response.codeExample = filteredAnalysis.codeExample;
