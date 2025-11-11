@@ -105,6 +105,18 @@
     </div>
 
     <script>
+        // First, let's check what users exist
+        async function checkUsers() {
+            try {
+                const response = await fetch('https://errorwise-backend-production.up.railway.app/api/admin/check-users');
+                const data = await response.json();
+                console.log('Users in database:', data);
+                return data;
+            } catch (error) {
+                console.error('Error checking users:', error);
+            }
+        }
+
         async function upgradeUser() {
             const btn = document.getElementById('upgradeBtn');
             const result = document.getElementById('result');
@@ -153,6 +165,11 @@
                 btn.innerHTML = 'Upgrade Hi@getgingee.com to Pro';
             }
         }
+
+        // Check users on page load
+        window.onload = function() {
+            checkUsers();
+        };
     </script>
 </body>
 </html>
