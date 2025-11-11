@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
 const { authMiddleware } = require('../middleware/auth');
+const sequelize = require('../config/database');
 
 // Admin middleware - check if user is admin
 const isAdmin = async (req, res, next) => {
@@ -12,12 +13,32 @@ const isAdmin = async (req, res, next) => {
   next();
 };
 
+// TEMPORARY: Check users endpoint (no auth for debugging)
+router.get('/check-users', async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: ['id', 'email', 'username', 'subscriptionTier', 'subscriptionStatus'],
+      order: [['createdAt', 'DESC']],
+      limit: 10
+    });
+    res.json({ count: users.length, users });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // TEMPORARY: One-time upgrade endpoint (remove after use)
 router.post('/upgrade-hi-user', async (req, res) => {
   try {
     const email = 'Hi@getgingee.com';
     
-    const user = await User.findOne({ where: { email } });
+    // Try case-insensitive search
+    const user = await User.findOne({ 
+      where: sequelize.where(
+        sequelize.fn('LOWER', sequelize.col('email')), 
+        email.toLowerCase()
+      )
+    });
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
