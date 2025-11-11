@@ -109,16 +109,57 @@ async function scrapeWebForSolutions(query, context = {}) {
 
 /**
  * Build search URLs based on query and context
+ * Enhanced for universal queries - not just errors
  */
 function buildSearchUrls(query, context) {
   const urls = [];
   const searchTerm = encodeURIComponent(query);
   
-  // Stack Overflow
-  urls.push(`https://stackoverflow.com/search?q=${searchTerm}`);
+  // Detect query type
+  const isErrorQuery = /error|exception|bug|issue|failed|crash/i.test(query);
+  const isHowTo = /how to|how do|tutorial|guide/i.test(query);
+  const isFactual = /what is|who is|when|where|why|define/i.test(query);
   
-  // Reddit programming communities
-  urls.push(`https://www.reddit.com/search/?q=${searchTerm}+programming`);
+  // For error-related queries
+  if (isErrorQuery) {
+    // Stack Overflow
+    urls.push(`https://stackoverflow.com/search?q=${searchTerm}`);
+    
+    // Reddit programming communities
+    urls.push(`https://www.reddit.com/search/?q=${searchTerm}+programming`);
+    
+    // GitHub issues
+    urls.push(`https://www.google.com/search?q=${searchTerm}+site:github.com`);
+  }
+  
+  // For how-to/tutorial queries
+  if (isHowTo) {
+    // Developer documentation sites
+    urls.push(`https://www.google.com/search?q=${searchTerm}+site:developer.mozilla.org+OR+site:docs.python.org+OR+site:docs.microsoft.com`);
+    
+    // Tutorial sites
+    urls.push(`https://www.google.com/search?q=${searchTerm}+tutorial+site:dev.to+OR+site:medium.com`);
+    
+    // YouTube (search results page)
+    urls.push(`https://www.google.com/search?q=${searchTerm}+tutorial+site:youtube.com`);
+  }
+  
+  // For factual/informational queries
+  if (isFactual) {
+    // Wikipedia
+    urls.push(`https://www.google.com/search?q=${searchTerm}+site:wikipedia.org`);
+    
+    // Educational sites
+    urls.push(`https://www.google.com/search?q=${searchTerm}+site:britannica.com+OR+site:khanacademy.org`);
+  }
+  
+  // Universal Google search (always include)
+  urls.push(`https://www.google.com/search?q=${searchTerm}`);
+  
+  // News search for current events
+  if (/news|latest|recent|today|2025|2024/i.test(query)) {
+    urls.push(`https://www.google.com/search?q=${searchTerm}&tbm=nws`);
+  }
   
   // If context includes manufacturer/model, search specific sites
   if (context.manufacturer) {
@@ -126,9 +167,14 @@ function buildSearchUrls(query, context) {
     urls.push(`https://www.google.com/search?q=${mfg}+${searchTerm}+support+forum`);
   }
   
-  // Indian tech forums
+  // Indian context - local sites and forums
   if (context.includeIndianContext) {
-    urls.push(`https://www.google.com/search?q=${searchTerm}+site:digit.in+OR+site:techenclave.com`);
+    urls.push(`https://www.google.com/search?q=${searchTerm}+site:digit.in+OR+site:techenclave.com+OR+site:indianexpress.com`);
+  }
+  
+  // Technology news and blogs
+  if (/technology|tech|software|hardware|AI|programming/i.test(query)) {
+    urls.push(`https://www.google.com/search?q=${searchTerm}+site:techcrunch.com+OR+site:theverge.com+OR+site:arstechnica.com`);
   }
   
   return urls;
@@ -136,13 +182,14 @@ function buildSearchUrls(query, context) {
 
 /**
  * Scrape a single URL and extract relevant content
+ * Enhanced to handle Google search results, Wikipedia, news sites, etc.
  */
 async function scrapeSingleUrl(url) {
   try {
     const response = await axios.get(url, {
       timeout: 5000,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       }
     });
     
@@ -154,25 +201,50 @@ async function scrapeSingleUrl(url) {
     // Extract main content (varies by site)
     let content = '';
     
-    // Try different content selectors
-    const contentSelectors = [
-      '.post-text',           // Stack Overflow
-      '.markdown',            // Reddit
-      'article',              // Generic articles
-      '.content',             // Common class
-      'main'                  // HTML5 main
-    ];
+    // Google search results - extract snippets
+    if (url.includes('google.com/search')) {
+      const snippets = [];
+      $('.g .VwiC3b, .g .IsZvec, .MjjYud').each((i, el) => {
+        const snippet = $(el).text().trim();
+        if (snippet && snippet.length > 20) {
+          snippets.push(snippet);
+        }
+      });
+      content = snippets.slice(0, 5).join('\n\n');
+    }
     
-    for (const selector of contentSelectors) {
-      const el = $(selector).first();
-      if (el.length) {
-        content = el.text().trim();
-        break;
+    // Wikipedia
+    if (url.includes('wikipedia.org')) {
+      content = $('#mw-content-text p').first().text().trim() || 
+                $('#mw-content-text').text().trim();
+    }
+    
+    // Try different content selectors for various sites
+    if (!content) {
+      const contentSelectors = [
+        '.post-text',           // Stack Overflow
+        '.markdown',            // Reddit
+        'article',              // Generic articles
+        '.entry-content',       // WordPress blogs
+        '.post-content',        // Medium, dev.to
+        '.content',             // Common class
+        'main',                 // HTML5 main
+        '#content',             // Common ID
+        '.article-body',        // News sites
+        '[role="main"]'         // Accessibility main
+      ];
+      
+      for (const selector of contentSelectors) {
+        const el = $(selector).first();
+        if (el.length) {
+          content = el.text().trim();
+          if (content.length > 100) break;
+        }
       }
     }
     
     // Fallback to body if nothing found
-    if (!content) {
+    if (!content || content.length < 100) {
       content = $('body').text().trim();
     }
     
@@ -214,21 +286,34 @@ function calculateRelevance(content, query) {
 }
 
 /**
- * Extract context from user message (manufacturer, model, etc.)
+ * Extract context from user message
+ * Enhanced to handle universal queries, not just technical errors
  */
 function extractContext(message) {
   const context = {
     manufacturer: null,
     model: null,
     errorType: null,
+    queryType: 'general',
     language: 'english',
     includeIndianContext: false
   };
   
-  // Common manufacturers
-  const manufacturers = ['dell', 'hp', 'lenovo', 'asus', 'acer', 'apple', 'microsoft', 'samsung'];
   const messageLower = message.toLowerCase();
   
+  // Detect query type
+  if (/error|exception|bug|issue|failed|crash|not working|broken/i.test(message)) {
+    context.queryType = 'error';
+  } else if (/how to|how do|tutorial|guide|steps|learn/i.test(message)) {
+    context.queryType = 'howto';
+  } else if (/what is|who is|when|where|why|define|explain/i.test(message)) {
+    context.queryType = 'factual';
+  } else if (/latest|news|current|today|recent|trending/i.test(message)) {
+    context.queryType = 'news';
+  }
+  
+  // Common manufacturers (for technical queries)
+  const manufacturers = ['dell', 'hp', 'lenovo', 'asus', 'acer', 'apple', 'microsoft', 'samsung'];
   manufacturers.forEach(mfg => {
     if (messageLower.includes(mfg)) {
       context.manufacturer = mfg;
@@ -236,36 +321,55 @@ function extractContext(message) {
   });
   
   // Detect Indian context keywords
-  const indianKeywords = ['india', 'indian', 'hindi', 'tamil', 'telugu', 'bangalore', 'mumbai', 'delhi'];
+  const indianKeywords = ['india', 'indian', 'hindi', 'tamil', 'telugu', 'bangalore', 'mumbai', 'delhi', 'chennai', 'kolkata', 'hyderabad'];
   if (indianKeywords.some(keyword => messageLower.includes(keyword))) {
     context.includeIndianContext = true;
   }
   
-  // Error type detection
+  // Error type detection (for technical queries)
   if (messageLower.includes('driver')) context.errorType = 'driver';
   if (messageLower.includes('screen') || messageLower.includes('display')) context.errorType = 'display';
   if (messageLower.includes('wifi') || messageLower.includes('network')) context.errorType = 'network';
+  if (messageLower.includes('battery')) context.errorType = 'battery';
+  if (messageLower.includes('performance') || messageLower.includes('slow')) context.errorType = 'performance';
   
   return context;
 }
 
 /**
  * Determine if AI should ask follow-up questions
+ * Enhanced to handle universal queries appropriately
  */
 function shouldAskFollowUp(message, context, tier) {
   // Only Pro and Team tiers get follow-up questions
   if (tier === 'free') return false;
   
-  // If we already have enough context, don't ask
-  if (context.manufacturer && context.model) return false;
+  // Don't ask follow-up for factual or news queries - just answer them
+  if (context.queryType === 'factual' || context.queryType === 'news') {
+    return false;
+  }
   
-  // Check if message is vague or needs clarification
-  const needsClarification = 
-    message.split(' ').length < 5 || // Very short query
-    (!context.manufacturer && message.toLowerCase().includes('laptop')) ||
-    (!context.errorType && message.toLowerCase().includes('error'));
+  // For how-to queries, only ask if very vague
+  if (context.queryType === 'howto') {
+    const isVague = message.split(' ').length < 4;
+    return isVague;
+  }
   
-  return needsClarification;
+  // For error queries, check if we have enough technical context
+  if (context.queryType === 'error') {
+    // If we already have enough context, don't ask
+    if (context.manufacturer && context.errorType) return false;
+    
+    // Check if message is vague or needs clarification
+    const needsClarification = 
+      message.split(' ').length < 5 || // Very short query
+      (!context.manufacturer && message.toLowerCase().includes('laptop')) ||
+      (!context.errorType && message.toLowerCase().includes('error'));
+    
+    return needsClarification;
+  }
+  
+  return false;
 }
 
 /**
@@ -417,6 +521,7 @@ async function getConversationalResponse({
 
 /**
  * Build comprehensive prompt for AI with context
+ * Enhanced to handle universal queries (not just errors)
  */
 function buildConversationalPrompt({
   currentMessage,
@@ -427,7 +532,20 @@ function buildConversationalPrompt({
   language,
   includeIndianContext
 }) {
-  let prompt = `You are ErrorWise AI, a helpful and conversational programming assistant similar to Google Assistant.
+  // Detect query type
+  const isErrorQuery = /error|exception|bug|issue|failed|crash|not working|broken/i.test(currentMessage);
+  const isHowTo = /how to|how do|tutorial|guide|steps|learn/i.test(currentMessage);
+  const isFactual = /what is|who is|when|where|why|define|explain/i.test(currentMessage);
+  const isNews = /latest|news|current|today|recent|trending/i.test(currentMessage);
+  
+  let prompt = `You are ErrorWise AI, a universal knowledge assistant similar to Google Assistant.
+
+CAPABILITIES:
+- Technical troubleshooting and error resolution
+- Programming tutorials and how-to guides  
+- General knowledge and factual information
+- Current news and trending topics
+- Indian cultural and regional context awareness
 
 CONVERSATION CONTEXT:
 ${conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
@@ -439,25 +557,33 @@ ${context.errorType ? `- Issue type: ${context.errorType}` : ''}
 ${includeIndianContext ? '- Regional context: India (consider local tech support, Indian forums, regional issues)' : ''}
 
 ${webContext && webContext.length > 0 ? `
-WEB SEARCH RESULTS:
+WEB SEARCH RESULTS (from across the internet):
 ${webContext.map((result, i) => `
 Source ${i + 1}: ${result.title}
+URL: ${result.url}
 ${result.content}
 `).join('\n')}
 ` : ''}
 
 USER'S QUESTION: ${currentMessage}
 
+QUERY TYPE: ${isErrorQuery ? 'Technical Problem/Error' : isHowTo ? 'Tutorial/How-To' : isFactual ? 'Factual Information' : isNews ? 'News/Current Events' : 'General Query'}
+
 INSTRUCTIONS:
-- Be conversational and friendly, like Google Assistant
-- Provide step-by-step solutions
-- ${tier === 'free' ? 'Give basic explanation only' : 'Provide detailed explanation with fixes and code examples'}
-- ${includeIndianContext ? 'Consider Indian regional context, local tech support patterns, and cultural nuances' : ''}
+- Be conversational, friendly, and helpful like Google Assistant
+- Answer ANY question accurately using web search results when available
+${isErrorQuery ? '- Provide step-by-step troubleshooting solutions\n- Include code examples and fixes' : ''}
+${isHowTo ? '- Give clear tutorial steps\n- Include practical examples and best practices' : ''}
+${isFactual ? '- Provide accurate definitions and explanations\n- Cite sources when available' : ''}
+${isNews ? '- Summarize latest information from search results\n- Include relevant details and context' : ''}
+- ${tier === 'free' ? 'Give concise, basic explanations' : 'Provide detailed, comprehensive answers with examples'}
+- ${includeIndianContext ? 'Consider Indian regional context, local patterns, and cultural nuances' : ''}
 - ${language !== 'english' ? `Respond in ${language}` : 'Respond in English'}
-- ${webContext && webContext.length > 0 ? 'Use the web search results to provide accurate, real-world solutions' : ''}
-- If you don't have enough information, ask clarifying questions
-- Format code in markdown code blocks
+- ${webContext && webContext.length > 0 ? 'Use the web search results to provide accurate, up-to-date information from across the internet' : 'Use your knowledge to provide the best answer'}
+- If web results are available, synthesize them into a coherent answer
+- Format code in markdown code blocks when relevant
 - Be concise but thorough
+- If uncertain, acknowledge limitations
 
 Respond now:`;
 
