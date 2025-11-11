@@ -713,8 +713,20 @@ ${errorType ? `Type: ${errorType}` : ''}
       prompt += '📤 **RESPONSE FORMAT (JSON):**\n';
       prompt += '{\n';
       prompt += '  "explanation": "Write a clear, friendly explanation (3-4 sentences) of what the problem is, why it occurred, and what principle/concept is involved. Use simple language anyone can understand.",\n';
-      prompt += '  "solution": "Provide practical steps (2-3 sentences) to solve this. Make it actionable - what should the person DO right now?",\n';
+      prompt += '  "solution": "Provide a precise, accurate solution with clear steps (3-4 sentences). Make it actionable - what should the person DO right now? Include specific commands, settings, or actions.",\n';
       prompt += '  "codeExample": "Show working code/formula/example that demonstrates the solution (if applicable). Include comments explaining what changed.",\n';
+      prompt += '  "sources": [\n';
+      prompt += '    {\n';
+      prompt += '      "title": "Official documentation or authoritative resource title",\n';
+      prompt += '      "url": "https://example.com/relevant-docs",\n';
+      prompt += '      "description": "Brief description of what this source covers (1-2 sentences)"\n';
+      prompt += '    },\n';
+      prompt += '    {\n';
+      prompt += '      "title": "Second relevant resource (tutorial, guide, or reference)",\n';
+      prompt += '      "url": "https://example.com/helpful-resource",\n';
+      prompt += '      "description": "Why this source is helpful for understanding or solving the problem"\n';
+      prompt += '    }\n';
+      prompt += '  ],\n';
       prompt += '  "category": "Type of problem (e.g., code-syntax, math-algebra, tech-setup, excel-formula, general-advice)",\n';
       prompt += '  "tags": ["relevant", "keywords", "describing", "this", "problem"],\n';
       prompt += '  "confidence": 0.85,\n';
@@ -723,8 +735,11 @@ ${errorType ? `Type: ${errorType}` : ''}
       prompt += '⚠️ **IMPORTANT:**\n';
       prompt += '• Use simple, conversational language - like explaining to a friend\n';
       prompt += '• Avoid jargon unless necessary (then explain it)\n';
-      prompt += '• Solutions should be immediately actionable\n';
+      prompt += '• Solutions must be PRECISE and ACCURATE - this is critical for free users\n';
+      prompt += '• Provide 2 high-quality, authoritative sources/references (official docs, MDN, W3C, trusted tutorials)\n';
+      prompt += '• Sources must be real, working URLs from reputable platforms (no placeholders)\n';
       prompt += '• Examples should be real-world and practical\n';
+      prompt += '• Give free users the SAME quality as paid tiers - just shorter format\n';
       prompt += '• Respond in valid JSON format\n';
       break;
     case 'pro':
