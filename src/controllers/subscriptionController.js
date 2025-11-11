@@ -3,77 +3,154 @@ const Subscription = require('../models/Subscription');
 const logger = require('../utils/logger');
 const subscriptionService = require('../services/subscriptionService');
 
-// Subscription tier configuration
+// Subscription tier configuration - matches pricing page exactly
 const SUBSCRIPTION_TIERS = {
   free: {
-    name: 'Free',
+    name: 'Free Plan',
     price: 0,
-    interval: 'month',
+    interval: 'forever',
+    description: 'Perfect for trying out ErrorWise. Get 50 error explanations per month with 7-day history.',
+    dodo_plan_id: null,
     features: {
+      // Query limits
+      monthlyQueries: 50,
       dailyQueries: -1, // No daily limit
-      monthlyQueries: 50, // 50 queries per month
-      errorExplanation: true,
-      fixSuggestions: false,
-      codeExamples: false,
-      documentationLinks: true,
-      errorHistory: '7 days',
-      teamFeatures: false,
-      aiProvider: 'gemini-2.0-flash',
+      
+      // History
+      errorHistory: '7-day',
+      historyDays: 7,
+      
+      // AI Model
+      aiProvider: 'gemini-2.0-flash-exp',
+      aiModel: 'Gemini 2.0 Flash AI (800 tokens)',
       maxTokens: 800,
+      
+      // Features list (matching pricing page)
+      basicErrorExplanations: true,
+      errorExplanation: true,
+      
+      // Support
       supportLevel: 'community',
+      
+      // Disabled features
+      fixSuggestions: false,
+      fullErrorExplanations: false,
+      codeExamples: false,
+      preventionTips: false,
+      unlimitedQueries: false,
+      unlimitedHistory: false,
       advancedAnalysis: false,
-      priorityQueue: false
+      exportToJSON: false,
+      exportToCSV: false,
+      urlScrapingContext: false,
+      multiLanguageSupport: false,
+      emailSupport: false,
+      teamFeatures: false
     }
   },
   pro: {
-    name: 'Pro',
+    name: 'Pro Plan',
     price: 3,
     interval: 'month',
+    description: 'Unlimited error queries with fixes, documentation links, and complete history.',
     trialDays: 7,
-    dodo_plan_id: 'pdt_OKdKW76gtO6vBWltBBV5d', // DodoPayments Product ID for Pro
+    dodo_plan_id: 'pdt_OKdKW76gtO6vBWltBBV5d',
+    mostPopular: true,
     features: {
-      dailyQueries: -1, // unlimited
+      // Query limits
+      monthlyQueries: -1, // unlimited
+      dailyQueries: -1,
+      unlimitedQueries: true,
+      
+      // History
+      errorHistory: 'unlimited',
+      historyDays: -1,
+      unlimitedHistory: true,
+      
+      // AI Model
+      aiProvider: 'claude-3-5-haiku-20241022',
+      aiModel: 'Claude Haiku AI (1200 tokens)',
+      maxTokens: 1200,
+      
+      // Features list (matching pricing page)
       errorExplanation: true,
+      fullErrorExplanations: true,
       fixSuggestions: true,
       codeExamples: true,
-      documentationLinks: true,
-      errorHistory: 'unlimited',
-  teamFeatures: false,
-  // aiProvider: 'gpt-3.5-turbo',
-  aiProvider: 'claude-3-haiku-20240307', // Only Anthropic enabled
-  maxTokens: 1200,
-      supportLevel: 'email',
+      preventionTips: true,
       advancedAnalysis: true,
-      priorityQueue: true,
+      exportToJSON: true,
+      exportToCSV: true,
+      urlScrapingContext: true,
       multiLanguageSupport: true,
-      exportHistory: true
+      
+      // Support
+      emailSupport: true,
+      supportLevel: 'email',
+      
+      // Disabled team features
+      teamFeatures: false,
+      sharedErrorHistory: false,
+      teamDashboard: false,
+      teamMembers: false,
+      advancedDebuggingTools: false,
+      prioritySupport: false,
+      apiAccess: false,
+      customIntegrations: false
     }
   },
   team: {
-    name: 'Team',
+    name: 'Team Plan',
     price: 8,
     interval: 'month',
+    description: 'Everything in Pro plus shared team history, team dashboard, and collaborative features.',
     trialDays: 14,
-    dodo_plan_id: 'pdt_Zbn5YM2pCgkKcdQyV0ouY', // DodoPayments Product ID for Team
+    dodo_plan_id: 'pdt_Zbn5YM2pCgkKcdQyV0ouY',
     features: {
-      dailyQueries: -1, // unlimited
+      // Query limits
+      monthlyQueries: -1, // unlimited
+      dailyQueries: -1,
+      unlimitedQueries: true,
+      
+      // History
+      errorHistory: 'unlimited',
+      historyDays: -1,
+      unlimitedHistory: true,
+      
+      // AI Model
+      aiProvider: 'claude-3-5-sonnet-20241022',
+      aiModel: 'Claude Sonnet AI (2000 tokens)',
+      maxTokens: 2000,
+      
+      // All Pro features
+      everythingInPro: true,
       errorExplanation: true,
+      fullErrorExplanations: true,
       fixSuggestions: true,
       codeExamples: true,
-      documentationLinks: true,
-      errorHistory: 'unlimited',
-      teamFeatures: true,
-  teamMembers: 10,
-  sharedHistory: true,
-  teamDashboard: true,
-  // aiProvider: 'gpt-4',
-  aiProvider: 'claude-3-5-sonnet-20241022', // Only Anthropic enabled
-  maxTokens: 2000,
-      supportLevel: 'priority',
+      preventionTips: true,
       advancedAnalysis: true,
-      priorityQueue: true,
+      exportToJSON: true,
+      exportToCSV: true,
+      urlScrapingContext: true,
       multiLanguageSupport: true,
-      exportHistory: true,
+      emailSupport: true,
+      
+      // Team features (matching pricing page)
+      teamFeatures: true,
+      teamMembers: 10,
+      maxTeamMembers: 10,
+      sharedErrorHistory: true,
+      teamDashboard: true,
+      teamAnalytics: true,
+      collaborativeFeatures: true,
+      advancedDebuggingTools: true,
+      
+      // Support
+      prioritySupport: true,
+      supportLevel: 'priority',
+      
+      // Advanced features
       apiAccess: true,
       customIntegrations: true
     }

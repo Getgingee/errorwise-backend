@@ -189,6 +189,7 @@ app.get('/api/stats', async (req, res) => {
   app.use('/api/auth', authRoutes);
   app.use('/api/auth', authEnhancedRoutes); // Enhanced auth with tracking
   app.use('/api/errors', errorRoutes);
+  app.use('/api/conversation', require('./src/routes/conversation')); // Conversational AI with web scraping
   app.use('/api/users', userRoutes);
   app.use('/api/subscriptions', subscriptionRoutes);
   app.use('/api/history', historyRoutes);

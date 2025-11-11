@@ -7,40 +7,127 @@ const User = require('../models/User');
 const ErrorQuery = require('../models/ErrorQuery');
 const { Op } = require('sequelize');
 
-// Subscription tier configuration (imported from controller)
+// Subscription tier configuration - matches pricing page exactly
 const SUBSCRIPTION_TIERS = {
   free: {
+    name: 'Free Plan',
+    price: 0,
     dailyQueries: -1, // No daily limit
     monthlyQueries: 50, // 50 queries per month
+    historyDays: 7, // 7-day error history
+    aiModel: 'gemini-2.0-flash-exp',
+    maxTokens: 800,
     features: {
+      // Basic features
       errorExplanation: true,
+      basicErrorExplanations: true,
+      
+      // Disabled features (Pro/Team only)
       fixSuggestions: false,
+      fullErrorExplanations: false,
       codeExamples: false,
+      preventionTips: false,
       advancedAnalysis: false,
-      teamFeatures: false
-    }
+      unlimitedHistory: false,
+      exportToJSON: false,
+      exportToCSV: false,
+      urlScrapingContext: false,
+      multiLanguageSupport: false,
+      emailSupport: false,
+      
+      // Team features (disabled)
+      teamFeatures: false,
+      sharedErrorHistory: false,
+      teamDashboard: false,
+      teamAnalytics: false,
+      advancedDebuggingTools: false,
+      prioritySupport: false,
+      apiAccess: false,
+      customIntegrations: false
+    },
+    support: 'community'
   },
   pro: {
+    name: 'Pro Plan',
+    price: 3,
+    interval: 'month',
     dailyQueries: -1, // unlimited
     monthlyQueries: -1, // unlimited
+    historyDays: -1, // unlimited error history
+    aiModel: 'claude-3-5-haiku-20241022',
+    maxTokens: 1200,
     features: {
+      // All Free features
       errorExplanation: true,
+      basicErrorExplanations: true,
+      
+      // Pro features enabled
+      unlimitedQueries: true,
+      fullErrorExplanations: true,
       fixSuggestions: true,
       codeExamples: true,
+      preventionTips: true,
       advancedAnalysis: true,
-      teamFeatures: false
-    }
+      unlimitedHistory: true,
+      exportToJSON: true,
+      exportToCSV: true,
+      urlScrapingContext: true,
+      multiLanguageSupport: true,
+      emailSupport: true,
+      
+      // Team features (disabled)
+      teamFeatures: false,
+      sharedErrorHistory: false,
+      teamDashboard: false,
+      teamAnalytics: false,
+      teamMembers: false,
+      advancedDebuggingTools: false,
+      prioritySupport: false,
+      apiAccess: false,
+      customIntegrations: false
+    },
+    support: 'email'
   },
   team: {
+    name: 'Team Plan',
+    price: 8,
+    interval: 'month',
     dailyQueries: -1, // unlimited
     monthlyQueries: -1, // unlimited
+    historyDays: -1, // unlimited error history
+    aiModel: 'claude-3-5-sonnet-20241022',
+    maxTokens: 2000,
+    maxTeamMembers: 10,
     features: {
+      // All Pro features
       errorExplanation: true,
+      basicErrorExplanations: true,
+      unlimitedQueries: true,
+      fullErrorExplanations: true,
       fixSuggestions: true,
       codeExamples: true,
+      preventionTips: true,
       advancedAnalysis: true,
-      teamFeatures: true
-    }
+      unlimitedHistory: true,
+      exportToJSON: true,
+      exportToCSV: true,
+      urlScrapingContext: true,
+      multiLanguageSupport: true,
+      
+      // Team features enabled
+      teamFeatures: true,
+      everythingInPro: true,
+      sharedErrorHistory: true,
+      teamDashboard: true,
+      teamAnalytics: true,
+      teamMembers: true,
+      collaborativeFeatures: true,
+      advancedDebuggingTools: true,
+      prioritySupport: true,
+      apiAccess: true,
+      customIntegrations: true
+    },
+    support: 'priority'
   }
 };
 
