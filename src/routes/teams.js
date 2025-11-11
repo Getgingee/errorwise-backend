@@ -2,10 +2,14 @@ const express = require('express');
 const router = express.Router();
 const teamController = require('../controllers/teamController');
 const { authMiddleware } = require('../middleware/auth');
+const { requireTier } = require('../middleware/subscriptionMiddleware');
 // const { validateTeamCreation, validateInvitation, validateErrorSharing } = require('../middleware/validation');
 
 // Apply authentication middleware to all team routes
 router.use(authMiddleware);
+
+// Team features require Team subscription tier
+router.use(requireTier('team'));
 
 // Team management routes
 router.post('/', teamController.createTeam);
