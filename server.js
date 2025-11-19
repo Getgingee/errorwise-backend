@@ -184,23 +184,23 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
-  // Mount API routes
-  app.use('/api/public/demo', detectSpam, publicDemoRoutes); // Public demo - with spam detection
-  app.use('/api/auth', authRoutes);
-  app.use('/api/auth', authEnhancedRoutes); // Enhanced auth with tracking
-  app.use('/api/errors', errorRoutes);
-  app.use('/api/conversation', require('./src/routes/conversation')); // Conversational AI with web scraping
-  app.use('/api/users', userRoutes);
-  app.use('/api/subscriptions', subscriptionRoutes);
-  app.use('/api/history', historyRoutes);
-  app.use('/api/settings', settingsRoutes);
-  app.use('/api/support', detectSpam, supportRoutes); // Feedback, Contact, Help Center, Newsletter - with spam detection
-  app.use('/api/teams', teamRoutes); // Team management - requires TEAM subscription
-  app.use('/api/admin', adminRoutes); // Admin operations - requires admin role
-  
-  // TODO: Temporarily disabled for short-term - will enable in future
-  // app.use('/api/content', require('./src/routes/content')); // Privacy, Terms, About, Community
-  app.use('/api/webhooks', webhookRoutes); // Dodo Payments webhook endpoint(s)
+// Mount API routes
+app.use('/api/public/demo', detectSpam, publicDemoRoutes); // Public demo - with spam detection
+app.use('/api/auth', authRoutes);
+app.use('/api/auth', authEnhancedRoutes); // Enhanced auth with tracking
+app.use('/api/errors', errorRoutes);
+app.use('/api/conversation', require('./src/routes/conversation')); // Conversational AI with web scraping
+app.use('/api/users', userRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/history', historyRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/support', detectSpam, supportRoutes); // Feedback, Contact, Help Center, Newsletter - with spam detection
+app.use('/api/teams', teamRoutes); // Team management - requires TEAM subscription
+app.use('/api/admin', adminRoutes); // Admin operations - requires admin role
+
+// TODO: Temporarily disabled for short-term - will enable in future
+// app.use('/api/content', require('./src/routes/content')); // Privacy, Terms, About, Community
+app.use('/api/webhooks', webhookRoutes); // Dodo Payments webhook endpoint(s)
 
 // Import professional error handlers
 const { errorHandler, notFoundHandler } = require('./src/utils/errors');
