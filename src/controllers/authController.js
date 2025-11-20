@@ -313,10 +313,10 @@ exports.forgotPassword = async (req, res) => {
 // Reset password with token
 exports.resetPassword = async (req, res) => {
     try {
-        const { token, newPassword } = req.body;
+        let { token, newPassword } = req.body;
         
         console.log('🔐 [authController] Reset password request received');
-        console.log('🔑 [authController] Token:', token);
+        console.log('🔑 [authController] Token (raw):', token);
         console.log('🔒 [authController] New password length:', newPassword ? newPassword.length : 0);
 
         // Validate input
@@ -327,6 +327,24 @@ exports.resetPassword = async (req, res) => {
                 error: 'Token and new password are required' 
             });
         }
+
+        // Handle case where frontend sends full URL instead of just token
+        if (token.includes('?token=')) {
+            const urlParams = new URLSearchParams(token.split('?')[1]);
+            token = urlParams.get('token');
+            console.log('🔧 [authController] Extracted token from URL:', token);
+        } else if (token.startsWith('http')) {
+            // If it's a URL but without query params, extract from URL
+            try {
+                const url = new URL(token);
+                token = url.searchParams.get('token');
+                console.log('🔧 [authController] Extracted token from full URL:', token);
+            } catch (e) {
+                console.log('⚠️ [authController] Could not parse URL, using as-is');
+            }
+        }
+        
+        console.log('✅ [authController] Final token to use:', token);
 
         // Validate password strength
         if (newPassword.length < 8) {
