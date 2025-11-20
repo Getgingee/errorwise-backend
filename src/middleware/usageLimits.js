@@ -95,8 +95,8 @@ const checkUsageLimits = async (req, res, next) => {
             recommendedPlan: 'pro',
             proPlan: {
               name: 'Pro Plan',
-              price: '$2/month',
-              yearlyPrice: '$20/year (Save $4!)',
+              price: '$3/month',
+              yearlyPrice: '$30/year (Save $6!)',
               trialDays: 7,
               features: [
                 '✅ Unlimited error queries',

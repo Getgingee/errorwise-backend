@@ -63,7 +63,7 @@ const authMiddleware = async (req, res, next) => {
     
     // Check if user still exists
     const user = await User.findByPk(decoded.userId, {
-      attributes: ['id', 'email', 'username', 'isActive', 'role', 'subscriptionStatus']
+      attributes: ['id', 'email', 'username', 'isActive', 'role', 'subscriptionTier', 'subscriptionStatus', 'subscriptionEndDate']
     });
 
     if (!user) {
@@ -81,13 +81,15 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
-    // Attach user to request object
+    // Attach user to request object with FULL subscription data
     req.user = {
       id: user.id,
       email: user.email,
       username: user.username,
       role: user.role || 'user',
-      subscriptionStatus: user.subscriptionStatus || 'free'
+      subscriptionTier: user.subscriptionTier || 'free',
+      subscriptionStatus: user.subscriptionStatus || 'active',
+      subscriptionEndDate: user.subscriptionEndDate
     };
 
     // Log successful authentication
