@@ -368,8 +368,8 @@ exports.resetPassword = async (req, res) => {
         // Update password and clear reset token
         await user.update({
             password: hashedPassword,
-            passwordResetToken: null,
-            passwordResetExpires: null
+            resetPasswordToken: null,
+            resetPasswordExpires: null
         });
 
         console.log('✅ [authController] Password updated successfully for:', user.email);
