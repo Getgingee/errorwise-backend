@@ -189,6 +189,7 @@ const addUsageInfo = (req, res, next) => {
 
 /**
  * Get user's current usage statistics
+ * Updated for C2: Trial Logic (7-Day Unlimited → 50/Month)
  */
 const getUserUsageStats = async (req, res) => {
   try {
@@ -199,8 +200,11 @@ const getUserUsageStats = async (req, res) => {
     const Subscription = require('../models/Subscription');
     const ErrorQuery = require('../models/ErrorQuery');
 
-    // Get user first (no include to avoid association issues)
-    const user = await User.findByPk(userId);
+    // Get user with all usage fields
+    const user = await User.findByPk(userId, {
+      attributes: ['id', 'subscriptionTier', 'subscriptionStatus', 'trialEndsAt', 'queriesUsedThisPeriod', 'periodStartDate', 'trialQueriesUsed', 'trialEndedNotified', 'createdAt']
+    });
+    
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -212,7 +216,7 @@ const getUserUsageStats = async (req, res) => {
     });
 
     // Determine current tier
-    let tier = 'free';
+    let tier = user.subscriptionTier || 'free';
     let activeSubscription = null;
     
     if (subscription && subscription.status === 'active') {
@@ -224,6 +228,16 @@ const getUserUsageStats = async (req, res) => {
         activeSubscription = subscription;
       }
     }
+
+    const now = new Date();
+    
+    // C2: Calculate trial status
+    const isInTrial = user.trialEndsAt && new Date(user.trialEndsAt) > now;
+    const trialEnded = user.trialEndsAt && new Date(user.trialEndsAt) <= now;
+    const trialEndsAt = user.trialEndsAt;
+    const daysLeftInTrial = isInTrial 
+      ? Math.ceil((new Date(user.trialEndsAt) - now) / (1000 * 60 * 60 * 24))
+      : 0;
 
     // Get usage statistics
     const today = new Date();
@@ -237,6 +251,7 @@ const getUserUsageStats = async (req, res) => {
 
     // This month
     const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+    const thisMonthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 1);
 
     const [dailyQueries, weeklyQueries, monthlyQueries, totalQueries] = await Promise.all([
       ErrorQuery.count({
@@ -260,8 +275,27 @@ const getUserUsageStats = async (req, res) => {
       ErrorQuery.count({ where: { userId } })
     ]);
 
+    // C2: Determine limits based on trial status
+    const monthlyLimit = (tier === 'free' && !isInTrial) ? 50 : -1; // -1 = unlimited
+    const monthlyUsed = user.queriesUsedThisPeriod || 0;
+    const monthlyRemaining = monthlyLimit === -1 ? -1 : Math.max(0, monthlyLimit - monthlyUsed);
+
     const response = {
       tier,
+      // C2: Trial information
+      trial: {
+        isActive: isInTrial,
+        hasEnded: trialEnded,
+        endsAt: trialEndsAt,
+        daysLeft: daysLeftInTrial,
+        queriesUsedDuringTrial: user.trialQueriesUsed || 0,
+        // Friendly message for frontend
+        message: isInTrial 
+          ? `You have ${daysLeftInTrial} day${daysLeftInTrial !== 1 ? 's' : ''} left in your free trial with unlimited queries!`
+          : (trialEnded && tier === 'free')
+            ? 'Your free trial has ended. You now have 50 queries/month.'
+            : null
+      },
       subscription: activeSubscription ? {
         tier: activeSubscription.tier,
         status: activeSubscription.status,
@@ -269,22 +303,27 @@ const getUserUsageStats = async (req, res) => {
         endDate: activeSubscription.endDate
       } : null,
       usage: {
-        daily: {
-          used: dailyQueries,
-          limit: tier === 'free' ? 25 : -1, // -1 means unlimited
-          remaining: tier === 'free' ? Math.max(0, 25 - dailyQueries) : -1
+        // C2: Monthly usage (primary limit for free users post-trial)
+        monthly: {
+          used: monthlyUsed,
+          limit: monthlyLimit,
+          remaining: monthlyRemaining,
+          resetTime: thisMonthEnd.toISOString(),
+          daysUntilReset: Math.ceil((thisMonthEnd - now) / (1000 * 60 * 60 * 24)),
+          percentage: monthlyLimit > 0 ? Math.round((monthlyUsed / monthlyLimit) * 100) : 0
         },
+        // Additional stats
+        daily: dailyQueries,
         weekly: weeklyQueries,
-        monthly: monthlyQueries,
         total: totalQueries
       },
-      features: getFeaturesByTier(tier)
+      features: getFeaturesByTier(tier),
+      // C2: Show upgrade prompt if approaching limit
+      upgradePrompt: (tier === 'free' && !isInTrial && monthlyRemaining <= 10 && monthlyRemaining > 0) ? {
+        message: `Only ${monthlyRemaining} queries left this month. Upgrade to Pro for unlimited access!`,
+        urgency: monthlyRemaining <= 5 ? 'high' : 'medium'
+      } : null
     };
-
-    // Add reset time for free tier
-    if (tier === 'free') {
-      response.usage.daily.resetTime = tomorrow.toISOString();
-    }
 
     res.json(response);
 

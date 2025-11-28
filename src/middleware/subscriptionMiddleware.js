@@ -134,6 +134,7 @@ const SUBSCRIPTION_TIERS = {
 /**
  * Check if user has reached their query limit
  * Also increments queriesUsedThisPeriod counter (C1)
+ * Handles trial-to-post-trial transition (C2)
  */
 async function checkQueryLimit(req, res, next) {
   try {
@@ -141,7 +142,7 @@ async function checkQueryLimit(req, res, next) {
     
     // Get user subscription info
     const user = await User.findByPk(userId, {
-      attributes: ['id', 'subscriptionTier', 'subscriptionStatus', 'subscriptionEndDate', 'trialEndsAt', 'queriesUsedThisPeriod', 'periodStartDate']
+      attributes: ['id', 'subscriptionTier', 'subscriptionStatus', 'subscriptionEndDate', 'trialEndsAt', 'queriesUsedThisPeriod', 'periodStartDate', 'trialQueriesUsed', 'trialEndedNotified']
     });
 
     if (!user) {
@@ -154,6 +155,7 @@ async function checkQueryLimit(req, res, next) {
 
     // Check if user is in trial period (7-day unlimited trial)
     const isInTrial = user.trialEndsAt && new Date(user.trialEndsAt) > now;
+    const trialJustEnded = user.trialEndsAt && new Date(user.trialEndsAt) <= now && !user.trialEndedNotified;
     
     // Check if subscription is expired
     if (user.subscriptionEndDate && new Date(user.subscriptionEndDate) < now && tier !== 'free') {
@@ -171,10 +173,25 @@ async function checkQueryLimit(req, res, next) {
       });
     }
 
+    // C2: Handle trial-just-ended transition with friendly message
+    if (trialJustEnded && tier === 'free') {
+      // Mark that we've notified the user
+      await user.update({ trialEndedNotified: true });
+      
+      // Include friendly trial ended message in response headers (frontend can show toast)
+      res.set('X-Trial-Ended', 'true');
+      res.set('X-Trial-Message', encodeURIComponent('Your free trial has ended! You now have 50 queries/month. Upgrade to Pro for unlimited access.'));
+    }
+
     // Unlimited queries for pro, team, OR users in trial period
     if (tierConfig.monthlyQueries === -1 || isInTrial) {
       // Still increment counter for tracking purposes (C1)
       await user.increment('queriesUsedThisPeriod');
+      
+      // C2: Track trial-specific usage for metrics
+      if (isInTrial) {
+        await user.increment('trialQueriesUsed');
+      }
       
       req.subscriptionTier = tier;
       req.subscriptionFeatures = tierConfig.features;
@@ -184,7 +201,6 @@ async function checkQueryLimit(req, res, next) {
     }
 
     // Check monthly limit for free tier (using stored counter - C1)
-    // Also check ErrorQuery count for accuracy
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
@@ -200,14 +216,16 @@ async function checkQueryLimit(req, res, next) {
 
     const monthlyUsed = user.queriesUsedThisPeriod || 0;
 
+    // C2: Block when limit exceeded with friendly message
     if (monthlyUsed >= tierConfig.monthlyQueries) {
       return res.status(429).json({
         error: 'Monthly query limit reached',
-        message: `You have reached your monthly limit of ${tierConfig.monthlyQueries} queries. Upgrade to Pro for unlimited queries!`,
+        message: `You've used all ${tierConfig.monthlyQueries} of your free monthly queries. Upgrade to Pro for unlimited access!`,
         upgrade: true,
         currentUsage: monthlyUsed,
         limit: tierConfig.monthlyQueries,
-        resetTime: endOfMonth.toISOString()
+        resetTime: endOfMonth.toISOString(),
+        daysUntilReset: Math.ceil((endOfMonth - now) / (1000 * 60 * 60 * 24))
       });
     }
 

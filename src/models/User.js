@@ -169,6 +169,17 @@ const User = sequelize.define('User', {
     allowNull: true,
     field: 'period_start_date'
   },
+  // C2: Trial usage tracking
+  trialQueriesUsed: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    field: 'trial_queries_used'
+  },
+  trialEndedNotified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    field: 'trial_ended_notified'
+  },
   // Login OTP
   loginOTP: {
     type: DataTypes.STRING,
