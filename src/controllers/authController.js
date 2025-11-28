@@ -29,7 +29,11 @@ exports.register = async (req, res) => {
         // Hash password
         const hashedPassword = await authService.hashPassword(password);
 
-        // Create user
+        // Calculate trial end date (7 days from now)
+        const trialEndsAt = new Date();
+        trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+
+        // Create user with trial period and usage counters (C1)
         const user = await User.create({
             username,
             email,
@@ -37,7 +41,10 @@ exports.register = async (req, res) => {
             isActive: true, // Active immediately for simple registration
             emailVerified: false,
             subscriptionTier: 'free',
-            subscriptionStatus: 'active'
+            subscriptionStatus: 'active',
+            trialEndsAt: trialEndsAt,
+            queriesUsedThisPeriod: 0,
+            periodStartDate: new Date()
         });
 
         // Generate tokens

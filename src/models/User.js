@@ -158,6 +158,17 @@ const User = sequelize.define('User', {
     allowNull: true,
     field: 'last_login_at'
   },
+  // Usage counters (C1 - Plan Model & Usage Counters)
+  queriesUsedThisPeriod: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+    field: 'queries_used_this_period'
+  },
+  periodStartDate: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'period_start_date'
+  },
   // Login OTP
   loginOTP: {
     type: DataTypes.STRING,

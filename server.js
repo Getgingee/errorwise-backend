@@ -317,6 +317,11 @@ const start = async () => {
       console.warn('⚠️  AI service not fully configured - check ANTHROPIC_API_KEY');
     }
     
+    // Initialize scheduled jobs (C1 - Usage Reset)
+    const usageResetJob = require('./src/jobs/usageResetJob');
+    usageResetJob.initializeJobs();
+    console.log('✅ Scheduled jobs initialized (usage reset, trial check)');
+    
     // Start server
     const port = process.env.PORT || 3001;
     const server = app.listen(port, '0.0.0.0', () => {

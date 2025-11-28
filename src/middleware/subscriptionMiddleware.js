@@ -133,6 +133,7 @@ const SUBSCRIPTION_TIERS = {
 
 /**
  * Check if user has reached their query limit
+ * Also increments queriesUsedThisPeriod counter (C1)
  */
 async function checkQueryLimit(req, res, next) {
   try {
@@ -140,7 +141,7 @@ async function checkQueryLimit(req, res, next) {
     
     // Get user subscription info
     const user = await User.findByPk(userId, {
-      attributes: ['id', 'subscriptionTier', 'subscriptionStatus', 'subscriptionEndDate']
+      attributes: ['id', 'subscriptionTier', 'subscriptionStatus', 'subscriptionEndDate', 'trialEndsAt', 'queriesUsedThisPeriod', 'periodStartDate']
     });
 
     if (!user) {
@@ -149,9 +150,12 @@ async function checkQueryLimit(req, res, next) {
 
     const tier = user.subscriptionTier || 'free';
     const tierConfig = SUBSCRIPTION_TIERS[tier];
-
-    // Check if subscription is expired
     const now = new Date();
+
+    // Check if user is in trial period (7-day unlimited trial)
+    const isInTrial = user.trialEndsAt && new Date(user.trialEndsAt) > now;
+    
+    // Check if subscription is expired
     if (user.subscriptionEndDate && new Date(user.subscriptionEndDate) < now && tier !== 'free') {
       // Auto-downgrade to free
       await user.update({
@@ -167,26 +171,34 @@ async function checkQueryLimit(req, res, next) {
       });
     }
 
-    // Unlimited queries for pro and team
-    if (tierConfig.monthlyQueries === -1) {
+    // Unlimited queries for pro, team, OR users in trial period
+    if (tierConfig.monthlyQueries === -1 || isInTrial) {
+      // Still increment counter for tracking purposes (C1)
+      await user.increment('queriesUsedThisPeriod');
+      
       req.subscriptionTier = tier;
       req.subscriptionFeatures = tierConfig.features;
+      req.isInTrial = isInTrial;
+      req.trialEndsAt = user.trialEndsAt;
       return next();
     }
 
-    // Check monthly limit for free tier
+    // Check monthly limit for free tier (using stored counter - C1)
+    // Also check ErrorQuery count for accuracy
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-    const monthlyUsed = await ErrorQuery.count({
-      where: {
-        userId,
-        createdAt: {
-          [Op.gte]: startOfMonth,
-          [Op.lt]: endOfMonth
-        }
-      }
-    });
+    // Reset period counter if we're in a new month
+    const periodStart = user.periodStartDate ? new Date(user.periodStartDate) : null;
+    if (!periodStart || periodStart < startOfMonth) {
+      await user.update({
+        queriesUsedThisPeriod: 0,
+        periodStartDate: startOfMonth
+      });
+      user.queriesUsedThisPeriod = 0;
+    }
+
+    const monthlyUsed = user.queriesUsedThisPeriod || 0;
 
     if (monthlyUsed >= tierConfig.monthlyQueries) {
       return res.status(429).json({
@@ -199,10 +211,14 @@ async function checkQueryLimit(req, res, next) {
       });
     }
 
+    // Increment counter (C1)
+    await user.increment('queriesUsedThisPeriod');
+
     // Pass subscription info to next middleware/controller
     req.subscriptionTier = tier;
     req.subscriptionFeatures = tierConfig.features;
     req.queriesRemaining = tierConfig.monthlyQueries - monthlyUsed - 1; // -1 for current query
+    req.queriesUsed = monthlyUsed + 1;
 
     next();
 
