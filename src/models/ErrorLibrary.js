@@ -30,7 +30,7 @@ const ErrorLibrary = sequelize.define('ErrorLibrary', {
     type: DataTypes.UUID,
     allowNull: true,
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'id'
     }
   },

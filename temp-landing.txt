@@ -1,0 +1,771 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '../components/UI';
+import { Menu, X, Github, Twitter, Linkedin, Mail, MessageCircle, HelpCircle, Users } from 'lucide-react';
+import LiveDemoModal from '../components/LiveDemoModal';
+import FeedbackModal from '../components/FeedbackModal';
+import { FeaturesModal, PricingInfoModal, APIDocsModal, InfoPagesModal } from '../components/info';
+
+const LandingPage: React.FC = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  
+  const [demoModalOpen, setDemoModalOpen] = React.useState(false);
+  const [feedbackModalOpen, setFeedbackModalOpen] = React.useState(false);
+  const [featuresModalOpen, setFeaturesModalOpen] = React.useState(false);
+  const [pricingModalOpen, setPricingModalOpen] = React.useState(false);
+  const [apiDocsModalOpen, setApiDocsModalOpen] = React.useState(false);
+  const [infoModalOpen, setInfoModalOpen] = React.useState(false);
+  const [infoModalPage, setInfoModalPage] = React.useState<'integrations' | 'about' | 'blog' | 'careers' | 'contact' | 'help' | 'community' | 'feedback' | 'status' | 'privacy' | 'terms'>('about');
+
+  const openInfoModal = (page: typeof infoModalPage) => {
+    setInfoModalPage(page);
+    setInfoModalOpen(true);
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 dark:from-slate-950 dark:via-blue-950 dark:to-slate-900 bg-white dark:bg-slate-900 transition-colors duration-300">
+      {/* Navigation */}
+      <nav className="relative z-50 px-4 py-4 lg:py-6 lg:px-8 bg-white/5 dark:bg-white/5 backdrop-blur-sm border-b border-white/10">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="h-8 w-8 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center shadow-lg">
+              <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+            </div>
+            <span className="text-xl md:text-2xl font-bold text-white dark:text-white">ErrorWise</span>
+          </div>
+          
+          <div className="hidden lg:flex items-center space-x-6"><button onClick={() => setFeaturesModalOpen(true)} className="text-gray-300 dark:text-gray-300 hover:text-white dark:hover:text-white transition-colors duration-300">Features</button><button onClick={() => setPricingModalOpen(true)} className="text-gray-300 dark:text-gray-300 hover:text-white dark:hover:text-white transition-colors duration-300">Pricing</button><button onClick={() => setDemoModalOpen(true)} className="text-gray-300 dark:text-gray-300 hover:text-white dark:hover:text-white transition-colors duration-300">How It Works</button><Link to="/login">
+              <Button className="bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white px-6 py-2 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                Sign In
+              </Button>
+            </Link>
+          </div>
+          
+          {/* Mobile menu button */}
+          <div className="flex items-center space-x-3 lg:hidden">
+            <button 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="text-white p-2" 
+              title="Toggle mobile menu" 
+              aria-label="Toggle mobile menu"
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden bg-white/10 dark:bg-slate-900/50 backdrop-blur-md border-t border-white/20 dark:border-slate-700">
+            <div className="flex flex-col space-y-4 p-6">
+              <button 
+                onClick={() => { setFeaturesModalOpen(true); setMobileMenuOpen(false); }}
+                className="text-gray-200 dark:text-gray-300 hover:text-white dark:hover:text-white transition-colors duration-300 text-lg text-left"
+              >
+                Features
+              </button>
+              <button 
+                onClick={() => { setPricingModalOpen(true); setMobileMenuOpen(false); }}
+                className="text-gray-200 dark:text-gray-300 hover:text-white dark:hover:text-white transition-colors duration-300 text-lg text-left"
+              >
+                Pricing
+              </button>
+              <button
+                onClick={() => setDemoModalOpen(true)}
+                className="text-gray-200 dark:text-gray-300 hover:text-white dark:hover:text-white transition-colors duration-300 text-lg text-left"
+              >
+                How It Works
+              </button>
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white px-6 py-3 rounded-full shadow-lg">
+                  Sign In
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
+      </nav>
+
+      {/* Hero Section */}
+      <section className="relative px-4 py-12 sm:py-16 lg:py-20 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            {/* Left Column - Content */}
+            <div className="space-y-6 sm:space-y-8">
+              <div className="space-y-4">
+                <div className="inline-flex items-center space-x-2 bg-blue-500/10 dark:bg-blue-500/20 border border-blue-500/20 dark:border-blue-500/30 rounded-full px-4 py-2 backdrop-blur-sm">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-xs sm:text-sm text-blue-300 dark:text-blue-300 font-medium">AI-Powered • Real-time Analysis</span>
+                </div>
+                
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white dark:text-white leading-tight">
+                  Get Smarter with {' '}
+                  <span className="bg-gradient-to-r from-blue-400 via-cyan-300 to-purple-400 bg-clip-text text-transparent animate-pulse">
+                    ErrorWise AI
+                  </span>
+                </h1>
+                
+                <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 dark:text-gray-300 leading-relaxed max-w-2xl">
+                  Transform cryptic error messages into clear, actionable solutions instantly. 
+                  Our advanced AI analyzes, categorizes, and explains errors with intelligent recommendations 
+                  that save you hours of debugging time.
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link to="/register" className="group w-full sm:w-auto">
+                  <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-full text-base sm:text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+                    Get Solutions Now
+                    <svg className="ml-2 h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </Button>
+                </Link>
+
+                <Button onClick={() => setDemoModalOpen(true)} variant="secondary" className="w-full sm:w-auto border-blue-600 dark:border-blue-600 text-gray-300 dark:text-blue-300 hover:bg-gray-800/50 dark:hover:bg-gray-800/50 hover:border-gray-500 dark:hover:border-gray-500 px-6 sm:px-8 py-3 sm:py-4 rounded-full text-base sm:text-lg backdrop-blur-sm transition-all duration-300">
+                  <svg className="mr-2 h-4 w-4 sm:h-5 sm:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m-2-9v2.5M12 21V3" />
+                  </svg>
+                  Ai Live Demo 
+                </Button>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-400 dark:text-gray-400">
+                <div className="flex items-center space-x-2 group">
+                  <svg className="h-4 w-4 text-green-400 group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span className="group-hover:text-gray-300 dark:group-hover:text-gray-300 transition-colors duration-300">Free to start • No credit card</span>
+                </div>
+                <div className="flex items-center space-x-2 group">
+                  <svg className="h-4 w-4 text-green-400 group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span className="group-hover:text-gray-300 dark:group-hover:text-gray-300 transition-colors duration-300">Instant setup</span>
+                </div>
+                <div className="flex items-center space-x-2 group">
+                  <svg className="h-4 w-4 text-green-400 group-hover:scale-110 transition-transform duration-300 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span className="group-hover:text-gray-300 dark:group-hover:text-gray-300 transition-colors duration-300">AI-powered results</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Enhanced Visual Dashboard */}
+            <div className="relative lg:ml-8 mt-8 lg:mt-0">
+              {/* Floating Background Elements */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-10 left-10 w-16 sm:w-20 h-16 sm:h-20 bg-blue-500/20 dark:bg-blue-500/30 rounded-full blur-xl animate-pulse"></div>
+                <div className="absolute bottom-10 right-10 w-24 sm:w-32 h-24 sm:h-32 bg-cyan-400/20 dark:bg-cyan-400/30 rounded-full blur-2xl animate-pulse delay-1000"></div>
+                <div className="absolute top-1/2 left-1/4 w-12 sm:w-16 h-12 sm:h-16 bg-purple-500/20 dark:bg-purple-500/30 rounded-full blur-lg animate-pulse delay-500"></div>
+                <div className="absolute top-20 right-20 w-10 sm:w-12 h-10 sm:h-12 bg-green-400/20 dark:bg-green-400/30 rounded-full blur-lg animate-pulse delay-700"></div>
+              </div>
+              
+              {/* Main Dashboard Mockup */}
+              <div className="relative bg-gray-900/80 dark:bg-gray-900/90 backdrop-blur-md border border-gray-700/50 dark:border-gray-700/70 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-[1.02]">
+                {/* Dashboard Header */}
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center shadow-lg">
+                      <svg className="h-4 w-4 sm:h-5 sm:w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-white dark:text-white font-semibold text-sm sm:text-base">ErrorWise AI Dashboard</h3>
+                  </div>
+                  <div className="flex space-x-1.5 sm:space-x-2">
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-400 rounded-full animate-pulse"></div>
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-yellow-400 rounded-full animate-pulse delay-200"></div>
+                    <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-400 rounded-full animate-pulse delay-400"></div>
+                  </div>
+                </div>
+                
+                {/* Live Error Analysis Simulation */}
+                <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
+                  {/* Error Input */}
+                  <div className="bg-gray-800/50 dark:bg-gray-800/70 border border-gray-600/30 dark:border-gray-600/40 rounded-lg p-3 sm:p-4">
+                    <div className="text-gray-400 dark:text-gray-400 text-xs mb-2">Error Input</div>
+                    <div className="text-gray-300 dark:text-gray-300 text-xs sm:text-sm font-mono bg-gray-900/50 dark:bg-gray-900/70 p-2 sm:p-3 rounded overflow-x-auto">
+                      TypeError: Cannot read property 'id' of undefined
+                      <br />
+                      <span className="text-gray-500 dark:text-gray-500">at UserController.js:15:28</span>
+                    </div>
+                  </div>
+                  
+                  {/* AI Analysis Processing */}
+                  <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-400/5 to-transparent animate-pulse"></div>
+                    <div className="relative flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-gradient-to-r from-blue-400 to-cyan-300 rounded-full flex items-center justify-center animate-spin">
+                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-blue-300 text-sm font-semibold mb-2 flex items-center">
+                          AI Analysis Complete
+                          <div className="ml-2 px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full">
+                            High Confidence
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-400">Category:</span>
+                              <span className="text-orange-300 ml-2 font-medium">Null Reference Error</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-400">Severity:</span>
+                              <span className="text-red-300 ml-2 font-medium">High</span>
+                            </div>
+                          </div>
+                          <div className="mt-3 bg-gray-800/70 rounded-lg p-3 border border-gray-600/30">
+                            <div className="text-gray-400 text-xs mb-2">Recommended Fix</div>
+                            <div className="text-green-300 text-xs font-mono">
+                              <span className="text-purple-300">if</span> (user && user.id) {'{'}
+                              <br />
+                              &nbsp;&nbsp;<span className="text-gray-400">// Safe to access user.id</span>
+                              <br />
+                              &nbsp;&nbsp;<span className="text-yellow-300">console.log</span>(user.id);
+                              <br />
+                              {'}'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Enhanced Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-3 bg-gray-800/30 rounded-lg border border-gray-700/30 hover:border-cyan-500/50 transition-colors duration-300">
+                    <div className="text-2xl font-bold text-cyan-400 animate-pulse">99.2%</div>
+                    <div className="text-xs text-gray-400">Accuracy Rate</div>
+                  </div>
+                  <div className="text-center p-3 bg-gray-800/30 rounded-lg border border-gray-700/30 hover:border-pink-500/50 transition-colors duration-300">
+                    <div className="text-2xl font-bold text-pink-400 animate-pulse delay-200">1.3s</div>
+                    <div className="text-xs text-gray-400">Avg Response</div>
+                  </div>
+                  <div className="text-center p-3 bg-gray-800/30 rounded-lg border border-gray-700/30 hover:border-green-500/50 transition-colors duration-300">
+                    <div className="text-2xl font-bold text-green-400 animate-pulse delay-400">15+</div>
+                    <div className="text-xs text-gray-400">Languages</div>
+                  </div>
+                  <div className="text-center p-3 bg-gray-800/30 rounded-lg border border-gray-700/30 hover:border-orange-500/50 transition-colors duration-300">
+                    <div className="text-2xl font-bold text-orange-400 animate-pulse delay-600">24/7</div>
+                    <div className="text-xs text-gray-400">Available</div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Enhanced Floating Icons */}
+              <div className="absolute -top-6 -right-6 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full p-4 shadow-xl animate-bounce">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              
+              <div className="absolute -bottom-6 -left-6 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full p-4 shadow-xl animate-bounce delay-300">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+              </div>
+              
+              {/* Additional floating elements */}
+              <div className="absolute top-1/4 -right-4 bg-green-400 rounded-full p-2 shadow-lg animate-pulse">
+                <svg className="w-4 h-4 text-gray-900" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Features Section */}
+      <section id="features" className="relative px-4 py-16 sm:py-20 lg:py-24 lg:px-8 bg-gradient-to-b from-gray-800/30 dark:from-gray-900/40 via-gray-900/50 dark:via-gray-950/60 to-gray-800/30 dark:to-gray-900/40">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden opacity-30 dark:opacity-40 pointer-events-none">
+          <div className="absolute top-20 left-10 sm:left-20 w-32 sm:w-40 h-32 sm:h-40 bg-blue-400/20 dark:bg-blue-400/30 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 sm:right-20 w-48 sm:w-60 h-48 sm:h-60 bg-purple-400/20 dark:bg-purple-400/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 sm:w-32 h-24 sm:h-32 bg-cyan-400/20 dark:bg-cyan-400/30 rounded-full blur-2xl animate-pulse delay-500"></div>
+        </div>
+        
+        <div className="relative max-w-7xl mx-auto">
+          <div className="text-center mb-12 sm:mb-16 lg:mb-20">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white dark:text-white mb-4 sm:mb-6">
+              Powered by 
+              <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent block mt-2">
+                Advanced AI Technology
+              </span>
+            </h2>
+            <p className="text-base sm:text-lg md:text-xl text-gray-300 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed px-4">
+              Experience the next generation of debugging with intelligent error analysis, 
+              instant solutions, and seamless workflow integration that adapts to your coding style.
+            </p>
+          </div>
+          
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 lg:gap-12">
+            {/* Feature 1 - Enhanced */}
+            <div className="group relative text-center space-y-4 sm:space-y-6 p-6 sm:p-8 rounded-xl sm:rounded-2xl bg-gradient-to-br from-gray-800/50 dark:from-gray-800/70 to-gray-900/50 dark:to-gray-900/70 border border-gray-700/30 dark:border-gray-700/50 hover:border-cyan-500/50 dark:hover:border-cyan-500/70 transition-all duration-500 hover:transform hover:scale-105">
+              {/* Glow effect */}
+              <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-r from-cyan-400/10 to-blue-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div className="relative">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-xl">
+                  <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                
+                <h3 className="text-xl sm:text-2xl font-semibold text-white dark:text-white group-hover:text-cyan-300 dark:group-hover:text-cyan-300 transition-colors duration-300 mt-4">
+                  Instant Analysis
+                </h3>
+                
+                <p className="text-sm sm:text-base text-gray-300 dark:text-gray-300 leading-relaxed">
+                  Get immediate insights into any error with our AI-powered analysis engine. 
+                  Advanced pattern recognition delivers solutions in under 2 seconds.
+                </p>
+                
+                {/* Performance indicator */}
+                <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-cyan-500/20 rounded-full text-cyan-400 dark:text-cyan-400 text-xs sm:text-sm font-semibold mt-2">
+                  <div className="w-2 h-2 bg-cyan-400 rounded-full mr-2 animate-pulse"></div>
+                  Lightning Fast
+                </div>
+              </div>
+            </div>
+            
+            {/* Feature 2 - Enhanced */}
+            <div className="group relative text-center space-y-4 sm:space-y-6 p-6 sm:p-8 rounded-xl sm:rounded-2xl bg-gradient-to-br from-gray-800/50 dark:from-gray-800/70 to-gray-900/50 dark:to-gray-900/70 border border-gray-700/30 dark:border-gray-700/50 hover:border-purple-500/50 dark:hover:border-purple-500/70 transition-all duration-500 hover:transform hover:scale-105">
+              {/* Glow effect */}
+              <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-r from-purple-400/10 to-pink-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div className="relative">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-purple-500 to-pink-400 rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-xl">
+                  <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                </div>
+                
+                <h3 className="text-xl sm:text-2xl font-semibold text-white dark:text-white group-hover:text-purple-300 dark:group-hover:text-purple-300 transition-colors duration-300 mt-4">
+                  Smart Categorization
+                </h3>
+                
+                <p className="text-sm sm:text-base text-gray-300 dark:text-gray-300 leading-relaxed">
+                  Automatically categorize and prioritize errors by severity, type, and impact. 
+                  Machine learning algorithms understand context like never before.
+                </p>
+                
+                {/* Performance indicator */}
+                <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-purple-500/20 rounded-full text-purple-400 dark:text-purple-400 text-xs sm:text-sm font-semibold mt-2">
+                  <div className="w-2 h-2 bg-purple-400 rounded-full mr-2 animate-pulse"></div>
+                  AI-Powered
+                </div>
+              </div>
+            </div>
+            
+            {/* Feature 3 - Enhanced */}
+            <div className="group relative text-center space-y-4 sm:space-y-6 p-6 sm:p-8 rounded-xl sm:rounded-2xl bg-gradient-to-br from-gray-800/50 dark:from-gray-800/70 to-gray-900/50 dark:to-gray-900/70 border border-gray-700/30 dark:border-gray-700/50 hover:border-green-500/50 dark:hover:border-green-500/70 transition-all duration-500 hover:transform hover:scale-105">
+              {/* Glow effect */}
+              <div className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-r from-green-400/10 to-teal-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              
+              <div className="relative">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-green-500 to-teal-400 rounded-2xl sm:rounded-3xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-xl">
+                  <svg className="w-8 h-8 sm:w-10 sm:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+                
+                <h3 className="text-xl sm:text-2xl font-semibold text-white dark:text-white group-hover:text-green-300 dark:group-hover:text-green-300 transition-colors duration-300 mt-4">
+                  Learning Database
+                </h3>
+                
+                <p className="text-sm sm:text-base text-gray-300 dark:text-gray-300 leading-relaxed">
+                  Benefit from a continuously evolving knowledge base powered by millions of 
+                  resolved errors and community-driven solutions.
+                </p>
+                
+                {/* Performance indicator */}
+                <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-green-500/20 rounded-full text-green-400 dark:text-green-400 text-xs sm:text-sm font-semibold mt-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                  Always Learning
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Enhanced Feature Stats */}
+          <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="text-center group">
+              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300">
+                99.2%
+              </div>
+              <div className="text-gray-400 mt-2">Accuracy Rate</div>
+            </div>
+            <div className="text-center group">
+              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300">
+                1.3s
+              </div>
+              <div className="text-gray-400 mt-2">Avg Response</div>
+            </div>
+            <div className="text-center group">
+              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-green-400 to-teal-400 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300">
+                15+
+              </div>
+              <div className="text-gray-400 mt-2">Languages</div>
+            </div>
+            <div className="text-center group">
+              <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300">
+                24/7
+              </div>
+              <div className="text-gray-400 mt-2">Available</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Contact Section */}
+      <section id="contact" className="relative px-4 py-24 lg:px-8 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
+        {/* Background Elements */}
+        <div className="absolute inset-0 overflow-hidden opacity-30">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-cyan-400/20 rounded-full blur-2xl animate-pulse"></div>
+          <div className="absolute bottom-10 right-10 w-40 h-40 bg-blue-400/20 rounded-full blur-3xl animate-pulse delay-700"></div>
+          <div className="absolute top-1/2 left-1/3 w-24 h-24 bg-purple-400/20 rounded-full blur-xl animate-pulse delay-300"></div>
+        </div>
+        
+        <div className="relative max-w-5xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-8">
+            Ready to Debug 
+            <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent block mt-2">
+              Smarter & Faster?
+            </span>
+          </h2>
+          
+          <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+            Join thousands of developers who are already debugging faster and more efficiently with ErrorWise. 
+            Start your journey to error-free development today.
+          </p>
+          
+          {/* Enhanced CTA Buttons - Single path to registration */}
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center px-4">
+            <Link to="/register" className="group relative w-full sm:w-auto">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full blur-lg opacity-75 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <Button className="relative w-full sm:w-auto bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white px-8 sm:px-10 py-3 sm:py-4 rounded-full text-base sm:text-lg font-semibold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300">
+                <span className="flex items-center justify-center">
+                  Get Started
+                  <svg className="ml-2 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </span>
+              </Button>
+            </Link>
+            
+            </div>
+          
+          {/* Trust Indicators - Hidden for deployment */}
+          {/* <div className="mt-12 sm:mt-16 pt-8 sm:pt-12 border-t border-gray-700/50 dark:border-gray-700/70 px-4">
+            <p className="text-gray-400 dark:text-gray-400 mb-6 sm:mb-8 text-base sm:text-lg">Trusted by developers at</p>
+            <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 lg:gap-8 opacity-60">
+              <div className="bg-gray-800/50 dark:bg-gray-800/70 px-4 sm:px-6 py-2 sm:py-3 rounded-lg border border-gray-700/30 dark:border-gray-700/40 hover:border-gray-600/50 dark:hover:border-gray-600/70 transition-colors duration-300">
+                <span className="text-gray-300 dark:text-gray-300 font-semibold text-sm sm:text-base">TechCorp</span>
+              </div>
+              <div className="bg-gray-800/50 dark:bg-gray-800/70 px-4 sm:px-6 py-2 sm:py-3 rounded-lg border border-gray-700/30 dark:border-gray-700/40 hover:border-gray-600/50 dark:hover:border-gray-600/70 transition-colors duration-300">
+                <span className="text-gray-300 dark:text-gray-300 font-semibold text-sm sm:text-base">StartupXYZ</span>
+              </div>
+              <div className="bg-gray-800/50 dark:bg-gray-800/70 px-4 sm:px-6 py-2 sm:py-3 rounded-lg border border-gray-700/30 dark:border-gray-700/40 hover:border-gray-600/50 dark:hover:border-gray-600/70 transition-colors duration-300">
+                <span className="text-gray-300 dark:text-gray-300 font-semibold text-sm sm:text-base">DevStudio</span>
+              </div>
+              <div className="bg-gray-800/50 dark:bg-gray-800/70 px-4 sm:px-6 py-2 sm:py-3 rounded-lg border border-gray-700/30 dark:border-gray-700/40 hover:border-gray-600/50 dark:hover:border-gray-600/70 transition-colors duration-300">
+                <span className="text-gray-300 dark:text-gray-300 font-semibold text-sm sm:text-base">CodeLabs</span>
+              </div>
+            </div>
+          </div> */}
+          
+          {/* Additional Trust Elements - Hidden for deployment */}
+          {/* <div className="mt-8 sm:mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-3xl mx-auto px-4">
+            <div className="flex items-center justify-center space-x-2 text-gray-400 dark:text-gray-400 text-sm sm:text-base">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+              <span>No credit card required</span>
+            </div>
+            <div className="flex items-center justify-center space-x-2 text-gray-400 dark:text-gray-400 text-sm sm:text-base">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <!-- Removed trial messaging -->
+            </div>
+            <div className="flex items-center justify-center space-x-2 text-gray-400 dark:text-gray-400 text-sm sm:text-base">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+              </svg>
+              <span>Enterprise-grade security</span>
+            </div>
+          </div>
+          
+          <div className="mt-8 sm:mt-12 text-xs sm:text-sm text-gray-400 dark:text-gray-400 px-4">
+            <p>Have questions? Reach out to us at <a href="mailto:support@errorwise.com" className="text-blue-400 dark:text-blue-400 hover:text-blue-300 dark:hover:text-blue-300 transition-colors duration-300">support@errorwise.com</a></p>
+          </div> */}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="px-4 py-8 sm:py-12 lg:px-8 bg-gradient-to-br from-blue-900/30 via-purple-900/20 to-cyan-900/30 backdrop-blur-xl border-t border-white/20 shadow-2xl">
+        <div className="max-w-7xl mx-auto">
+          {/* Newsletter Section */}
+          <div className="mb-8 sm:mb-12 p-6 sm:p-8 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-cyan-500/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-xl">
+            <div className="text-center max-w-2xl mx-auto">
+              <h3 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-300 bg-clip-text text-transparent mb-2">
+                Stay Updated
+              </h3>
+              <p className="text-gray-300 text-sm sm:text-base mb-4">
+                Get the latest debugging tips and product updates delivered to your inbox.
+              </p>
+              <form 
+                className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const form = e.target as HTMLFormElement;
+                  const email = form.email.value;
+                  const button = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+                  const input = form.querySelector('input[type="email"]') as HTMLInputElement;
+                  
+                  // Disable form during submission
+                  button.disabled = true;
+                  input.disabled = true;
+                  button.textContent = 'Subscribing...';
+                  
+                  try {
+                    // Import support service dynamically
+                    const { supportService } = await import('../services/support');
+                    const { trackNewsletterSignup } = await import('../services/analytics');
+                    const result = await supportService.subscribeNewsletter({ email });
+                    
+                    if (result.success) {
+                      // Track successful signup
+                      trackNewsletterSignup(email, 'footer_newsletter');
+                      alert('✓ Successfully subscribed to newsletter! Check your email for confirmation.');
+                      form.reset();
+                    } else {
+                      alert('❌ ' + (result.error || 'Failed to subscribe. Please try again.'));
+                    }
+                  } catch (error) {
+                    alert('❌ Network error. Please try again later.');
+                  } finally {
+                    button.disabled = false;
+                    input.disabled = false;
+                    button.textContent = 'Subscribe →';
+                  }
+                }}
+              >
+                <input
+                  type="email"
+                  name="email"
+                  required
+                  placeholder="your@email.com"
+                  className="flex-1 px-4 py-3 bg-white/10 backdrop-blur-sm border border-white/30 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-400 focus:border-transparent focus:bg-white/15 transition-all"
+                />
+                <button
+                  type="submit"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-600 hover:to-cyan-500 text-white rounded-lg shadow-lg hover:shadow-cyan-500/50 transform hover:scale-105 transition-all duration-300 font-semibold whitespace-nowrap"
+                >
+                  Subscribe →
+                </button>
+              </form>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+            {/* Brand Section */}
+            <div className="sm:col-span-2 space-y-3 sm:space-y-4">
+              <div className="flex items-center space-x-2">
+                <div className="h-6 w-6 sm:h-7 sm:w-7 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/50">
+                  <svg className="h-4 w-4 sm:h-5 sm:w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                </div>
+                <span className="text-lg sm:text-xl font-bold text-white">ErrorWise</span>
+              </div>
+              <p className="text-gray-300 text-sm sm:text-base max-w-md">
+                AI-powered debugging assistant for modern developers. Fix errors faster with intelligent analysis.
+              </p>
+
+              {/* Social Icons with Enhanced Glow - Hidden for deployment */}
+              {/* <div className="flex items-center gap-4 pt-2">
+                <a 
+                  href="https://github.com/errorwise" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-cyan-400 hover:drop-shadow-[0_0_12px_rgba(34,211,238,0.8)] transition-all duration-300 transform hover:scale-110"
+                  aria-label="GitHub"
+                >
+                  <Github size={22} />
+                </a>
+                <a 
+                  href="https://x.com/errorwise" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-cyan-400 hover:drop-shadow-[0_0_12px_rgba(34,211,238,0.8)] transition-all duration-300 transform hover:scale-110"
+                  aria-label="X (formerly Twitter)"
+                >
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  </svg>
+                </a>
+                <a 
+                  href="https://linkedin.com/company/errorwise" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-300 hover:text-cyan-400 hover:drop-shadow-[0_0_12px_rgba(34,211,238,0.8)] transition-all duration-300 transform hover:scale-110"
+                  aria-label="LinkedIn"
+                >
+                  <Linkedin size={22} />
+                </a>
+                <a 
+                  href="mailto:support@errorwise.com" 
+                  className="text-gray-300 hover:text-cyan-400 hover:drop-shadow-[0_0_12px_rgba(34,211,238,0.8)] transition-all duration-300 transform hover:scale-110"
+                  aria-label="Email"
+                >
+                  <Mail size={22} />
+                </a>
+              </div> */}
+            </div>
+            
+            {/* Company Section - Hidden for deployment */}
+            {/* <div className="space-y-3 sm:space-y-4">
+              <h4 className="bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-300 bg-clip-text text-transparent font-semibold text-sm sm:text-base">Company</h4>
+              <ul className="space-y-2 sm:space-y-2.5">
+                <li>
+                  <button 
+                    onClick={() => openInfoModal('about')} 
+                    className="text-gray-300 hover:text-cyan-400 hover:scale-105 transform transition-all duration-300 text-sm sm:text-base text-left w-full hover:translate-x-1 flex items-center gap-2 group"
+                  >
+                    <Users size={16} className="group-hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
+                    About
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => openInfoModal('blog')} 
+                    className="text-gray-300 hover:text-cyan-400 hover:scale-105 transform transition-all duration-300 text-sm sm:text-base text-left w-full hover:translate-x-1 flex items-center gap-2 group"
+                  >
+                    <MessageCircle size={16} className="group-hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
+                    Blog
+                  </button>
+                </li>
+              </ul>
+            </div> */}
+            
+            {/* Support Section - Hidden for deployment */}
+            {/* <div className="space-y-3 sm:space-y-4">
+              <h4 className="bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-300 bg-clip-text text-transparent font-semibold text-sm sm:text-base">Support</h4>
+              <ul className="space-y-2 sm:space-y-2.5">
+                <li>
+                  <button 
+                    onClick={() => openInfoModal('help')} 
+                    className="text-gray-300 hover:text-cyan-400 hover:scale-105 transform transition-all duration-300 text-sm sm:text-base text-left w-full hover:translate-x-1 flex items-center gap-2 group"
+                  >
+                    <HelpCircle size={16} className="group-hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
+                    Help Center
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => openInfoModal('community')} 
+                    className="text-gray-300 hover:text-cyan-400 hover:scale-105 transform transition-all duration-300 text-sm sm:text-base text-left w-full hover:translate-x-1 flex items-center gap-2 group"
+                  >
+                    <Users size={16} className="group-hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
+                    Community
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => openInfoModal('feedback')} 
+                    className="text-gray-300 hover:text-cyan-400 hover:scale-105 transform transition-all duration-300 text-sm sm:text-base text-left w-full hover:translate-x-1 flex items-center gap-2 group"
+                  >
+                    <Mail size={16} className="group-hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
+                    Feedback
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => openInfoModal('contact')} 
+                    className="text-gray-300 hover:text-cyan-400 hover:scale-105 transform transition-all duration-300 text-sm sm:text-base text-left w-full hover:translate-x-1 flex items-center gap-2 group"
+                  >
+                    <MessageCircle size={16} className="group-hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" />
+                    Contact Us
+                  </button>
+                </li>
+              </ul>
+            </div> */}
+          </div>
+          
+          {/* Copyright */}
+          <div className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-white/20 text-center">
+            <p className="text-xs sm:text-sm text-gray-400">
+              &copy; 2025 ErrorWise. All rights reserved. 
+              <span className="mx-2">•</span>
+              <Link to="/privacy" className="hover:text-cyan-400 transition-colors">Privacy</Link>
+              <span className="mx-2">•</span>
+              <Link to="/terms" className="hover:text-cyan-400 transition-colors">Terms</Link>
+            </p>
+          </div>
+        </div>
+      </footer>
+
+
+      {/* Live Demo Modal */}
+      <LiveDemoModal 
+        isOpen={demoModalOpen} 
+        onClose={() => setDemoModalOpen(false)}
+        onFeedbackClick={() => {
+          setDemoModalOpen(false);
+          setFeedbackModalOpen(true);
+        }}
+      />
+      
+      {/* Feedback Modal */}
+      <FeedbackModal 
+        isOpen={feedbackModalOpen} 
+        onClose={() => setFeedbackModalOpen(false)}
+        source="demo_limit"
+      />
+      
+      {/* Info Modals */}
+      <FeaturesModal isOpen={featuresModalOpen} onClose={() => setFeaturesModalOpen(false)} />
+      <PricingInfoModal isOpen={pricingModalOpen} onClose={() => setPricingModalOpen(false)} />
+      <APIDocsModal isOpen={apiDocsModalOpen} onClose={() => setApiDocsModalOpen(false)} />
+      <InfoPagesModal isOpen={infoModalOpen} onClose={() => setInfoModalOpen(false)} page={infoModalPage} />
+    </div>
+  );
+};
+
+export default LandingPage;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
