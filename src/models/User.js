@@ -180,6 +180,22 @@ const User = sequelize.define('User', {
     defaultValue: false,
     field: 'trial_ended_notified'
   },
+  // Email notification preferences
+  usageEmailsEnabled: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    field: 'usage_emails_enabled'
+  },
+  trialEndingNotified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    field: 'trial_ending_notified'
+  },
+  limitWarningNotified: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    field: 'limit_warning_notified'
+  },
   // Login OTP
   loginOTP: {
     type: DataTypes.STRING,

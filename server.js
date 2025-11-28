@@ -322,6 +322,11 @@ const start = async () => {
     usageResetJob.initializeJobs();
     console.log('✅ Scheduled jobs initialized (usage reset, trial check)');
     
+    // Initialize usage notification jobs (weekly digest, trial ending, limit warnings)
+    const usageNotificationJob = require('./src/jobs/usageNotificationJob');
+    usageNotificationJob.initializeNotificationJobs();
+    console.log('✅ Email notification jobs initialized (weekly digest, trial warnings)');
+    
     // Start server
     const port = process.env.PORT || 3001;
     const server = app.listen(port, '0.0.0.0', () => {
