@@ -127,6 +127,7 @@ const sequelize = require('./src/config/database');
 require('./src/models/User');
 require('./src/models/ErrorQuery');
 require('./src/models/Subscription');
+require('./src/models/QueryLog'); // A1 - Central Error Logging
 
 // Import associations to set up model relationships
 require('./src/models/associations');

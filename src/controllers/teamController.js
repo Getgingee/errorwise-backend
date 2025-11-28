@@ -1,4 +1,4 @@
-const Team = require('../models/Team');
+ const Team = require('../models/Team');
 const TeamMember = require('../models/TeamMember');
 const SharedError = require('../models/SharedError');
 const User = require('../models/User');
@@ -286,7 +286,7 @@ exports.shareError = async (req, res) => {
       team_id: teamId,
       shared_by: userId,
       error_query_id: errorQueryId,
-      title,
+      title, 
       description,
       category,
       priority

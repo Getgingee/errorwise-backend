@@ -4,6 +4,13 @@ const authService = require('../services/authService');
 const aiService = require('../services/aiService');
 const featureGating = require('../middleware/featureGating');
 const { Op } = require('sequelize');
+const { 
+  enhanceResponseWithConfidence, 
+  getConfidenceBucket, 
+  isLowConfidence,
+  LOW_CONFIDENCE_THRESHOLD 
+} = require('../utils/confidenceMessaging');
+const queryLogger = require('../services/queryLogger');
 
 // Analyze error with AI
 exports.analyzeError = async (req, res) => {
@@ -44,6 +51,19 @@ exports.analyzeError = async (req, res) => {
       // Filter response based on user tier
       const filteredAnalysis = featureGating.filterResponseByTier(analysis, subscriptionTier);
 
+      // A3: Extract and validate confidence score (ensure it's 0-1 range)
+      let confidence = filteredAnalysis.confidence;
+      if (typeof confidence !== 'number' || isNaN(confidence)) {
+        confidence = 0.5; // Default if missing
+      } else if (confidence > 1) {
+        confidence = confidence / 100; // Convert from percentage if needed
+      }
+      confidence = Math.max(0, Math.min(1, confidence)); // Clamp to 0-1
+
+      // A3: Check if low confidence and prepare warning
+      const lowConfidence = isLowConfidence(confidence);
+      const confidenceBucket = getConfidenceBucket(confidence);
+
       // Save the query to database
       const errorQuery = await ErrorQuery.create({
         userId,
@@ -57,6 +77,33 @@ exports.analyzeError = async (req, res) => {
         tags: analysis.tags || []
       });
 
+      // A1: Log query with confidence data
+      try {
+        await queryLogger.logQuery({
+          userId,
+          anonymousId: req.sessionID || req.ip,
+          rawError: errorMessage,
+          model: analysis.model || analysis.provider || 'unknown',
+          provider: analysis.provider || 'anthropic',
+          subscriptionTier,
+          success: true,
+          confidence,
+          latencyMs: responseTime,
+          lowConfidence,
+          fallbackUsed: analysis.fallbackUsed || false,
+          primaryModelAttempted: analysis.primaryModelAttempted,
+          retryCount: analysis.retryCount || 0,
+          metadata: {
+            language: language || 'javascript',
+            errorType: errorType || 'runtime',
+            confidenceBucket,
+            tier: subscriptionTier
+          }
+        });
+      } catch (logError) {
+        console.error('Query logging failed (non-critical):', logError.message);
+      }
+
       // Prepare response with tier-specific data
       const response = {
         id: errorQuery.id,
@@ -65,10 +112,29 @@ exports.analyzeError = async (req, res) => {
         solution: filteredAnalysis.solution,
         category: filteredAnalysis.category,
         provider: filteredAnalysis.provider,
-        confidence: Math.round(filteredAnalysis.confidence * 100) || 85,
+        // A3: Include confidence as decimal (0-1) AND percentage for backward compatibility
+        confidence: Math.round(confidence * 100),
+        confidenceScore: confidence,
+        // A3: Low confidence flag and warning
+        isLowConfidence: lowConfidence,
+        confidenceBucket,
         createdAt: errorQuery.createdAt,
         tier: subscriptionTier
       };
+
+      // A3: Add confidence warning for low confidence responses
+      if (lowConfidence) {
+        response.confidenceWarning = {
+          isLowConfidence: true,
+          confidenceScore: confidence,
+          warningMessage: "This answer might be incomplete. Here are 1–2 likely causes; if it doesn't match, try clarifying your error.",
+          suggestions: [
+            "Try providing more context about your error",
+            "Include the full stack trace if available"
+          ],
+          disclaimer: "If this doesn't match your issue, try rephrasing your error description with more details."
+        };
+      }
 
       // Add sources for all tiers (Free tier gets 2, Pro/Team may get more)
       if (filteredAnalysis.sources && Array.isArray(filteredAnalysis.sources)) {

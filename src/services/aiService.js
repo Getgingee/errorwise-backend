@@ -4,12 +4,15 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Anthropic = require('@anthropic-ai/sdk');
 const axios = require('axios');
 
+// Central query logger (A1 - Error Logging & Monitoring)
+const queryLogger = require('./queryLogger');
+
 // ============================================================================
 // CONFIGURATION & CONSTANTS
 // ============================================================================
 
 const CONFIG = {
-  MAX_RETRIES: 50,
+  MAX_RETRIES: 2,  // A2: Retry once before fallback (total 2 attempts per provider)
   RETRY_DELAY_MS: 1000,
   REQUEST_TIMEOUT_MS: 30000,
   CACHE_TTL_MS: 1800000, // 30 minutes
@@ -17,6 +20,48 @@ const CONFIG = {
   MAX_URL_SCRAPE_TIMEOUT: 10000,
   MAX_URLS_TO_PROCESS: 2,
   MAX_SCRAPED_CONTENT_LENGTH: 3000,
+};
+
+// A2: Fallback tracking statistics (in-memory, also logged to DB)
+const fallbackStats = {
+  totalRequests: 0,
+  fallbackUsed: 0,
+  fatalErrors: 0,
+  lastReset: new Date().toISOString(),
+};
+
+// A2: User-friendly error messages
+const USER_FRIENDLY_ERRORS = {
+  timeout: {
+    title: "Request Timeout",
+    message: "The AI is taking longer than expected to respond. This can happen during peak usage.",
+    suggestion: "Please try again in a moment, or try simplifying your error message."
+  },
+  invalidJson: {
+    title: "Response Processing Error",
+    message: "We received an unexpected response format from the AI.",
+    suggestion: "Please try rephrasing your question or providing more context about the error."
+  },
+  rateLimit: {
+    title: "Rate Limit Reached",
+    message: "Too many requests in a short time. Our AI needs a brief moment to catch up.",
+    suggestion: "Please wait a few seconds and try again."
+  },
+  allProvidersFailed: {
+    title: "AI Service Temporarily Unavailable",
+    message: "We're experiencing technical difficulties with our AI providers.",
+    suggestion: "Please try again in a few minutes. If the issue persists, try rephrasing your error message."
+  },
+  validation: {
+    title: "Invalid Input",
+    message: "The error message provided couldn't be processed.",
+    suggestion: "Please ensure your error message is at least 10 characters and doesn't contain unusual formatting."
+  },
+  generic: {
+    title: "Something Went Wrong",
+    message: "An unexpected error occurred while analyzing your request.",
+    suggestion: "Please try again. If the issue persists, try rephrasing or simplifying your error message."
+  }
 };
 
 // Simple in-memory cache (consider Redis for production)
@@ -293,28 +338,111 @@ function cacheResponse(cacheKey, response) {
 
 /**
  * Retry async function with exponential backoff
+ * A2: Enhanced to handle API errors, invalid JSON, and timeouts
  */
-async function retryWithBackoff(fn, retries = CONFIG.MAX_RETRIES) {
+async function retryWithBackoff(fn, retries = CONFIG.MAX_RETRIES, context = 'operation') {
+  let lastError = null;
+  
   for (let i = 0; i < retries; i++) {
     try {
-      return await fn();
-    } catch (error) {
-      const isLastRetry = i === retries - 1;
+      const result = await fn();
       
-      // Don't retry on client errors (4xx)
-      if (error.status >= 400 && error.status < 500) {
+      // A2: Validate JSON response structure
+      if (result && typeof result === 'object') {
+        // Check for required fields
+        if (!result.explanation && !result.solution) {
+          throw new Error('Invalid response: missing explanation and solution');
+        }
+      }
+      
+      return result;
+    } catch (error) {
+      lastError = error;
+      const isLastRetry = i === retries - 1;
+      const errorMessage = error?.message || String(error);
+      
+      // A2: Categorize error type for better logging
+      const errorType = categorizeAPIError(error);
+      console.warn(`⚠️  [${context}] Attempt ${i + 1}/${retries} failed: ${errorType} - ${errorMessage}`);
+      
+      // Don't retry on client errors (4xx) except rate limits (429)
+      if (error.status >= 400 && error.status < 500 && error.status !== 429) {
+        console.error(`❌ [${context}] Client error (${error.status}), not retrying`);
         throw error;
       }
       
       if (isLastRetry) {
+        console.error(`❌ [${context}] All ${retries} attempts failed`);
         throw error;
       }
       
-      const delay = CONFIG.RETRY_DELAY_MS * Math.pow(2, i);
-      console.log(`⏳ Retry ${i + 1}/${retries} after ${delay}ms...`);
+      // Exponential backoff with jitter
+      const baseDelay = CONFIG.RETRY_DELAY_MS * Math.pow(2, i);
+      const jitter = Math.random() * 500;
+      const delay = baseDelay + jitter;
+      
+      console.log(`⏳ [${context}] Retry ${i + 1}/${retries} after ${Math.round(delay)}ms...`);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
+  
+  throw lastError;
+}
+
+/**
+ * A2: Categorize API errors for better logging and handling
+ */
+function categorizeAPIError(error) {
+  const message = error?.message?.toLowerCase() || '';
+  const status = error?.status || error?.statusCode;
+  
+  if (status === 429 || message.includes('rate limit') || message.includes('too many requests')) {
+    return 'RATE_LIMIT';
+  }
+  if (message.includes('timeout') || message.includes('timed out') || message.includes('ETIMEDOUT')) {
+    return 'TIMEOUT';
+  }
+  if (message.includes('json') || message.includes('parse') || message.includes('unexpected token')) {
+    return 'INVALID_JSON';
+  }
+  if (status >= 500 || message.includes('internal server error') || message.includes('service unavailable')) {
+    return 'SERVER_ERROR';
+  }
+  if (message.includes('network') || message.includes('ECONNREFUSED') || message.includes('ENOTFOUND')) {
+    return 'NETWORK_ERROR';
+  }
+  if (status === 401 || status === 403 || message.includes('unauthorized') || message.includes('forbidden')) {
+    return 'AUTH_ERROR';
+  }
+  
+  return 'UNKNOWN';
+}
+
+/**
+ * A2: Create user-friendly error response
+ */
+function createUserFriendlyError(errorType, detectedLanguage, detectedErrorType, originalError = null) {
+  const errorConfig = USER_FRIENDLY_ERRORS[errorType] || USER_FRIENDLY_ERRORS.generic;
+  
+  return {
+    explanation: `**${errorConfig.title}**\n\n${errorConfig.message}`,
+    solution: `**What you can do:**\n\n${errorConfig.suggestion}`,
+    codeExample: '',
+    category: 'system-error',
+    tags: ['error', 'system', errorType],
+    confidence: 0.0,
+    severity: 'info',
+    provider: 'error-handler',
+    model: 'none',
+    language: detectedLanguage || 'unknown',
+    errorType: detectedErrorType || 'unknown',
+    timestamp: new Date().toISOString(),
+    isUserFriendlyError: true,
+    errorDetails: {
+      type: errorType,
+      originalError: originalError?.message || null,
+    }
+  };
 }
 
 /**
@@ -1550,6 +1678,7 @@ async function processURLs(errorMessage, codeSnippet) {
 
 /**
  * Analyze error with AI providers, caching, and fallback handling
+ * Now with central query logging (A1 - Error Logging & Monitoring)
  */
 async function analyzeError({ 
   errorMessage, 
@@ -1562,22 +1691,36 @@ async function analyzeError({
   framework, 
   dependencies, 
   conversationHistory = [],
-  userId = null
+  userId = null,
+  // Additional context for logging
+  anonymousId = null,
+  ipAddress = null,
+  userAgent = null
 }) {
   // Rate limit check and cleanup tracking
   let cleanupRateLimit = () => {};
   
+  // Track timing for latency measurement
+  const startTime = Date.now();
+  
+  // Variables for logging context
+  let detectedLanguage = null;
+  let detectedErrorType = null;
+  let validTier = 'free';
+  let usedModel = 'unknown';
+  let usedProvider = 'unknown';
+  
   try {
     // 1. Input validation and sanitization (prevents injection attacks)
     const sanitizedMessage = validateAndSanitizeInput(errorMessage);
-    const validTier = ['free', 'pro', 'team'].includes(subscriptionTier) ? subscriptionTier : 'free';
+    validTier = ['free', 'pro', 'team'].includes(subscriptionTier) ? subscriptionTier : 'free';
     
     // 2. User rate limiting (prevents abuse)
     cleanupRateLimit = checkUserRateLimit(userId, validTier);
     
     // Auto-detect language and error type if not provided
-    const detectedLanguage = language || detectLanguage(sanitizedMessage, codeSnippet);
-    const detectedErrorType = errorType || detectErrorType(sanitizedMessage);
+    detectedLanguage = language || detectLanguage(sanitizedMessage, codeSnippet);
+    detectedErrorType = errorType || detectErrorType(sanitizedMessage);
     
     console.log(`\n📊 Analyzing error: ${detectedErrorType} (${detectedLanguage}) [${validTier} tier]`);
     
@@ -1586,6 +1729,25 @@ async function analyzeError({
     const cachedResponse = conversationHistory.length === 0 ? getCachedResponse(cacheKey) : null;
     
     if (cachedResponse) {
+      // Log cached response
+      const latencyMs = Date.now() - startTime;
+      queryLogger.logSuccess({
+        userId,
+        anonymousId,
+        rawError: errorMessage,
+        model: cachedResponse.model || 'cached',
+        provider: cachedResponse.provider || 'cache',
+        confidence: cachedResponse.confidence,
+        latencyMs,
+        subscriptionTier: validTier,
+        detectedLanguage,
+        detectedErrorType,
+        cached: true,
+        ipAddress,
+        userAgent,
+        metadata: { framework, dependencies, cached: true }
+      }).catch(err => console.error('Logging error:', err.message));
+      
       return { ...cachedResponse, cached: true };
     }
     
@@ -1689,110 +1851,258 @@ Remember: Your goal is to help users understand their issues and learn from them
     if (tierConfig.secondary) providers.push(tierConfig.secondary);
     if (tierConfig.tertiary) providers.push(tierConfig.tertiary);
     if (tierConfig.fallback) providers.push(tierConfig.fallback);
+    
+    // A2: Track fallback state
+    const primaryModel = providers[0]?.model || 'unknown';
+    let fallbackUsed = false;
+    let totalRetryCount = 0;
+    let lastErrorCategory = null;
 
-    // Try each provider in order
+    // A2: Update fallback stats
+    fallbackStats.totalRequests++;
+
+    // Try each provider in order with retry logic
     for (let i = 0; i < providers.length; i++) {
       const config = providers[i];
       const isLastProvider = i === providers.length - 1;
+      const isPrimaryProvider = i === 0;
       
-      try {
-        console.log(`🤖 Trying ${config.provider.toUpperCase()} (${i === 0 ? 'primary' : i === 1 ? 'secondary' : i === 2 ? 'tertiary' : 'fallback'} for ${validTier} tier)`);
-        
-        let result;
-        
-        if (config.provider === 'gemini') {
-          result = await withTimeout(
-            callGemini(
-              prompt, 
-              config.model, 
-              detectedLanguage, 
-              detectedErrorType, 
-              stackTrace, 
-              features.conversationHistory ? conversationHistory : []
-            ),
-            CONFIG.REQUEST_TIMEOUT_MS
-          );
-        }
-        else if (config.provider === 'anthropic') {
-          result = await withTimeout(
-            callAnthropic(
-              prompt, 
-              systemMessage, 
-              config.model, 
-              config.maxTokens, 
-              detectedLanguage, 
-              detectedErrorType, 
-              stackTrace, 
-              features.conversationHistory ? conversationHistory : [],
-              config.temperature
-            ),
-            CONFIG.REQUEST_TIMEOUT_MS
-          );
-        } 
-        else if (config.provider === 'mock') {
-          console.log('🎯 Using enhanced mock response (fallback)');
-          result = getMockResponse(sanitizedMessage, detectedLanguage, detectedErrorType, stackTrace);
-        }
-        else {
-          continue; // Skip disabled providers
-        }
-        
-        // Validate AI response structure
-        if (result && !result.error) {
-          validateAIResponse(result);
-        }
-        
-        // Cache successful response (except for conversations)
-        if (conversationHistory.length === 0 && result && !result.error) {
-          cacheResponse(cacheKey, result);
-        }
-        
-        return result;
-        
-      } catch (error) {
-        console.error(`❌ ${config.provider.toUpperCase()} error:`, error?.message || error);
-        
-        // If this is the last provider, return error response
-        if (isLastProvider) {
-          console.error('❌ All providers failed');
-          return {
-            explanation: 'AI analysis temporarily unavailable. Please try again in a moment.',
-            solution: 'If the issue persists, contact support with this error ID.',
-            codeExample: '',
-            category: detectedErrorType,
-            tags: [detectedLanguage, detectedErrorType],
-            confidence: 0.3,
-            provider: 'none',
-            language: detectedLanguage,
-            errorType: detectedErrorType,
-            stackTrace,
-            timestamp: new Date().toISOString(),
-            errorId: cacheKey.substring(0, 8),
-            note: 'Service temporarily unavailable.',
-            error: error?.message
+      // A2: Track if we're using fallback
+      if (!isPrimaryProvider) {
+        fallbackUsed = true;
+        fallbackStats.fallbackUsed++;
+        console.log(`🔄 [A2] Switching to fallback provider: ${config.provider} (${config.model})`);
+      }
+      
+      // A2: Retry loop for each provider (retry once before moving to fallback)
+      let providerRetries = 0;
+      const maxProviderRetries = CONFIG.MAX_RETRIES;
+      
+      while (providerRetries < maxProviderRetries) {
+        try {
+          const attemptNumber = providerRetries + 1;
+          console.log(`🤖 [Attempt ${attemptNumber}/${maxProviderRetries}] Trying ${config.provider.toUpperCase()} (${isPrimaryProvider ? 'primary' : 'fallback'} for ${validTier} tier)`);
+          
+          let result;
+          usedModel = config.model;
+          usedProvider = config.provider;
+          
+          if (config.provider === 'gemini') {
+            result = await withTimeout(
+              callGemini(
+                prompt, 
+                config.model, 
+                detectedLanguage, 
+                detectedErrorType, 
+                stackTrace, 
+                features.conversationHistory ? conversationHistory : []
+              ),
+              CONFIG.REQUEST_TIMEOUT_MS
+            );
+          }
+          else if (config.provider === 'anthropic') {
+            result = await withTimeout(
+              callAnthropic(
+                prompt, 
+                systemMessage, 
+                config.model, 
+                config.maxTokens, 
+                detectedLanguage, 
+                detectedErrorType, 
+                stackTrace, 
+                features.conversationHistory ? conversationHistory : [],
+                config.temperature
+              ),
+              CONFIG.REQUEST_TIMEOUT_MS
+            );
+          } 
+          else if (config.provider === 'mock') {
+            console.log('🎯 Using enhanced mock response (fallback)');
+            result = getMockResponse(sanitizedMessage, detectedLanguage, detectedErrorType, stackTrace);
+          }
+          else {
+            break; // Skip disabled providers
+          }
+          
+          // A2: Validate AI response structure (including JSON validation)
+          if (result && !result.error) {
+            try {
+              validateAIResponse(result);
+            } catch (validationError) {
+              // A2: Invalid JSON/response structure - retry
+              lastErrorCategory = 'INVALID_JSON';
+              throw new Error(`Invalid response structure: ${validationError.message}`);
+            }
+          }
+          
+          // Cache successful response (except for conversations)
+          if (conversationHistory.length === 0 && result && !result.error) {
+            cacheResponse(cacheKey, result);
+          }
+          
+          // A2: Log successful query with fallback tracking
+          const latencyMs = Date.now() - startTime;
+          const confidence = result?.confidence || 0.5;
+          
+          // Prepare logging data with A2 fields
+          const logData = {
+            userId,
+            anonymousId,
+            rawError: errorMessage,
+            model: config.model,
+            provider: config.provider,
+            confidence,
+            latencyMs,
+            subscriptionTier: validTier,
+            detectedLanguage,
+            detectedErrorType,
+            cached: false,
+            ipAddress,
+            userAgent,
+            metadata: { framework, dependencies, codeSnippet: !!codeSnippet },
+            // A2: Fallback tracking fields
+            fallbackUsed,
+            primaryModelAttempted: primaryModel,
+            retryCount: totalRetryCount,
+            errorCategory: lastErrorCategory
           };
+          
+          // Check if low confidence
+          if (confidence < 0.6) {
+            queryLogger.logLowConfidence(logData).catch(err => console.error('Logging error:', err.message));
+          } else {
+            queryLogger.logSuccess(logData).catch(err => console.error('Logging error:', err.message));
+          }
+          
+          // A2: Add fallback info to result
+          result.fallbackUsed = fallbackUsed;
+          result.primaryModelAttempted = primaryModel;
+          result.retriesUsed = totalRetryCount;
+          
+          console.log(`✅ [A2] Success with ${config.provider}/${config.model} (fallback: ${fallbackUsed}, retries: ${totalRetryCount})`);
+          
+          return result;
+          
+        } catch (error) {
+          providerRetries++;
+          totalRetryCount++;
+          
+          // A2: Categorize the error
+          lastErrorCategory = categorizeAPIError(error);
+          const errorMessage_log = error?.message || String(error);
+          
+          console.error(`❌ [Attempt ${providerRetries}/${maxProviderRetries}] ${config.provider.toUpperCase()} error (${lastErrorCategory}):`, errorMessage_log);
+          
+          // A2: Check if we should retry or move to fallback
+          const shouldRetry = providerRetries < maxProviderRetries && 
+                              !['AUTH_ERROR'].includes(lastErrorCategory); // Don't retry auth errors
+          
+          if (shouldRetry) {
+            // A2: Exponential backoff with jitter
+            const baseDelay = CONFIG.RETRY_DELAY_MS * Math.pow(2, providerRetries - 1);
+            const jitter = Math.random() * 500;
+            const delay = baseDelay + jitter;
+            
+            console.log(`⏳ [A2] Retrying ${config.provider} in ${Math.round(delay)}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+          
+          // A2: Max retries reached for this provider, move to fallback
+          console.log(`🔄 [A2] ${config.provider} failed after ${providerRetries} attempts, trying next provider...`);
+          break; // Exit retry loop, continue to next provider
         }
+      }
+      
+      // If this is the last provider and we're here, all providers failed
+      if (isLastProvider) {
+        console.error('❌ [A2] All providers failed after retries');
+        fallbackStats.fatalErrors++;
         
-        // Continue to next provider
-        console.log(`🔄 Falling back to next provider...`);
+        // A2: Log failure with fallback tracking
+        const latencyMs = Date.now() - startTime;
+        queryLogger.logFailure({
+          userId,
+          anonymousId,
+          rawError: errorMessage,
+          model: usedModel,
+          provider: usedProvider,
+          failureReason: `All providers failed (last error: ${lastErrorCategory})`,
+          latencyMs,
+          subscriptionTier: validTier,
+          detectedLanguage,
+          detectedErrorType,
+          ipAddress,
+          userAgent,
+          metadata: { framework, dependencies, allProvidersFailed: true },
+          // A2: Fallback tracking
+          fallbackUsed,
+          primaryModelAttempted: primaryModel,
+          retryCount: totalRetryCount,
+          errorCategory: lastErrorCategory
+        }).catch(err => console.error('Logging error:', err.message));
+        
+        // A2: Return user-friendly error instead of generic "something went wrong"
+        const userFriendlyError = createUserFriendlyError(
+          lastErrorCategory === 'TIMEOUT' ? 'timeout' :
+          lastErrorCategory === 'RATE_LIMIT' ? 'rateLimit' :
+          lastErrorCategory === 'INVALID_JSON' ? 'invalidJson' :
+          'allProvidersFailed',
+          detectedLanguage,
+          detectedErrorType,
+          { message: `All providers failed after ${totalRetryCount} total attempts` }
+        );
+        
+        // A2: Return user-friendly error with fallback info
+        return {
+          ...userFriendlyError,
+          stackTrace,
+          errorId: cacheKey.substring(0, 8),
+          fallbackUsed,
+          primaryModelAttempted: primaryModel,
+          retriesUsed: totalRetryCount
+        };
       }
     }
     
   } catch (error) {
     console.error('❌ Unexpected error in analyzeError:', error);
     cleanupRateLimit(); // Clean up rate limit tracking on error
+    
+    // A2: Categorize the unexpected error
+    const unexpectedErrorCategory = categorizeAPIError(error);
+    
+    // Log unexpected failure (A1 - Central Error Logging)
+    const latencyMs = Date.now() - startTime;
+    queryLogger.logFailure({
+      userId,
+      anonymousId,
+      rawError: errorMessage,
+      model: usedModel,
+      provider: usedProvider,
+      failureReason: error?.message || 'Unexpected error',
+      latencyMs,
+      subscriptionTier: validTier,
+      detectedLanguage: detectedLanguage || 'unknown',
+      detectedErrorType: detectedErrorType || 'unknown',
+      ipAddress,
+      userAgent,
+      metadata: { framework, dependencies, unexpectedError: true },
+      // A2: Error tracking
+      errorCategory: unexpectedErrorCategory
+    }).catch(err => console.error('Logging error:', err.message));
+    
+    // A2: Return user-friendly error instead of generic message
+    const userFriendlyError = createUserFriendlyError(
+      'generic',
+      detectedLanguage || 'unknown',
+      detectedErrorType || 'unknown',
+      error
+    );
+    
     return {
-      explanation: 'An unexpected error occurred while analyzing your request.',
-      solution: 'Please try again. If the problem persists, contact support.',
-      codeExample: '',
-      category: 'runtime',
-      tags: ['error', 'system'],
-      confidence: 0.2,
-      provider: 'error',
-      language: 'unknown',
-      errorType: 'unknown',
+      ...userFriendlyError,
       timestamp: new Date().toISOString(),
-      error: error?.message
     };
   } finally {
     // Always cleanup rate limit tracking (for successful requests)
@@ -1962,6 +2272,20 @@ async function explainError(errorMessage, subscriptionTier = 'free') {
 // EXPORTS
 // ============================================================================
 
+// ========================================
+// A2: Get Fallback Statistics
+// ========================================
+function getFallbackStats() {
+  const total = fallbackStats.totalRequests || 1;
+  return {
+    ...fallbackStats,
+    fallbackRate: ((fallbackStats.fallbacksUsed / total) * 100).toFixed(2) + '%',
+    primarySuccessRate: ((fallbackStats.primarySuccesses / total) * 100).toFixed(2) + '%',
+    fatalErrorRate: ((fallbackStats.fatalErrors / total) * 100).toFixed(2) + '%',
+    timestamp: new Date().toISOString()
+  };
+}
+
 module.exports = { 
   // Main functions
   analyzeError,
@@ -1971,11 +2295,13 @@ module.exports = {
   getErrorStatistics,
   getServiceHealth,
   clearCache,
+  getFallbackStats,  // A2: Fallback statistics
   
   // Utility functions
   detectLanguage,
   detectErrorType,
   parseStackTrace,
+  createUserFriendlyError,  // A2: User-friendly error messages
   
   // Backward compatibility
   explainError,

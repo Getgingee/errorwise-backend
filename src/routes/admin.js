@@ -5,6 +5,9 @@ const Subscription = require('../models/Subscription');
 const { authMiddleware } = require('../middleware/auth');
 const sequelize = require('../config/database');
 
+// Admin Controller (A1 - Query Logs)
+const adminController = require('../controllers/adminController');
+
 // Admin middleware - check if user is admin
 const isAdmin = async (req, res, next) => {
   if (req.user.role !== 'admin') {
@@ -12,6 +15,35 @@ const isAdmin = async (req, res, next) => {
   }
   next();
 };
+
+// ============================================================================
+// QUERY LOGS ROUTES (A1 - Central Error Logging & Monitoring)
+// ============================================================================
+
+// Get query logs dashboard (summary view)
+router.get('/query-logs/dashboard', authMiddleware, isAdmin, adminController.getDashboard);
+
+// Get query statistics
+router.get('/query-logs/stats', authMiddleware, isAdmin, adminController.getQueryStats);
+
+// Get common error patterns
+router.get('/query-logs/patterns', authMiddleware, isAdmin, adminController.getErrorPatterns);
+
+// Get recent failures
+router.get('/query-logs/failures', authMiddleware, isAdmin, adminController.getRecentFailures);
+
+// Get low confidence responses
+router.get('/query-logs/low-confidence', authMiddleware, isAdmin, adminController.getLowConfidenceResponses);
+
+// A2: Get fallback statistics
+router.get('/query-logs/fallback-stats', authMiddleware, isAdmin, adminController.getFallbackStats);
+
+// Get all query logs (with filtering)
+router.get('/query-logs', authMiddleware, isAdmin, adminController.getQueryLogs);
+
+// ============================================================================
+// EXISTING ADMIN ROUTES
+// ============================================================================
 
 // TEMPORARY: Check users endpoint (no auth for debugging)
 router.get('/check-users', async (req, res) => {

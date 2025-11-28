@@ -15,6 +15,9 @@ router.get('/user', historyController.getUserHistory);
 // Get user statistics
 router.get('/stats', historyController.getUserStats);
 
+// Export history (Pro/Team only)
+router.get('/export', historyController.exportHistory);
+
 // Get specific query by ID
 router.get('/:queryId', historyController.getQueryById);
 

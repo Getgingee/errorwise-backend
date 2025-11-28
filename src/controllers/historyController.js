@@ -152,3 +152,89 @@ exports.getUserStats = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch statistics' });
   }
 };
+
+// GET /api/history/export
+exports.exportHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const tier = req.user.subscriptionTier || 'free';
+    const { format = 'json' } = req.query;
+
+    // Pro/Team only feature
+    if (tier === 'free') {
+      return res.status(403).json({
+        error: 'Export feature requires Pro or Team subscription',
+        message: 'Upgrade to Pro to export your error history as JSON or CSV',
+        upgrade: true,
+        requiredTier: 'pro',
+        upgradeUrl: `${process.env.FRONTEND_URL}/pricing`
+      });
+    }
+
+    // Fetch all user's error history
+    const history = await ErrorQuery.findAll({
+      where: { userId },
+      order: [['createdAt', 'DESC']],
+      attributes: [
+        'id',
+        'errorMessage',
+        'explanation',
+        'solution',
+        'errorCategory',
+        'aiProvider',
+        'userSubscriptionTier',
+        'responseTime',
+        'tags',
+        'createdAt'
+      ]
+    });
+
+    if (format === 'csv') {
+      // Convert to CSV format
+      const headers = ['ID', 'Error Message', 'Category', 'AI Provider', 'Subscription Tier', 'Response Time (ms)', 'Created At'];
+      const rows = history.map(h => [
+        h.id,
+        `"${(h.errorMessage || '').replace(/"/g, '""').replace(/\n/g, ' ').replace(/\r/g, '')}"`, // Escape quotes and remove linebreaks
+        h.errorCategory || 'Unknown',
+        h.aiProvider || 'N/A',
+        h.userSubscriptionTier || 'free',
+        h.responseTime || 0,
+        new Date(h.createdAt).toISOString()
+      ]);
+
+      const csv = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="errorwise-history-${Date.now()}.csv"`);
+      return res.send(csv);
+    }
+
+    // JSON format (default)
+    const jsonData = {
+      exportedAt: new Date().toISOString(),
+      userId,
+      tier,
+      totalQueries: history.length,
+      history: history.map(h => ({
+        id: h.id,
+        errorMessage: h.errorMessage,
+        explanation: h.explanation,
+        solution: h.solution,
+        category: h.errorCategory,
+        aiProvider: h.aiProvider,
+        subscriptionTier: h.userSubscriptionTier,
+        responseTime: h.responseTime,
+        tags: h.tags,
+        createdAt: h.createdAt
+      }))
+    };
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="errorwise-history-${Date.now()}.json"`);
+    res.json(jsonData);
+
+  } catch (error) {
+    console.error('Export error:', error);
+    res.status(500).json({ error: 'Failed to export history' });
+  }
+};
