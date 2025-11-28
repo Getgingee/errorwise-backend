@@ -4,6 +4,7 @@ const ErrorQuery = require('./ErrorQuery');
 const Subscription = require('./Subscription');
 const Team = require('./Team');
 const TeamMember = require('./TeamMember');
+const ErrorLibrary = require('./ErrorLibrary');
 // const SharedError = require('./SharedError');
 // const SubscriptionPlan = require('./SubscriptionPlan');
 // const Tenant = require('./Tenant');
@@ -67,10 +68,22 @@ User.hasMany(TeamMember, {
   as: 'teamMemberships'
 });
 
+// ErrorLibrary associations (user templates)
+ErrorLibrary.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'creator'
+});
+
+User.hasMany(ErrorLibrary, {
+  foreignKey: 'userId',
+  as: 'savedTemplates'
+});
+
 module.exports = {
   User,
   ErrorQuery,
   Subscription,
   Team,
-  TeamMember
+  TeamMember,
+  ErrorLibrary
 };
