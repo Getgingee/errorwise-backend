@@ -50,6 +50,19 @@ const ErrorQuery = sequelize.define('ErrorQuery', {
     type: DataTypes.JSONB,
     allowNull: true,
     defaultValue: []
+  },
+  // B2: User feedback on result quality
+  feedback: {
+    type: DataTypes.ENUM('up', 'down'),
+    allowNull: true
+  },
+  feedbackComment: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  feedbackAt: {
+    type: DataTypes.DATE,
+    allowNull: true
   }
 }, {
   indexes: [

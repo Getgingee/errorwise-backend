@@ -33,6 +33,9 @@ router.get('/export', requireFeature('exportHistory'), errorController.exportHis
 // GET /api/errors/:id - Get specific error query details
 router.get('/:id', errorController.getErrorQuery);
 
+// POST /api/errors/:id/feedback - Submit feedback on analysis result (B2)
+router.post('/:id/feedback', errorController.submitResultFeedback);
+
 // DELETE /api/errors/:id - Delete an error query
 router.delete('/:id', errorController.deleteErrorQuery);
 

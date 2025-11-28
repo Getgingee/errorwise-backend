@@ -641,9 +641,9 @@ function convertToCSV(data) {
     'ID', 'Error Message', 'Category', 'AI Provider', 
     'Response Time (ms)', 'Created At'
   ];
-  
+
   const csvRows = [headers.join(',')];
-  
+
   data.forEach(item => {
     const row = [
       item.id,
@@ -655,6 +655,90 @@ function convertToCSV(data) {
     ];
     csvRows.push(row.join(','));
   });
-  
+
   return csvRows.join('\n');
 }
+
+/**
+ * B2: Submit feedback on analysis result
+ * POST /api/errors/:id/feedback
+ * @param {string} id - Query/ErrorQuery ID
+ * @param {string} type - 'up' or 'down'
+ * @param {string} comment - Optional feedback comment
+ */
+exports.submitResultFeedback = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { type, comment } = req.body;
+    const userId = req.user.id;
+
+    // Validate feedback type
+    if (!type || !['up', 'down'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Feedback type must be "up" or "down"'
+      });
+    }
+
+    // Find the error query to verify ownership
+    const errorQuery = await ErrorQuery.findOne({
+      where: {
+        id,
+        userId
+      }
+    });
+
+    if (!errorQuery) {
+      return res.status(404).json({
+        success: false,
+        error: 'Query not found or access denied'
+      });
+    }
+
+    // Update QueryLog with feedback if it exists
+    const QueryLog = require('../models/QueryLog');
+    const queryLog = await QueryLog.findOne({
+      where: {
+        user_id: userId,
+        created_at: {
+          [Op.gte]: new Date(new Date(errorQuery.createdAt).getTime() - 5000),
+          [Op.lte]: new Date(new Date(errorQuery.createdAt).getTime() + 5000)
+        }
+      },
+      order: [['created_at', 'DESC']]
+    });
+
+    if (queryLog) {
+      await queryLog.update({
+        feedback: type,
+        feedback_at: new Date(),
+        feedback_comment: comment || null
+      });
+    }
+
+    // Also store in ErrorQuery for easy access
+    await errorQuery.update({
+      feedback: type,
+      feedbackComment: comment || null,
+      feedbackAt: new Date()
+    });
+
+    console.log(`✅ Feedback received: ${type} for query ${id} by user ${userId}`);
+
+    res.json({
+      success: true,
+      message: type === 'up' ? 'Thanks for your feedback!' : 'Sorry to hear that. We\'ll work to improve!',
+      feedback: {
+        type,
+        comment: comment || null,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error submitting feedback:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to submit feedback'
+    });
+  }
+};

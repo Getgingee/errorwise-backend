@@ -189,6 +189,27 @@ const QueryLog = sequelize.define('QueryLog', {
     type: DataTypes.JSONB,
     defaultValue: {},
     comment: 'Additional context: framework, dependencies, etc.'
+  },
+  
+  // B2: User feedback on result quality
+  feedback: {
+    type: DataTypes.ENUM('up', 'down'),
+    allowNull: true,
+    comment: 'User feedback: up = helpful, down = not helpful'
+  },
+  
+  // B2: Timestamp when feedback was given
+  feedback_at: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: 'When user provided feedback'
+  },
+  
+  // B2: Optional feedback comment
+  feedback_comment: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Optional comment explaining feedback'
   }
 }, {
   tableName: 'query_logs',
