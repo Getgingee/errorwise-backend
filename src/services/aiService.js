@@ -188,21 +188,14 @@ try {
 const TIER_CONFIG = {
   free: {
     primary: { 
-      provider: 'anthropic',  // FREE tier uses Claude Haiku 3 (fastest & cheapest)
-      model: 'claude-3-haiku-20240307',  // 0.33x cost - perfect for free tier
+      provider: 'anthropic',  // FREE tier uses Claude 3.5 Haiku (fast & affordable)
+      model: 'claude-3-5-haiku-latest',  // Using latest alias for stability
       maxTokens: 1000,
       temperature: 0.5,
     },
-    // FUTURE: Gemini alternative (uncomment when API key available)
-    // primary: { 
-    //   provider: 'gemini',
-    //   model: 'gemini-2.0-flash-exp',  // Free tier model
-    //   maxTokens: 1000,
-    //   temperature: 0.5,
-    // },
     fallback: { 
       provider: 'anthropic',
-      model: 'claude-3-5-haiku-20241022',  // Newer Haiku if primary fails
+      model: 'claude-3-haiku-20240307',  // Older Haiku as fallback
       maxTokens: 1000,
       temperature: 0.5,
     },
@@ -214,18 +207,11 @@ const TIER_CONFIG = {
   },
   pro: {
     primary: { 
-      provider: 'anthropic',  // PRO tier uses Claude Haiku 3.5 (upgraded)
-      model: 'claude-3-5-haiku-20241022',  // Latest Haiku - 1x cost, faster responses
+      provider: 'anthropic',  // PRO tier uses Claude 3.5 Haiku
+      model: 'claude-3-5-haiku-latest',  // Latest Haiku for faster responses
       maxTokens: 2000,
       temperature: 0.4,
     },
-    // FUTURE: Gemini Pro alternative (uncomment when API key available)
-    // primary: { 
-    //   provider: 'gemini',
-    //   model: 'gemini-1.5-pro',  // Gemini Pro for advanced analysis
-    //   maxTokens: 2000,
-    //   temperature: 0.4,
-    // },
     fallback: { 
       provider: 'anthropic',
       model: 'claude-3-haiku-20240307',  // Fallback to older Haiku
@@ -240,21 +226,14 @@ const TIER_CONFIG = {
   },
   team: {
     primary: { 
-      provider: 'anthropic',  // TEAM tier uses Claude Sonnet 3.5 (BEST quality)
-      model: 'claude-3-5-sonnet-20241022',  // Latest stable Sonnet - most advanced
+      provider: 'anthropic',  // TEAM tier uses Claude 3.5 Sonnet (BEST quality)
+      model: 'claude-3-5-sonnet-latest',  // Latest stable Sonnet - most advanced
       maxTokens: 4000,
       temperature: 0.3,
     },
-    // FUTURE: Gemini Pro alternative (uncomment when API key available)
-    // primary: { 
-    //   provider: 'gemini',
-    //   model: 'gemini-1.5-pro',  // Gemini Pro for team tier
-    //   maxTokens: 4000,
-    //   temperature: 0.3,
-    // },
     fallback: { 
       provider: 'anthropic',
-      model: 'claude-3-5-haiku-20241022',  // Fallback to Haiku 3.5
+      model: 'claude-3-5-haiku-latest',  // Fallback to Haiku 3.5
       maxTokens: 4000,
       temperature: 0.3,
     },
