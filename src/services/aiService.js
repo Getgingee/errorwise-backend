@@ -2375,6 +2375,89 @@ async function explainError(errorMessage, subscriptionTier = 'free') {
 }
 
 // ============================================================================
+// CONVERSATIONAL AI SUPPORT
+// ============================================================================
+
+/**
+ * Analyze error with conversation context
+ * Used for follow-up questions in chat mode
+ */
+async function analyzeWithContext({ messages, newMessage, userId, subscriptionTier = 'pro' }) {
+  const startTime = Date.now();
+  
+  try {
+    // Build conversation history for AI
+    const conversationHistory = messages.map(msg => ({
+      role: msg.role,
+      content: msg.content
+    }));
+    
+    // Get the appropriate model for this tier
+    const modelConfig = require('../config/modelConfig');
+    const model = modelConfig.resolveModelForRequest('auto', subscriptionTier, newMessage);
+    const modelId = model.apiId || 'claude-3-5-haiku-20241022';
+    
+    // Create system prompt for follow-up context
+    const systemPrompt = `You are ErrorWise AI, a helpful coding assistant specialized in debugging and error analysis.
+
+CONTEXT: You are in a follow-up conversation about a coding error. The user has already received an initial analysis and is now asking clarifying questions.
+
+RULES:
+- Reference the previous context when answering
+- Be concise but thorough
+- Provide code examples when helpful
+- If the user is asking about something unrelated to the original error, gently redirect
+- Use markdown formatting for code blocks
+
+Previous conversation is provided in the messages.`;
+
+    // Make API call with conversation history
+    if (!anthropic) {
+      throw new Error('AI provider not available');
+    }
+    
+    const response = await anthropic.messages.create({
+      model: modelId,
+      max_tokens: 2000,
+      system: systemPrompt,
+      messages: conversationHistory
+    });
+    
+    const aiResponse = response.content[0]?.text || 'Unable to generate response';
+    
+    // Log the query
+    if (queryLogger) {
+      queryLogger.logQuery({
+        type: 'follow_up',
+        userId,
+        messageLength: newMessage.length,
+        contextLength: conversationHistory.length,
+        model: modelId,
+        responseTime: Date.now() - startTime,
+        tier: subscriptionTier
+      }).catch(e => console.warn('Query logging failed:', e.message));
+    }
+    
+    return {
+      response: aiResponse,
+      model: modelId,
+      contextUsed: conversationHistory.length,
+      responseTime: Date.now() - startTime
+    };
+    
+  } catch (error) {
+    console.error('Analyze with context error:', error);
+    
+    // Return a helpful fallback response
+    return {
+      response: "I apologize, but I'm having trouble processing your follow-up question. Could you please rephrase it or provide more details about what aspect of the error you'd like me to clarify?",
+      model: 'fallback',
+      error: error.message
+    };
+  }
+}
+
+// ============================================================================
 // EXPORTS
 // ============================================================================
 
@@ -2396,6 +2479,7 @@ module.exports = {
   // Main functions
   analyzeError,
   analyzeBatchErrors,
+  analyzeWithContext, // Conversational AI support
   
   // Statistics & monitoring
   getErrorStatistics,

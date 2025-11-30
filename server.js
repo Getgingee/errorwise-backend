@@ -252,6 +252,10 @@ app.use('/api/referral', referralRoutes); // F3 - Referral program
 app.use('/api/models', modelsRoutes); // AI Model selection for conversational AI
 // app.use('/api/coupons', couponsRoutes); // Disabled - using Dodo Payments built-in coupons
 
+// Tier management and feature access
+app.use('/api/tiers', require('./src/routes/tiers'));
+app.use('/api/chat', require('./src/routes/chat')); // Conversational AI chat
+
 // PERFORMANCE - Response time monitoring
 app.use('/api/performance', performanceRoutes);
 
