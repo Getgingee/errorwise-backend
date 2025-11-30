@@ -17,6 +17,26 @@
 // ============================================================================
 
 const CLAUDE_MODELS = {
+  // ==================== AUTO MODE (Intelligent Selection) ====================
+  'auto': {
+    id: 'auto',
+    apiId: null, // Resolved dynamically based on error complexity
+    name: 'Auto',
+    shortName: 'Auto',
+    description: 'Automatically picks the best model for your error',
+    speed: 'adaptive',
+    intelligence: 'adaptive',
+    maxTokens: 8192,
+    contextWindow: 200000,
+    inputPricePerMTok: 0, // Varies based on actual model used
+    outputPricePerMTok: 0,
+    features: ['smart-routing', 'cost-optimization', 'adaptive'],
+    tiers: ['pro', 'team'], // Not for free - they only have haiku
+    icon: '✨',
+    color: '#f59e0b', // Amber
+    isAuto: true
+  },
+
   // ==================== FAST MODEL (All tiers) ====================
   'haiku': {
     id: 'haiku',
@@ -84,19 +104,19 @@ const TIER_MODEL_DEFAULTS = {
     default: 'haiku',
     allowedModels: ['haiku'],
     maxTokensAllowed: 2000,
-    showToggle: false // Free users don't see toggle
+    showToggle: false // Free users just get Fast, no toggle needed
   },
   pro: {
-    default: 'sonnet',
-    allowedModels: ['haiku', 'sonnet'],
+    default: 'auto',
+    allowedModels: ['auto', 'haiku', 'sonnet'],
     maxTokensAllowed: 4000,
-    showToggle: true // Pro users see Fast ↔ Smart toggle
+    showToggle: true // Pro users see Auto ↔ Fast ↔ Smart
   },
   team: {
-    default: 'sonnet',
-    allowedModels: ['haiku', 'sonnet', 'opus'],
+    default: 'auto',
+    allowedModels: ['auto', 'haiku', 'sonnet', 'opus'],
     maxTokensAllowed: 8000,
-    showToggle: true // Team sees 3-way toggle
+    showToggle: true // Team sees Auto ↔ Fast ↔ Smart ↔ Genius
   }
 };
 
@@ -208,6 +228,79 @@ function getFallbackModelForTier(tier = 'free') {
 }
 
 /**
+ * SMART AUTO MODE: Analyze error complexity to pick best model
+ * Returns the actual model to use based on error characteristics
+ */
+function resolveAutoModel(errorText, tier = 'free') {
+  if (!errorText) {
+    return 'haiku'; // Default to fast for empty/unknown
+  }
+
+  const text = errorText.toLowerCase();
+  const length = errorText.length;
+  
+  // Complexity indicators
+  const complexityScore = calculateComplexityScore(text, length);
+  
+  // Tier-based model selection based on complexity
+  if (tier === 'team' && complexityScore >= 8) {
+    return 'opus'; // Genius for very complex errors
+  }
+  
+  if ((tier === 'pro' || tier === 'team') && complexityScore >= 4) {
+    return 'sonnet'; // Smart for moderately complex errors
+  }
+  
+  return 'haiku'; // Fast for simple errors
+}
+
+/**
+ * Calculate complexity score (0-10) based on error characteristics
+ */
+function calculateComplexityScore(text, length) {
+  let score = 0;
+  
+  // Length-based scoring
+  if (length > 2000) score += 2;
+  else if (length > 500) score += 1;
+  
+  // Stack trace depth
+  const stackLines = (text.match(/at\s+[\w.]+/gi) || []).length;
+  if (stackLines > 10) score += 2;
+  else if (stackLines > 5) score += 1;
+  
+  // Multiple file references
+  const fileRefs = (text.match(/\.(js|ts|py|java|cpp|go|rs|rb)[:(\d]/gi) || []).length;
+  if (fileRefs > 5) score += 1;
+  
+  // Complex error patterns
+  const complexPatterns = [
+    /memory\s*(leak|overflow|corruption)/i,
+    /deadlock|race\s*condition/i,
+    /segmentation\s*fault|sigsegv/i,
+    /heap|stack\s*overflow/i,
+    /async|await|promise.*reject/i,
+    /circular\s*(dependency|reference|import)/i,
+    /webpack|babel|typescript.*config/i,
+    /docker|kubernetes|k8s/i,
+    /database|sql.*injection|orm/i,
+    /authentication|authorization|jwt|oauth/i,
+    /ssl|tls|certificate|https/i,
+    /cors|csp|security/i,
+    /graphql|apollo|relay/i,
+    /microservice|distributed/i,
+    /concurrency|thread|mutex/i
+  ];
+  
+  for (const pattern of complexPatterns) {
+    if (pattern.test(text)) score += 1;
+  }
+  
+  // Cap at 10
+  return Math.min(score, 10);
+}
+
+/**
  * Get max tokens for tier
  */
 function getMaxTokensForTier(tier = 'free') {
@@ -224,11 +317,17 @@ function shouldShowToggle(tier = 'free') {
 }
 
 /**
- * Resolve model for request (handles legacy + tier validation)
+ * Resolve model for request (handles legacy + tier validation + AUTO mode)
  */
-function resolveModelForRequest(preferredModelId, tier = 'free') {
-  if (!preferredModelId) {
-    return getDefaultModelForTier(tier);
+function resolveModelForRequest(preferredModelId, tier = 'free', errorText = null) {
+  // Handle AUTO mode - intelligently pick based on error complexity
+  if (!preferredModelId || preferredModelId === 'auto') {
+    const autoResolvedId = resolveAutoModel(errorText, tier);
+    return {
+      ...CLAUDE_MODELS[autoResolvedId],
+      wasAuto: true,
+      autoReason: getAutoReason(autoResolvedId, errorText)
+    };
   }
   
   // Handle legacy IDs
@@ -238,8 +337,28 @@ function resolveModelForRequest(preferredModelId, tier = 'free') {
     return CLAUDE_MODELS[normalizedId] || getDefaultModelForTier(tier);
   }
   
-  // Fall back to tier default
-  return getDefaultModelForTier(tier);
+  // Fall back to tier default (which is now auto)
+  const autoResolvedId = resolveAutoModel(errorText, tier);
+  return {
+    ...CLAUDE_MODELS[autoResolvedId],
+    wasAuto: true,
+    autoReason: 'Fallback: requested model not available for your tier'
+  };
+}
+
+/**
+ * Get human-readable reason for auto model selection
+ */
+function getAutoReason(modelId, errorText) {
+  if (!errorText) return 'Using Fast mode for quick response';
+  
+  const reasons = {
+    'haiku': 'Simple error detected - using Fast mode',
+    'sonnet': 'Moderate complexity - using Smart mode for better analysis',
+    'opus': 'Complex issue detected - using Genius mode for deep analysis'
+  };
+  
+  return reasons[modelId] || 'Auto-selected based on error complexity';
 }
 
 /**
@@ -297,6 +416,8 @@ module.exports = {
   isModelAllowedForTier,
   getDefaultModelForTier,
   getFallbackModelForTier,
+  resolveAutoModel,
+  calculateComplexityScore,
   getMaxTokensForTier,
   shouldShowToggle,
   resolveModelForRequest,
