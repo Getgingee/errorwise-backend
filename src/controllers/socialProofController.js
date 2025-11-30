@@ -12,29 +12,29 @@ const { Op } = require('sequelize');
 const TESTIMONIALS = [
   {
     id: '1',
-    name: 'Alex Chen',
+    name: 'Kevin Kim',
     role: 'Full Stack Developer',
-    company: 'TechStartup',
-    avatar: 'AC',
-    rating: 5,
+    company: 'GetGingee',
+    avatar: 'PK',
+    rating: 4.6,
     quote: 'ErrorWise saved me hours of debugging. The AI explanations are spot-on and easy to understand!'
   },
   {
     id: '2',
-    name: 'Sarah Miller',
+    name: 'Sarah James',
     role: 'Backend Engineer',
     company: 'DataCorp',
-    avatar: 'SM',
-    rating: 5,
+    avatar: 'SJ',
+    rating: 4.8,
     quote: 'Finally, an error tool that actually understands my stack traces. Game changer for my workflow.'
   },
   {
     id: '3',
-    name: 'James Park',
+    name: 'Hennery Parker',
     role: 'Senior Developer',
     company: 'CloudServices Inc',
-    avatar: 'JP',
-    rating: 5,
+    avatar: 'HP',
+    rating: 4.5,
     quote: 'The Pro plan is worth every penny. Unlimited queries changed how I approach debugging.'
   }
 ];
