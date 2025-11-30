@@ -240,8 +240,8 @@ const TIER_CONFIG = {
   },
   team: {
     primary: { 
-      provider: 'anthropic',  // TEAM tier uses Claude Sonnet 4 (BEST quality)
-      model: 'claude-sonnet-4-20250514',  // Latest 2025 model - most advanced
+      provider: 'anthropic',  // TEAM tier uses Claude Sonnet 3.5 (BEST quality)
+      model: 'claude-3-5-sonnet-20241022',  // Latest stable Sonnet - most advanced
       maxTokens: 4000,
       temperature: 0.3,
     },
