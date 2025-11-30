@@ -98,7 +98,7 @@ function logPiiAccess({
     ipAddress: ipAddress || 'unknown',
     success,
     reason,
-    ...metadata
+    metadata: metadata || {}
   };
 
   if (success) {
@@ -135,7 +135,7 @@ function logSecurityEvent({
     userAgent: userAgent || 'unknown',
     success,
     reason,
-    ...metadata
+    metadata: metadata || {}
   };
 
   if (success) {
