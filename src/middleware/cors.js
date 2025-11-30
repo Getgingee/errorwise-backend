@@ -9,11 +9,15 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001',
+      'http://localhost:5173',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3001',
+      'http://127.0.0.1:5173',
       'https://errorwise-frontend.vercel.app',
       'https://errorwise.app',
-      'https://www.errorwise.app'
+      'https://www.errorwise.app',
+      'https://errorwise.tech',
+      'https://www.errorwise.tech'
     ];
 
     // In development, allow all localhost origins
@@ -24,6 +28,11 @@ const corsOptions = {
       if (localhostRegex.test(origin) || localhostIPRegex.test(origin)) {
         return callback(null, true);
       }
+    }
+
+    // Production: also allow Vercel preview URLs
+    if (origin.endsWith('.vercel.app')) {
+      return callback(null, true);
     }
 
     // Production origins
@@ -65,12 +74,20 @@ const strictCorsOptions = {
     const allowedOrigins = [
       'https://errorwise-frontend.vercel.app',
       'https://errorwise.app',
-      'https://www.errorwise.app'
+      'https://www.errorwise.app',
+      'https://errorwise.tech',
+      'https://www.errorwise.tech'
     ];
     
     // In development, only allow specific localhost
     if (process.env.NODE_ENV === 'development') {
       allowedOrigins.push('http://localhost:3000');
+      allowedOrigins.push('http://localhost:5173');
+    }
+
+    // Also allow Vercel preview URLs
+    if (origin && origin.endsWith('.vercel.app')) {
+      return callback(null, true);
     }
 
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
