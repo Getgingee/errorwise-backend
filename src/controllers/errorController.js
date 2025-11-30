@@ -11,6 +11,8 @@ const {
   LOW_CONFIDENCE_THRESHOLD 
 } = require('../utils/confidenceMessaging');
 const queryLogger = require('../services/queryLogger');
+const { getLimit, hasFeature } = require('../config/tierConfig');
+const { v4: uuidv4 } = require('uuid');
 
 // ============================================================================
 // PERFORMANCE OPTIMIZATIONS
@@ -70,6 +72,46 @@ function logQueryAsync(data) {
       console.error('Background logging failed:', error.message);
     }
   });
+}
+
+/**
+ * Generate suggested follow-up questions based on error and analysis
+ */
+function generateSuggestedQuestions(errorMessage, analysis) {
+  const suggestions = [];
+  const errorLower = errorMessage.toLowerCase();
+  
+  // Context-aware suggestions based on error type
+  if (errorLower.includes('undefined') || errorLower.includes('null')) {
+    suggestions.push("Why is this variable undefined?");
+    suggestions.push("How can I check if it's null before using it?");
+  } else if (errorLower.includes('import') || errorLower.includes('module')) {
+    suggestions.push("How do I install this module?");
+    suggestions.push("What's the correct import syntax?");
+  } else if (errorLower.includes('type') || errorLower.includes('typescript')) {
+    suggestions.push("Can you explain this type error?");
+    suggestions.push("How do I fix the type mismatch?");
+  } else if (errorLower.includes('async') || errorLower.includes('promise') || errorLower.includes('await')) {
+    suggestions.push("How should I handle this async error?");
+    suggestions.push("What's the proper way to await this?");
+  } else if (errorLower.includes('cors') || errorLower.includes('network')) {
+    suggestions.push("How do I fix CORS issues?");
+    suggestions.push("What headers do I need to set?");
+  } else if (errorLower.includes('syntax')) {
+    suggestions.push("Where exactly is the syntax error?");
+    suggestions.push("Can you show the corrected code?");
+  } else {
+    // Generic helpful questions
+    suggestions.push("Can you explain this in simpler terms?");
+    suggestions.push("Show me a code example");
+  }
+  
+  // Always add these useful questions
+  suggestions.push("What caused this error?");
+  suggestions.push("How can I prevent this in the future?");
+  
+  // Return top 3-4 most relevant
+  return suggestions.slice(0, 4);
 }
 
 // Analyze error with AI
@@ -237,6 +279,25 @@ exports.analyzeError = async (req, res) => {
       if (req.usageWarning) {
         response.usageWarning = req.usageWarning;
       }
+
+      // ============================================================================
+      // CONVERSATIONAL AI SUPPORT - Enable follow-up questions
+      // ============================================================================
+      const effectiveTier = req.userTier || subscriptionTier;
+      const maxFollowUps = getLimit(effectiveTier, 'maxFollowUps');
+      
+      response.conversation = {
+        id: queryId, // Use as conversation ID for follow-ups
+        canFollowUp: hasFeature(effectiveTier, 'followUpQuestions'),
+        maxFollowUps: maxFollowUps,
+        followUpsRemaining: maxFollowUps,
+        contextMemory: hasFeature(effectiveTier, 'contextMemory'),
+        // Suggested follow-up questions based on the error
+        suggestedQuestions: generateSuggestedQuestions(errorMessage, filteredAnalysis),
+        hint: maxFollowUps > 0 
+          ? `You can ask ${maxFollowUps} follow-up questions to understand better` 
+          : 'Upgrade to ask follow-up questions'
+      };
 
       res.json(response);
 
