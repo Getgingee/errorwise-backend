@@ -1,37 +1,119 @@
 /**
  * Newsletter Job - Automated Weekly Newsletter
  * Sends product updates, new features, and tips to subscribers
+ * 
+ * Security: XSS protection, secure tokens, no PII logging
+ * Compliance: Unsubscribe links in all emails
  */
 
 const cron = require('node-cron');
+const crypto = require('crypto');
 const pool = require('../config/db');
 const emailService = require('../utils/emailService');
 
+// Track last newsletter send to prevent duplicates
+let lastNewsletterSendDate = null;
+
 /**
- * Get all active newsletter subscribers
+ * Escape HTML to prevent XSS
  */
-async function getActiveSubscribers() {
+function escapeHtml(text) {
+  if (!text) return '';
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return String(text).replace(/[&<>"']/g, char => map[char]);
+}
+
+/**
+ * Mask email for logging (privacy)
+ */
+function maskEmail(email) {
+  if (!email) return '***';
+  const [local, domain] = email.split('@');
+  if (!domain) return '***';
+  const maskedLocal = local.length > 2 
+    ? local[0] + '*'.repeat(local.length - 2) + local[local.length - 1]
+    : '**';
+  return `${maskedLocal}@${domain}`;
+}
+
+/**
+ * Get active newsletter subscribers with pagination
+ * @param {Object|number} options - Either options object {limit, offset} or legacy limit number
+ * @param {number} legacyOffset - Legacy offset parameter (for backward compatibility)
+ * @returns {Object|Array} Returns {subscribers, total} for object call, or array for legacy
+ */
+async function getActiveSubscribers(options = {}, legacyOffset = 0) {
   try {
+    // Support both new object style and legacy positional args
+    let limit, offset, returnObject = false;
+    
+    if (typeof options === 'object' && options !== null && !Array.isArray(options)) {
+      limit = options.limit || 100;
+      offset = options.offset || 0;
+      returnObject = true;
+    } else {
+      // Legacy positional arguments
+      limit = typeof options === 'number' ? options : 100;
+      offset = legacyOffset;
+    }
+    
+    // Get subscribers
     const result = await pool.query(`
-      SELECT id, email, name, subscription_type, created_at
+      SELECT id, email, name, subscription_type, unsubscribe_token, created_at
       FROM newslettersubscriptions 
       WHERE status = 'active'
       ORDER BY created_at DESC
-    `);
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
+    
+    if (returnObject) {
+      // Get total count for pagination
+      const countResult = await pool.query(`
+        SELECT COUNT(*) as count FROM newslettersubscriptions WHERE status = 'active'
+      `);
+      const total = parseInt(countResult.rows[0].count, 10);
+      
+      return {
+        subscribers: result.rows,
+        total
+      };
+    }
+    
+    // Legacy: return just the array
     return result.rows;
   } catch (error) {
-    console.error('❌ Error fetching subscribers:', error);
+    console.error('❌ Error fetching subscribers');
+    if (typeof options === 'object') {
+      return { subscribers: [], total: 0 };
+    }
     return [];
   }
 }
 
 /**
+ * Get total subscriber count
+ */
+async function getSubscriberCount() {
+  try {
+    const result = await pool.query(`
+      SELECT COUNT(*) as count FROM newslettersubscriptions WHERE status = 'active'
+    `);
+    return parseInt(result.rows[0].count, 10);
+  } catch (error) {
+    return 0;
+  }
+}
+
+/**
  * Get recent platform updates/changelog
- * This can be expanded to pull from a database table
  */
 function getRecentUpdates() {
-  // In production, this would fetch from a changelog table
-  // For now, return static updates that can be edited
   return [
     {
       title: '🚀 AI-Powered Error Analysis',
@@ -62,11 +144,11 @@ function getWeeklyTips() {
     },
     {
       title: 'Include Context',
-      content: 'If you\'re getting an error while doing something specific, mention what you were trying to do. Context helps!'
+      content: 'If you are getting an error while doing something specific, mention what you were trying to do. Context helps!'
     },
     {
       title: 'Check Your Error History',
-      content: 'Pro tip: Your dashboard keeps a history of all errors you\'ve analyzed. Great for recurring issues!'
+      content: 'Pro tip: Your dashboard keeps a history of all errors you have analyzed. Great for recurring issues!'
     },
     {
       title: 'Rate Solutions',
@@ -78,16 +160,16 @@ function getWeeklyTips() {
     }
   ];
   
-  // Return a random tip
   return tips[Math.floor(Math.random() * tips.length)];
 }
 
 /**
- * Generate newsletter HTML
+ * Generate newsletter HTML with XSS protection
  */
 function generateNewsletterHTML(subscriber, updates, tip) {
-  const subscriberName = subscriber.name || 'ErrorWise User';
-  const unsubscribeUrl = `https://errorwise.tech/unsubscribe?token=${subscriber.id}`;
+  const safeName = escapeHtml(subscriber.name) || 'ErrorWise User';
+  const unsubscribeToken = subscriber.unsubscribe_token;
+  const unsubscribeUrl = `https://errorwise.tech/unsubscribe/${encodeURIComponent(unsubscribeToken)}`;
   
   return `
 <!DOCTYPE html>
@@ -116,9 +198,8 @@ function generateNewsletterHTML(subscriber, updates, tip) {
     <!-- Main Content -->
     <div style="padding: 30px; background-color: #1e293b; margin: 20px; border-radius: 16px;">
       
-      <!-- Greeting -->
       <p style="color: #e2e8f0; font-size: 16px; margin: 0 0 25px 0;">
-        Hi ${subscriberName}! 👋
+        Hi ${safeName}! 👋
       </p>
       
       <p style="color: #94a3b8; font-size: 15px; margin: 0 0 30px 0; line-height: 1.6;">
@@ -127,17 +208,17 @@ function generateNewsletterHTML(subscriber, updates, tip) {
       
       <!-- Updates Section -->
       <div style="margin-bottom: 30px;">
-        <h2 style="color: #22d3ee; font-size: 18px; margin: 0 0 20px 0; display: flex; align-items: center;">
+        <h2 style="color: #22d3ee; font-size: 18px; margin: 0 0 20px 0;">
           🆕 What's New
         </h2>
         
         ${updates.map(update => `
           <div style="background: linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%); border: 1px solid rgba(34, 211, 238, 0.2); border-radius: 12px; padding: 20px; margin-bottom: 15px;">
             <h3 style="color: #f1f5f9; font-size: 16px; margin: 0 0 8px 0;">
-              ${update.title}
+              ${escapeHtml(update.title)}
             </h3>
             <p style="color: #94a3b8; font-size: 14px; margin: 0; line-height: 1.5;">
-              ${update.description}
+              ${escapeHtml(update.description)}
             </p>
           </div>
         `).join('')}
@@ -149,10 +230,10 @@ function generateNewsletterHTML(subscriber, updates, tip) {
           💡 Tip of the Week
         </h2>
         <h3 style="color: #f1f5f9; font-size: 15px; margin: 0 0 8px 0;">
-          ${tip.title}
+          ${escapeHtml(tip.title)}
         </h3>
         <p style="color: #94a3b8; font-size: 14px; margin: 0; line-height: 1.5;">
-          ${tip.content}
+          ${escapeHtml(tip.content)}
         </p>
       </div>
       
@@ -213,13 +294,15 @@ function generateNewsletterHTML(subscriber, updates, tip) {
 }
 
 /**
- * Generate plain text version
+ * Generate plain text version with unsubscribe link
  */
 function generateNewsletterText(subscriber, updates, tip) {
-  const subscriberName = subscriber.name || 'ErrorWise User';
+  const safeName = subscriber.name || 'ErrorWise User';
+  const unsubscribeToken = subscriber.unsubscribe_token;
+  const unsubscribeUrl = `https://errorwise.tech/unsubscribe/${unsubscribeToken}`;
   
   return `
-Hi ${subscriberName}!
+Hi ${safeName}!
 
 Here's what's been happening at ErrorWise this week.
 
@@ -239,7 +322,7 @@ Ready to solve an error? Visit: https://errorwise.tech/dashboard
 
 ---
 You're receiving this because you subscribed to ErrorWise updates.
-Unsubscribe: https://errorwise.tech/unsubscribe
+Unsubscribe: ${unsubscribeUrl}
 
 © ${new Date().getFullYear()} ErrorWise. All rights reserved.
   `;
@@ -268,69 +351,101 @@ async function sendNewsletterToSubscriber(subscriber, updates, tip) {
       WHERE id = $1
     `, [subscriber.id]);
     
-    return { success: true, email: subscriber.email };
+    return { success: true };
   } catch (error) {
-    console.error(`❌ Failed to send newsletter to ${subscriber.email}:`, error.message);
-    return { success: false, email: subscriber.email, error: error.message };
+    console.error(`❌ Failed to send newsletter to ${maskEmail(subscriber.email)}`);
+    return { success: false, error: error.message };
   }
 }
 
 /**
- * Send weekly newsletter to all subscribers
+ * Send weekly newsletter to all subscribers with pagination and duplicate protection
  */
 async function sendWeeklyNewsletter() {
+  const today = new Date().toDateString();
+  
+  // Prevent duplicate sends on the same day
+  if (lastNewsletterSendDate === today) {
+    console.log('⚠️ Newsletter already sent today, skipping duplicate');
+    return { sent: 0, failed: 0, skipped: true };
+  }
+  
   console.log('\n📬 Starting weekly newsletter send...');
   console.log(`📅 Date: ${new Date().toISOString()}`);
   
   try {
-    const subscribers = await getActiveSubscribers();
+    const totalCount = await getSubscriberCount();
     
-    if (subscribers.length === 0) {
+    if (totalCount === 0) {
       console.log('📭 No active subscribers found');
       return { sent: 0, failed: 0 };
     }
     
-    console.log(`📧 Found ${subscribers.length} active subscribers`);
+    console.log(`📧 Found ${totalCount} active subscribers`);
     
     const updates = getRecentUpdates();
     const tip = getWeeklyTips();
     
     let sent = 0;
     let failed = 0;
+    const batchSize = 50;
     
-    // Send emails with a small delay to avoid rate limits
-    for (const subscriber of subscribers) {
-      const result = await sendNewsletterToSubscriber(subscriber, updates, tip);
+    // Process subscribers in batches
+    for (let offset = 0; offset < totalCount; offset += batchSize) {
+      const subscribers = await getActiveSubscribers(batchSize, offset);
       
-      if (result.success) {
-        sent++;
-        console.log(`✅ Sent to: ${result.email}`);
-      } else {
-        failed++;
-        console.log(`❌ Failed: ${result.email} - ${result.error}`);
+      for (const subscriber of subscribers) {
+        const result = await sendNewsletterToSubscriber(subscriber, updates, tip);
+        
+        if (result.success) {
+          sent++;
+        } else {
+          failed++;
+        }
+        
+        // Add small delay between emails (100ms)
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
       
-      // Add small delay between emails (100ms)
-      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log(`📊 Progress: ${Math.min(offset + batchSize, totalCount)}/${totalCount}`);
     }
+    
+    // Mark as sent for today
+    lastNewsletterSendDate = today;
     
     console.log(`\n📊 Newsletter Summary:`);
     console.log(`   ✅ Sent: ${sent}`);
     console.log(`   ❌ Failed: ${failed}`);
-    console.log(`   📧 Total: ${subscribers.length}\n`);
+    console.log(`   📧 Total: ${totalCount}\n`);
     
-    return { sent, failed, total: subscribers.length };
+    return { sent, failed, total: totalCount };
   } catch (error) {
-    console.error('❌ Newsletter send failed:', error);
-    return { sent: 0, failed: 0, error: error.message };
+    console.error('❌ Newsletter send failed');
+    return { sent: 0, failed: 0, error: 'Send failed' };
   }
 }
 
 /**
- * Send welcome email to new subscriber
+ * Send welcome email to new subscriber with unsubscribe link
  */
 async function sendWelcomeEmail(subscriber) {
-  const subscriberName = subscriber.name || 'there';
+  const safeName = escapeHtml(subscriber.name) || 'there';
+  
+  // Get or create unsubscribe token
+  let unsubscribeToken = subscriber.unsubscribe_token;
+  if (!unsubscribeToken) {
+    unsubscribeToken = crypto.randomBytes(32).toString('hex');
+    try {
+      await pool.query(
+        'UPDATE newslettersubscriptions SET unsubscribe_token = $1 WHERE id = $2',
+        [unsubscribeToken, subscriber.id]
+      );
+    } catch (err) {
+      // Continue even if token update fails
+    }
+  }
+  
+  const unsubscribeUrl = `https://errorwise.tech/unsubscribe/${encodeURIComponent(unsubscribeToken)}`;
   
   const htmlContent = `
 <!DOCTYPE html>
@@ -360,7 +475,7 @@ async function sendWelcomeEmail(subscriber) {
     <div style="padding: 30px; background-color: #1e293b; margin: 20px; border-radius: 16px;">
       
       <p style="color: #e2e8f0; font-size: 16px; margin: 0 0 20px 0;">
-        Hi ${subscriberName}! 👋
+        Hi ${safeName}! 👋
       </p>
       
       <p style="color: #94a3b8; font-size: 15px; margin: 0 0 25px 0; line-height: 1.6;">
@@ -403,11 +518,21 @@ async function sendWelcomeEmail(subscriber) {
       
     </div>
     
-    <!-- Footer -->
+    <!-- Footer with unsubscribe -->
     <div style="padding: 30px; text-align: center;">
-      <p style="color: #475569; font-size: 12px; margin: 0;">
-        © ${new Date().getFullYear()} ErrorWise. All rights reserved.
+      <p style="color: #475569; font-size: 12px; margin: 0 0 15px 0;">
+        You're receiving this because you subscribed to ErrorWise updates.
       </p>
+      
+      <a href="${unsubscribeUrl}" style="color: #64748b; text-decoration: underline; font-size: 12px;">
+        Unsubscribe from these emails
+      </a>
+      
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #334155;">
+        <p style="color: #475569; font-size: 11px; margin: 0;">
+          © ${new Date().getFullYear()} ErrorWise. All rights reserved.
+        </p>
+      </div>
     </div>
     
   </div>
@@ -415,18 +540,30 @@ async function sendWelcomeEmail(subscriber) {
 </html>
   `;
   
+  const textContent = `Welcome to ErrorWise, ${safeName}!
+
+Thanks for subscribing! You'll receive weekly updates about new features, pro tips, and exclusive content.
+
+Start solving errors: https://errorwise.tech
+
+---
+You're receiving this because you subscribed to ErrorWise updates.
+Unsubscribe: ${unsubscribeUrl}
+
+© ${new Date().getFullYear()} ErrorWise. All rights reserved.`;
+  
   try {
     await emailService.sendEmail({
       to: subscriber.email,
       subject: '🎉 Welcome to ErrorWise!',
       html: htmlContent,
-      text: `Welcome to ErrorWise, ${subscriberName}!\n\nThanks for subscribing! You'll receive weekly updates about new features, pro tips, and exclusive content.\n\nStart solving errors: https://errorwise.tech\n\n© ${new Date().getFullYear()} ErrorWise`
+      text: textContent
     });
     
-    console.log(`✅ Welcome email sent to: ${subscriber.email}`);
+    console.log(`✅ Welcome email sent to: ${maskEmail(subscriber.email)}`);
     return true;
   } catch (error) {
-    console.error(`❌ Failed to send welcome email to ${subscriber.email}:`, error.message);
+    console.error(`❌ Failed to send welcome email to ${maskEmail(subscriber.email)}`);
     return false;
   }
 }
@@ -449,10 +586,15 @@ function initializeNewsletterJobs() {
 }
 
 /**
- * Manual trigger for testing
+ * Manual trigger for testing (with duplicate protection)
  */
-async function triggerNewsletterManually() {
+async function triggerNewsletterManually(force = false) {
   console.log('🔧 Manual newsletter trigger...');
+  
+  if (force) {
+    lastNewsletterSendDate = null; // Reset duplicate protection
+  }
+  
   return await sendWeeklyNewsletter();
 }
 
@@ -461,5 +603,6 @@ module.exports = {
   sendWeeklyNewsletter,
   sendWelcomeEmail,
   triggerNewsletterManually,
-  getActiveSubscribers
+  getActiveSubscribers,
+  getSubscriberCount
 };

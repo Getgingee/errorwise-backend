@@ -8,6 +8,9 @@ const sequelize = require('../config/database');
 // Admin Controller (A1 - Query Logs)
 const adminController = require('../controllers/adminController');
 
+// Newsletter Job (moved to top to avoid dynamic require)
+const newsletterJob = require('../jobs/newsletterJob');
+
 // Admin middleware - check if user is admin
 const isAdmin = async (req, res, next) => {
   if (req.user.role !== 'admin') {
@@ -191,8 +194,7 @@ router.get('/users', authMiddleware, isAdmin, async (req, res) => {
 // Manual trigger for weekly newsletter (admin only)
 router.post('/newsletter/send', authMiddleware, isAdmin, async (req, res) => {
   try {
-    const { triggerNewsletterManually } = require('../jobs/newsletterJob');
-    const result = await triggerNewsletterManually();
+    const result = await newsletterJob.triggerNewsletterManually();
     
     res.json({
       success: true,
@@ -205,16 +207,27 @@ router.post('/newsletter/send', authMiddleware, isAdmin, async (req, res) => {
   }
 });
 
-// Get newsletter subscribers list (admin only)
+// Get newsletter subscribers list with pagination (admin only)
 router.get('/newsletter/subscribers', authMiddleware, isAdmin, async (req, res) => {
   try {
-    const { getActiveSubscribers } = require('../jobs/newsletterJob');
-    const subscribers = await getActiveSubscribers();
+    // Parse pagination params with defaults
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 50));
+    const offset = (page - 1) * limit;
+    
+    const result = await newsletterJob.getActiveSubscribers({ limit, offset });
     
     res.json({
       success: true,
-      count: subscribers.length,
-      subscribers
+      pagination: {
+        page,
+        limit,
+        offset,
+        hasMore: result.subscribers.length === limit
+      },
+      count: result.subscribers.length,
+      total: result.total,
+      subscribers: result.subscribers
     });
   } catch (error) {
     console.error('Error fetching subscribers:', error);
