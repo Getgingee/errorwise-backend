@@ -225,4 +225,157 @@ router.get('/all', async (req, res) => {
   }
 });
 
+// ============================================================================
+// ADDITIONAL ENDPOINTS (for frontend compatibility)
+// ============================================================================
+
+/**
+ * GET /api/models/available
+ * Alias for /toggle - returns available models for user
+ */
+router.get('/available', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findByPk(userId, {
+      attributes: ['id', 'subscription_tier', 'preferred_ai_model', 'trialEndsAt']
+    });
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const baseTier = user.subscription_tier || 'free';
+    let effectiveTier = baseTier;
+    
+    if (baseTier === 'free' && user.trialEndsAt) {
+      const trialEnd = new Date(user.trialEndsAt);
+      if (trialEnd > new Date()) {
+        effectiveTier = 'pro';
+      }
+    }
+    
+    const toggleConfig = getToggleConfig(effectiveTier);
+    const currentModel = user.preferred_ai_model || toggleConfig.default;
+    
+    res.json({
+      success: true,
+      tier: baseTier,
+      effectiveTier,
+      showToggle: toggleConfig.show,
+      currentModel,
+      models: toggleConfig.models,
+      available: toggleConfig.models, // Frontend compatibility
+      defaultModel: toggleConfig.default
+    });
+  } catch (error) {
+    console.error('Error fetching available models:', error);
+    res.status(500).json({ error: 'Failed to fetch models' });
+  }
+});
+
+/**
+ * POST /api/models/select
+ * Select/set model preference (POST version for frontend compatibility)
+ */
+router.post('/select', authMiddleware, modelPreferenceLimiter, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { modelId } = req.body;
+    
+    if (!modelId) {
+      return res.status(400).json({ error: 'Model ID is required' });
+    }
+    
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const baseTier = user.subscription_tier || 'free';
+    let effectiveTier = baseTier;
+    
+    if (baseTier === 'free' && user.trialEndsAt) {
+      const trialEnd = new Date(user.trialEndsAt);
+      if (trialEnd > new Date()) {
+        effectiveTier = 'pro';
+      }
+    }
+    
+    if (!shouldShowToggle(effectiveTier)) {
+      return res.status(403).json({
+        error: 'Model selection not available for free tier',
+        suggestion: 'Start your 7-day trial or upgrade to Pro'
+      });
+    }
+    
+    if (!isModelAllowedForTier(modelId, effectiveTier)) {
+      return res.status(403).json({
+        error: 'Model not available for your tier'
+      });
+    }
+    
+    const model = getModelById(modelId);
+    await user.update({ preferred_ai_model: modelId });
+    
+    res.json({
+      success: true,
+      message: `Model changed to ${model.name}`,
+      model: {
+        id: model.id,
+        name: model.name,
+        icon: model.icon
+      }
+    });
+  } catch (error) {
+    console.error('Error selecting model:', error);
+    res.status(500).json({ error: 'Failed to select model' });
+  }
+});
+
+/**
+ * GET /api/models/current
+ * Get current model for user
+ */
+router.get('/current', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findByPk(userId, {
+      attributes: ['id', 'subscription_tier', 'preferred_ai_model', 'trialEndsAt']
+    });
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const baseTier = user.subscription_tier || 'free';
+    let effectiveTier = baseTier;
+    
+    if (baseTier === 'free' && user.trialEndsAt) {
+      const trialEnd = new Date(user.trialEndsAt);
+      if (trialEnd > new Date()) {
+        effectiveTier = 'pro';
+      }
+    }
+    
+    const defaultModel = getDefaultModelForTier(effectiveTier);
+    const currentModelId = user.preferred_ai_model || defaultModel.id;
+    const model = getModelById(currentModelId) || defaultModel;
+    
+    res.json({
+      success: true,
+      model: {
+        id: model.id,
+        name: model.name,
+        icon: model.icon,
+        description: model.description
+      },
+      tier: baseTier,
+      effectiveTier
+    });
+  } catch (error) {
+    console.error('Error fetching current model:', error);
+    res.status(500).json({ error: 'Failed to fetch current model' });
+  }
+});
+
 module.exports = router;

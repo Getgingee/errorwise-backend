@@ -142,6 +142,127 @@ router.post('/check-feature', authMiddleware, async (req, res) => {
   }
 });
 
+// ============================================================================
+// ADDITIONAL ENDPOINTS (for frontend compatibility)
+// Must be defined BEFORE /:tierId catch-all route
+// ============================================================================
+
+/**
+ * GET /api/tiers/features
+ * Alias for /current - returns features for current user
+ */
+router.get('/features', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: ['id', 'subscriptionTier', 'trialEndsAt']
+    });
+    
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    
+    const tierInfo = getEffectiveTier(user);
+    const tier = getTier(tierInfo.tier);
+    const features = getFeaturesForDisplay(tierInfo.tier);
+    
+    res.json({
+      success: true,
+      tier: tierInfo.tier,
+      features: Object.keys(tier.features || {}).filter(f => tier.features[f]),
+      limits: tier.limits,
+      comparison: getTierComparison()
+    });
+  } catch (error) {
+    console.error('Get features error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get features' });
+  }
+});
+
+/**
+ * GET /api/tiers/limits
+ * Get limits for current user's tier
+ */
+router.get('/limits', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: ['id', 'subscriptionTier', 'trialEndsAt']
+    });
+    
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    
+    const tierInfo = getEffectiveTier(user);
+    const tier = getTier(tierInfo.tier);
+    
+    res.json({
+      success: true,
+      tier: tierInfo.tier,
+      limits: tier.limits
+    });
+  } catch (error) {
+    console.error('Get limits error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get limits' });
+  }
+});
+
+/**
+ * POST /api/tiers/trial/start
+ * Start 7-day Pro trial for free users
+ */
+router.post('/trial/start', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    
+    // Check if user already has subscription or trial
+    if (user.subscriptionTier !== 'free' && user.subscriptionTier !== null) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'You already have an active subscription' 
+      });
+    }
+    
+    if (user.trialEndsAt) {
+      const trialEnd = new Date(user.trialEndsAt);
+      if (trialEnd > new Date()) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'You already have an active trial',
+          trialEndsAt: user.trialEndsAt
+        });
+      } else {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'You have already used your trial. Please upgrade to Pro.' 
+        });
+      }
+    }
+    
+    // Start 7-day trial
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+    
+    await user.update({ trialEndsAt });
+    
+    res.json({
+      success: true,
+      message: 'Your 7-day Pro trial has started! Enjoy all Pro features.',
+      trialEndsAt: trialEndsAt.toISOString()
+    });
+  } catch (error) {
+    console.error('Start trial error:', error);
+    res.status(500).json({ success: false, error: 'Failed to start trial' });
+  }
+});
+
+// ============================================================================
+// DYNAMIC ROUTES (must be last!)
+// ============================================================================
+
 /**
  * GET /api/tiers/:tierId
  * Get specific tier details
