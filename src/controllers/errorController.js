@@ -12,8 +12,70 @@ const {
 } = require('../utils/confidenceMessaging');
 const queryLogger = require('../services/queryLogger');
 
+// ============================================================================
+// PERFORMANCE OPTIMIZATIONS
+// ============================================================================
+
+// In-memory cache for user tier lookup (reduces DB calls)
+const userTierCache = new Map();
+const USER_TIER_CACHE_TTL = 300000; // 5 minutes
+
+/**
+ * Get user tier from cache or DB (with caching)
+ */
+async function getCachedUserTier(userId, user) {
+  const cached = userTierCache.get(userId);
+  if (cached && Date.now() - cached.timestamp < USER_TIER_CACHE_TTL) {
+    return cached;
+  }
+  
+  const tier = user?.subscription_tier || 'free';
+  const preferredModel = user?.preferred_ai_model || null;
+  
+  const data = { tier, preferredModel, timestamp: Date.now() };
+  userTierCache.set(userId, data);
+  
+  // Cleanup old entries periodically
+  if (userTierCache.size > 1000) {
+    const oldestKey = userTierCache.keys().next().value;
+    userTierCache.delete(oldestKey);
+  }
+  
+  return data;
+}
+
+/**
+ * Non-blocking database write for error queries
+ * Returns immediately, writes to DB in background
+ */
+function saveErrorQueryAsync(data) {
+  // Fire and forget - don't await
+  setImmediate(async () => {
+    try {
+      await ErrorQuery.create(data);
+    } catch (error) {
+      console.error('Background DB write failed:', error.message);
+    }
+  });
+}
+
+/**
+ * Non-blocking query logging
+ */
+function logQueryAsync(data) {
+  setImmediate(async () => {
+    try {
+      await queryLogger.logQuery(data);
+    } catch (error) {
+      console.error('Background logging failed:', error.message);
+    }
+  });
+}
+
 // Analyze error with AI
 exports.analyzeError = async (req, res) => {
+  const startTime = Date.now();
+  
   try {
     const { errorMessage, language, errorType, codeSnippet, fileName, lineNumber, conversationHistory, preferredModel } = req.body;
     const userId = req.user.id;
@@ -22,20 +84,12 @@ exports.analyzeError = async (req, res) => {
       return res.status(400).json({ error: 'Error message is required' });
     }
 
-    // Get user's subscription tier
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Get user's subscription tier from middleware
-    const subscriptionTier = req.userTier || 'free';
+    // PERFORMANCE: Get user tier from middleware (already available) or cache
+    // Skip DB lookup if tier is available from auth middleware
+    const subscriptionTier = req.userTier || req.user?.subscription_tier || 'free';
     
-    // Get user's preferred model (from request or user's saved preference)
-    const modelToUse = preferredModel || user.preferred_ai_model || null;
-
-    // Call AI service to analyze the error
-    const startTime = Date.now();
+    // Get user's preferred model from cache/middleware (avoid DB call)
+    const modelToUse = preferredModel || req.user?.preferred_ai_model || null;
     
     try {
       const analysis = await aiService.analyzeError({
@@ -69,49 +123,46 @@ exports.analyzeError = async (req, res) => {
       const lowConfidence = isLowConfidence(confidence);
       const confidenceBucket = getConfidenceBucket(confidence);
 
-      // Save the query to database
-      const errorQuery = await ErrorQuery.create({
+      // PERFORMANCE: Non-blocking DB write - save in background
+      const queryId = `eq_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      saveErrorQueryAsync({
         userId,
         errorMessage,
         explanation: analysis.explanation,
         solution: analysis.solution,
         errorCategory: analysis.category || 'general',
-        aiProvider: analysis.provider || 'openai',
+        aiProvider: analysis.provider || 'anthropic',
         userSubscriptionTier: subscriptionTier,
         responseTime,
         tags: analysis.tags || []
       });
 
-      // A1: Log query with confidence data
-      try {
-        await queryLogger.logQuery({
-          userId,
-          anonymousId: req.sessionID || req.ip,
-          rawError: errorMessage,
-          model: analysis.model || analysis.provider || 'unknown',
-          provider: analysis.provider || 'anthropic',
-          subscriptionTier,
-          success: true,
-          confidence,
-          latencyMs: responseTime,
-          lowConfidence,
-          fallbackUsed: analysis.fallbackUsed || false,
-          primaryModelAttempted: analysis.primaryModelAttempted,
-          retryCount: analysis.retryCount || 0,
-          metadata: {
-            language: language || 'javascript',
-            errorType: errorType || 'runtime',
-            confidenceBucket,
-            tier: subscriptionTier
-          }
-        });
-      } catch (logError) {
-        console.error('Query logging failed (non-critical):', logError.message);
-      }
+      // PERFORMANCE: Non-blocking logging
+      logQueryAsync({
+        userId,
+        anonymousId: req.sessionID || req.ip,
+        rawError: errorMessage,
+        model: analysis.model || analysis.provider || 'unknown',
+        provider: analysis.provider || 'anthropic',
+        subscriptionTier,
+        success: true,
+        confidence,
+        latencyMs: responseTime,
+        lowConfidence,
+        fallbackUsed: analysis.fallbackUsed || false,
+        primaryModelAttempted: analysis.primaryModelAttempted,
+        retryCount: analysis.retryCount || 0,
+        metadata: {
+          language: language || 'javascript',
+          errorType: errorType || 'runtime',
+          confidenceBucket,
+          tier: subscriptionTier
+        }
+      });
 
-      // Prepare response with tier-specific data
+      // Prepare response with tier-specific data (use temp ID since DB write is async)
       const response = {
-        id: errorQuery.id,
+        id: queryId,
         errorMessage: errorMessage,
         explanation: filteredAnalysis.explanation,
         solution: filteredAnalysis.solution,
@@ -126,8 +177,10 @@ exports.analyzeError = async (req, res) => {
         // A3: Low confidence flag and warning
         isLowConfidence: lowConfidence,
         confidenceBucket,
-        createdAt: errorQuery.createdAt,
-        tier: subscriptionTier
+        createdAt: new Date().toISOString(),
+        tier: subscriptionTier,
+        // PERFORMANCE: Add response time for monitoring
+        responseTimeMs: responseTime
       };
 
       // A3: Add confidence warning for low confidence responses
@@ -189,8 +242,10 @@ exports.analyzeError = async (req, res) => {
 
     } catch (aiError) {
       console.error('AI Analysis error:', aiError);
+      const responseTime = Date.now() - startTime;
       
       // Fallback response if AI fails
+      const fallbackId = `fb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const fallbackResponse = {
         explanation: 'Unable to analyze this error at the moment. Please try again later.',
         solution: 'Check the error message for syntax issues, missing imports, or undefined variables.',
@@ -199,8 +254,8 @@ exports.analyzeError = async (req, res) => {
         confidence: 0.1
       };
 
-      // Still save to database for tracking
-      const fallbackQuery = await ErrorQuery.create({
+      // PERFORMANCE: Non-blocking DB write for fallback
+      saveErrorQueryAsync({
         userId,
         errorMessage,
         explanation: fallbackResponse.explanation,
@@ -208,19 +263,19 @@ exports.analyzeError = async (req, res) => {
         errorCategory: 'general',
         aiProvider: 'fallback',
         userSubscriptionTier: subscriptionTier,
-        responseTime: Date.now() - startTime,
+        responseTime,
         tags: ['error', 'fallback']
       });
 
       res.json({
-        analysis: {
-          id: fallbackQuery.id,
-          errorMessage: errorMessage,
-          analysis: fallbackResponse.explanation,
-          solution: fallbackResponse.solution,
-          confidence: Math.round(fallbackResponse.confidence * 100),
-          createdAt: fallbackQuery.createdAt
-        }
+        id: fallbackId,
+        errorMessage: errorMessage,
+        explanation: fallbackResponse.explanation,
+        solution: fallbackResponse.solution,
+        confidence: Math.round(fallbackResponse.confidence * 100),
+        createdAt: new Date().toISOString(),
+        responseTimeMs: responseTime,
+        isFallback: true
       });
     }
 

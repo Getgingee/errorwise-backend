@@ -3,6 +3,44 @@ const User = require('../models/User');
 const { AppError } = require('./errorHandler');
 const logger = require('../utils/logger');
 
+// ============================================================================
+// PERFORMANCE: User cache to avoid DB lookups on every request
+// ============================================================================
+const userCache = new Map();
+const USER_CACHE_TTL = 60000; // 1 minute cache for user data
+
+/**
+ * Get user from cache or DB (with caching)
+ */
+async function getCachedUser(userId) {
+  const cached = userCache.get(userId);
+  if (cached && Date.now() - cached.timestamp < USER_CACHE_TTL) {
+    return cached.user;
+  }
+  
+  const user = await User.findByPk(userId, {
+    attributes: ['id', 'email', 'username', 'isActive', 'role', 'subscriptionTier', 'subscriptionStatus', 'subscriptionEndDate', 'preferred_ai_model']
+  });
+  
+  if (user) {
+    userCache.set(userId, { user, timestamp: Date.now() });
+    
+    // Cleanup old entries
+    if (userCache.size > 1000) {
+      const oldestKey = userCache.keys().next().value;
+      userCache.delete(oldestKey);
+    }
+  }
+  
+  return user;
+}
+
+/**
+ * Invalidate user cache (call after user updates)
+ */
+function invalidateUserCache(userId) {
+  userCache.delete(userId);
+}
 
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -21,21 +59,12 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// Main authentication middleware
+// Main authentication middleware (PERFORMANCE OPTIMIZED)
 const authMiddleware = async (req, res, next) => {
   try {
     // Try to get token from Authorization header first (Bearer token)
     const authHeader = req.headers['authorization'];
     let token = authHeader && authHeader.split(' ')[1];
-
-    // Debug logging
-    logger.info('🔐 Auth middleware check', {
-      path: req.path,
-      method: req.method,
-      hasAuthHeader: !!authHeader,
-      authHeaderPreview: authHeader ? authHeader.substring(0, 20) + '...' : 'none',
-      hasToken: !!token
-    });
 
     // If no header token, try to get from cookies
     if (!token) {
@@ -48,10 +77,6 @@ const authMiddleware = async (req, res, next) => {
     }
 
     if (!token) {
-      logger.warn('❌ No token found in request', {
-        path: req.path,
-        headers: Object.keys(req.headers)
-      });
       return res.status(401).json({ 
         success: false,
         error: 'Access token required. Please log in.' 
@@ -61,10 +86,8 @@ const authMiddleware = async (req, res, next) => {
     // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
-    // Check if user still exists
-    const user = await User.findByPk(decoded.userId, {
-      attributes: ['id', 'email', 'username', 'isActive', 'role', 'subscriptionTier', 'subscriptionStatus', 'subscriptionEndDate']
-    });
+    // PERFORMANCE: Check if user exists (with caching)
+    const user = await getCachedUser(decoded.userId);
 
     if (!user) {
       return res.status(401).json({ 
@@ -88,27 +111,18 @@ const authMiddleware = async (req, res, next) => {
       username: user.username,
       role: user.role || 'user',
       subscriptionTier: user.subscriptionTier || 'free',
+      subscription_tier: user.subscriptionTier || 'free', // Alias for compatibility
       subscriptionStatus: user.subscriptionStatus || 'active',
-      subscriptionEndDate: user.subscriptionEndDate
+      subscriptionEndDate: user.subscriptionEndDate,
+      preferred_ai_model: user.preferred_ai_model // For AI model selection
     };
-
-    // Log successful authentication
-    logger.info('User authenticated successfully', {
-      userId: user.id,
-      email: user.email,
-      ip: req.ip,
-      userAgent: req.get('User-Agent')
-    });
+    
+    // Also set userTier for quick access
+    req.userTier = user.subscriptionTier || 'free';
 
     next();
 
   } catch (error) {
-    logger.error('❌ Auth middleware error:', {
-      errorName: error.name,
-      errorMessage: error.message,
-      path: req.path
-    });
-
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({ 
         success: false,
@@ -280,6 +294,7 @@ module.exports = {
   requireAdmin,
   requirePremium,
   requireTeamAccess,
-  authenticateToken
+  authenticateToken,
+  invalidateUserCache  // Export for use when user data changes
 };  
 

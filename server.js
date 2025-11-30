@@ -4,6 +4,7 @@ require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
+const compression = require('compression');  // PERFORMANCE: Add compression
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const logger = require('./src/utils/logger');
@@ -27,6 +28,21 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 const app = express();
+
+// ============================================================================
+// PERFORMANCE: Enable compression for all responses
+// ============================================================================
+app.use(compression({
+  filter: (req, res) => {
+    // Don't compress responses with no-transform directive
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  },
+  level: 6, // Balanced compression level (1-9)
+  threshold: 1024 // Only compress responses > 1KB
+}));
 
 // Middleware
 app.use(helmet({
@@ -162,6 +178,12 @@ const referralRoutes = require('./src/routes/referral'); // F3 - Referral progra
 const modelsRoutes = require('./src/routes/models'); // AI Model selection
 // const couponsRoutes = require('./src/routes/coupons'); // Discount coupons system - disabled, using Dodo Payments coupons
 
+// PERFORMANCE - Response time monitoring
+const { router: performanceRoutes, responseTimeMiddleware } = require('./src/routes/performance');
+
+// Apply response time tracking middleware (before routes)
+app.use(responseTimeMiddleware);
+
 // Health check - Multiple endpoints for Railway compatibility
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
@@ -229,6 +251,9 @@ app.use('/api/feedback', feedbackRoutes); // F2 - Success feedback with sharing
 app.use('/api/referral', referralRoutes); // F3 - Referral program
 app.use('/api/models', modelsRoutes); // AI Model selection for conversational AI
 // app.use('/api/coupons', couponsRoutes); // Disabled - using Dodo Payments built-in coupons
+
+// PERFORMANCE - Response time monitoring
+app.use('/api/performance', performanceRoutes);
 
 // TODO: Temporarily disabled for short-term - will enable in future
 // app.use('/api/content', require('./src/routes/content')); // Privacy, Terms, About, Community

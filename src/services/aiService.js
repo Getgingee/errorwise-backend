@@ -12,14 +12,19 @@ const queryLogger = require('./queryLogger');
 // ============================================================================
 
 const CONFIG = {
-  MAX_RETRIES: 2,  // A2: Retry once before fallback (total 2 attempts per provider)
-  RETRY_DELAY_MS: 1000,
-  REQUEST_TIMEOUT_MS: 30000,
-  CACHE_TTL_MS: 1800000, // 30 minutes
-  MAX_PROMPT_LENGTH: 8000,
-  MAX_URL_SCRAPE_TIMEOUT: 10000,
-  MAX_URLS_TO_PROCESS: 2,
-  MAX_SCRAPED_CONTENT_LENGTH: 3000,
+  MAX_RETRIES: 1,  // Reduced from 2 - faster fallback
+  RETRY_DELAY_MS: 500,  // Reduced from 1000ms
+  REQUEST_TIMEOUT_MS: 15000,  // Reduced from 30s to 15s - AI should respond faster
+  CACHE_TTL_MS: 3600000, // 1 hour (increased for better cache hit rate)
+  MAX_PROMPT_LENGTH: 4000,  // Reduced from 8000 - shorter prompts = faster responses
+  MAX_URL_SCRAPE_TIMEOUT: 3000,  // Reduced from 10s to 3s
+  MAX_URLS_TO_PROCESS: 1,  // Reduced from 2 to 1
+  MAX_SCRAPED_CONTENT_LENGTH: 1500,  // Reduced from 3000
+  // New performance settings
+  ENABLE_STREAMING: true,  // Enable streaming for faster perceived response
+  FAST_CACHE_TTL_MS: 300000,  // 5 min for frequently accessed items
+  MAX_CACHE_SIZE: 2000,  // Increased cache size
+  CONCURRENT_REQUESTS_LIMIT: 10,  // Limit concurrent AI requests
 };
 
 // A2: Fallback tracking statistics (in-memory, also logged to DB)
@@ -64,8 +69,75 @@ const USER_FRIENDLY_ERRORS = {
   }
 };
 
-// Simple in-memory cache (consider Redis for production)
+// Simple in-memory cache with Redis fallback for distributed caching
 const responseCache = new Map();
+let redisCache = null;
+
+// Try to initialize Redis cache
+try {
+  const { redis } = require('../utils/redisClient');
+  redisCache = redis;
+  console.log('✅ Redis cache enabled for AI responses');
+} catch (e) {
+  console.log('⚠️  Redis not available, using in-memory cache only');
+}
+
+/**
+ * Get cached response from Redis or memory
+ */
+async function getCachedResponseFast(cacheKey) {
+  // Try in-memory first (fastest)
+  const memCached = responseCache.get(cacheKey);
+  if (memCached && Date.now() - memCached.timestamp < CONFIG.CACHE_TTL_MS) {
+    console.log(`💾 Memory cache HIT: ${cacheKey.substring(0, 16)}...`);
+    return memCached.response;
+  }
+  
+  // Try Redis (shared across instances)
+  if (redisCache) {
+    try {
+      const redisCached = await redisCache.get(`ai:${cacheKey}`);
+      if (redisCached) {
+        console.log(`💾 Redis cache HIT: ${cacheKey.substring(0, 16)}...`);
+        // Also save to memory for faster subsequent access
+        responseCache.set(cacheKey, { response: redisCached, timestamp: Date.now() });
+        return redisCached;
+      }
+    } catch (e) {
+      // Redis error, continue without
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Save response to both memory and Redis cache
+ */
+async function cacheResponseFast(cacheKey, response) {
+  // Save to memory
+  responseCache.set(cacheKey, { response, timestamp: Date.now() });
+  
+  // Save to Redis for distributed caching
+  if (redisCache) {
+    try {
+      await redisCache.set(`ai:${cacheKey}`, response, Math.floor(CONFIG.CACHE_TTL_MS / 1000));
+    } catch (e) {
+      // Redis error, continue
+    }
+  }
+  
+  // Cleanup memory if too large
+  if (responseCache.size > CONFIG.MAX_CACHE_SIZE) {
+    const keysToDelete = [];
+    let count = 0;
+    for (const key of responseCache.keys()) {
+      if (count++ < 100) keysToDelete.push(key); // Remove oldest 100
+      else break;
+    }
+    keysToDelete.forEach(k => responseCache.delete(k));
+  }
+}
 
 // Log API key status on startup
 console.log('\n🔑 AI Service Configuration:');
@@ -1730,13 +1802,14 @@ async function analyzeError({
     
     console.log(`\n📊 Analyzing error: ${detectedErrorType} (${detectedLanguage}) [${validTier} tier]`);
     
-    // Check cache first (skip for team tier with conversation history)
+    // PERFORMANCE: Check cache first (skip for conversation history)
     const cacheKey = generateCacheKey(sanitizedMessage, detectedLanguage, detectedErrorType, validTier);
-    const cachedResponse = conversationHistory.length === 0 ? getCachedResponse(cacheKey) : null;
+    const cachedResponse = conversationHistory.length === 0 ? await getCachedResponseFast(cacheKey) : null;
     
     if (cachedResponse) {
       // Log cached response
       const latencyMs = Date.now() - startTime;
+      console.log(`⚡ Cache hit! Response in ${latencyMs}ms`);
       queryLogger.logSuccess({
         userId,
         anonymousId,
@@ -1967,13 +2040,14 @@ Remember: Your goal is to help users understand their issues and learn from them
             }
           }
           
-          // Cache successful response (except for conversations)
+          // PERFORMANCE: Cache successful response (except for conversations)
           if (conversationHistory.length === 0 && result && !result.error) {
-            cacheResponse(cacheKey, result);
+            cacheResponseFast(cacheKey, result).catch(() => {}); // Non-blocking
           }
           
           // A2: Log successful query with fallback tracking
           const latencyMs = Date.now() - startTime;
+          console.log(`✅ AI response in ${latencyMs}ms`);
           const confidence = result?.confidence || 0.5;
           
           // Prepare logging data with A2 fields
