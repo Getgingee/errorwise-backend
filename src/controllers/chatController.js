@@ -23,6 +23,58 @@ const conversationContexts = new Map();
 const CONTEXT_TTL = 30 * 60 * 1000; // 30 minutes
 
 /**
+ * Generate contextual follow-up chips based on AI response
+ */
+function generateConversationalChips(previousMessages, latestResponse) {
+  const chips = [];
+  const responseLower = latestResponse.toLowerCase();
+  
+  // If response contains code
+  if (responseLower.includes('```') || responseLower.includes('function') || responseLower.includes('const ')) {
+    chips.push("Explain this code step by step");
+    chips.push("What does this line do?");
+  }
+  
+  // If response mentions trying something
+  if (responseLower.includes('try') || responseLower.includes('should work')) {
+    chips.push("What if it still doesn't work?");
+    chips.push("Are there alternatives?");
+  }
+  
+  // If response mentions error handling
+  if (responseLower.includes('error') || responseLower.includes('catch') || responseLower.includes('exception')) {
+    chips.push("How do I handle this error properly?");
+  }
+  
+  // If response is about debugging
+  if (responseLower.includes('debug') || responseLower.includes('console.log') || responseLower.includes('breakpoint')) {
+    chips.push("Show me how to debug this");
+  }
+  
+  // If response mentions dependencies
+  if (responseLower.includes('install') || responseLower.includes('package') || responseLower.includes('dependency')) {
+    chips.push("How do I install this?");
+    chips.push("What version do I need?");
+  }
+  
+  // If response mentions configuration
+  if (responseLower.includes('config') || responseLower.includes('setting') || responseLower.includes('environment')) {
+    chips.push("Show me the config");
+    chips.push("What should I set?");
+  }
+  
+  // Generic helpful chips
+  if (chips.length < 2) {
+    chips.push("Can you simplify that?");
+    chips.push("Give me an example");
+  }
+  
+  chips.push("Thanks, that helped! 👍");
+  
+  return [...new Set(chips)].slice(0, 4);
+}
+
+/**
  * Get or create conversation context
  */
 function getContext(conversationId) {
@@ -258,6 +310,12 @@ exports.sendFollowUp = async (req, res) => {
       conversationTurn: followUpCount + 2
     });
     
+    // Generate contextual follow-up chips
+    const remainingFollowUps = maxFollowUps === -1 ? 999 : maxFollowUps - followUpCount - 1;
+    const suggestedChips = remainingFollowUps > 0 
+      ? generateConversationalChips(context.messages, analysis.response)
+      : ["Thanks for the help! 👍"];
+    
     res.json({
       success: true,
       messageId: followUp.id,
@@ -267,8 +325,11 @@ exports.sendFollowUp = async (req, res) => {
         id: conversationId,
         turn: followUpCount + 2,
         followUpsUsed: followUpCount + 1,
-        followUpsRemaining: maxFollowUps === -1 ? 'unlimited' : maxFollowUps - followUpCount - 1
+        followUpsRemaining: maxFollowUps === -1 ? 'unlimited' : remainingFollowUps,
+        canContinue: remainingFollowUps > 0
       },
+      // Suggested follow-up chips for continued conversation
+      suggestedChips,
       meta: {
         responseTime,
         contextLength: context.messages.length

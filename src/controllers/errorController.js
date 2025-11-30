@@ -76,43 +76,154 @@ function logQueryAsync(data) {
 
 /**
  * Generate suggested follow-up questions based on error and analysis
+ * These appear as clickable chips for easy follow-up
  */
-function generateSuggestedQuestions(errorMessage, analysis) {
+function generateSuggestedQuestions(errorMessage, analysis, turn = 1) {
   const suggestions = [];
   const errorLower = errorMessage.toLowerCase();
+  const solutionLower = (analysis.solution || '').toLowerCase();
+  const explanationLower = (analysis.explanation || '').toLowerCase();
   
-  // Context-aware suggestions based on error type
-  if (errorLower.includes('undefined') || errorLower.includes('null')) {
-    suggestions.push("Why is this variable undefined?");
-    suggestions.push("How can I check if it's null before using it?");
-  } else if (errorLower.includes('import') || errorLower.includes('module')) {
-    suggestions.push("How do I install this module?");
-    suggestions.push("What's the correct import syntax?");
-  } else if (errorLower.includes('type') || errorLower.includes('typescript')) {
-    suggestions.push("Can you explain this type error?");
-    suggestions.push("How do I fix the type mismatch?");
-  } else if (errorLower.includes('async') || errorLower.includes('promise') || errorLower.includes('await')) {
-    suggestions.push("How should I handle this async error?");
-    suggestions.push("What's the proper way to await this?");
-  } else if (errorLower.includes('cors') || errorLower.includes('network')) {
-    suggestions.push("How do I fix CORS issues?");
-    suggestions.push("What headers do I need to set?");
-  } else if (errorLower.includes('syntax')) {
-    suggestions.push("Where exactly is the syntax error?");
-    suggestions.push("Can you show the corrected code?");
-  } else {
-    // Generic helpful questions
-    suggestions.push("Can you explain this in simpler terms?");
-    suggestions.push("Show me a code example");
+  // First turn - based on error type
+  if (turn === 1) {
+    // Error-specific suggestions
+    if (errorLower.includes('undefined') || errorLower.includes('null') || errorLower.includes('is not defined')) {
+      suggestions.push("Why is this variable undefined?");
+      suggestions.push("How do I check for null safely?");
+    }
+    
+    if (errorLower.includes('import') || errorLower.includes('module') || errorLower.includes('require')) {
+      suggestions.push("How do I install this package?");
+      suggestions.push("What's the correct import syntax?");
+    }
+    
+    if (errorLower.includes('type') || errorLower.includes('typescript') || errorLower.includes('cannot read property')) {
+      suggestions.push("Can you explain this type error?");
+      suggestions.push("How do I fix the type mismatch?");
+    }
+    
+    if (errorLower.includes('async') || errorLower.includes('promise') || errorLower.includes('await') || errorLower.includes('unhandled')) {
+      suggestions.push("How do I handle this async error?");
+      suggestions.push("Should I use try-catch here?");
+    }
+    
+    if (errorLower.includes('cors') || errorLower.includes('network') || errorLower.includes('fetch')) {
+      suggestions.push("How do I fix CORS issues?");
+      suggestions.push("What headers should I add?");
+    }
+    
+    if (errorLower.includes('syntax') || errorLower.includes('unexpected token')) {
+      suggestions.push("Where exactly is the syntax error?");
+      suggestions.push("Show me the corrected code");
+    }
+    
+    if (errorLower.includes('permission') || errorLower.includes('access denied') || errorLower.includes('forbidden')) {
+      suggestions.push("Why am I getting permission denied?");
+      suggestions.push("How do I fix file permissions?");
+    }
+    
+    if (errorLower.includes('memory') || errorLower.includes('heap') || errorLower.includes('stack overflow')) {
+      suggestions.push("What's causing the memory issue?");
+      suggestions.push("How do I optimize memory usage?");
+    }
+    
+    if (errorLower.includes('database') || errorLower.includes('sql') || errorLower.includes('connection')) {
+      suggestions.push("How do I fix the database connection?");
+      suggestions.push("Is my query correct?");
+    }
+    
+    // Generic first-turn suggestions
+    if (suggestions.length < 2) {
+      suggestions.push("Explain this in simpler terms");
+      suggestions.push("Show me a code example");
+    }
+    
+    suggestions.push("What caused this error?");
+    suggestions.push("How can I prevent this?");
   }
   
-  // Always add these useful questions
-  suggestions.push("What caused this error?");
-  suggestions.push("How can I prevent this in the future?");
+  // Later turns - based on analysis content
+  else {
+    // If solution mentions specific things
+    if (solutionLower.includes('install') || solutionLower.includes('npm') || solutionLower.includes('yarn')) {
+      suggestions.push("What version should I install?");
+    }
+    
+    if (solutionLower.includes('config') || solutionLower.includes('settings')) {
+      suggestions.push("Show me the config file");
+    }
+    
+    if (solutionLower.includes('function') || solutionLower.includes('method')) {
+      suggestions.push("Show me how to call this function");
+    }
+    
+    if (explanationLower.includes('deprecated')) {
+      suggestions.push("What should I use instead?");
+    }
+    
+    // Understanding-focused follow-ups
+    suggestions.push("Can you explain that differently?");
+    suggestions.push("Give me a complete example");
+    suggestions.push("What if that doesn't work?");
+    suggestions.push("Are there other ways to fix this?");
+  }
   
-  // Return top 3-4 most relevant
-  return suggestions.slice(0, 4);
+  // Dedupe and limit
+  const unique = [...new Set(suggestions)];
+  return unique.slice(0, 4);
 }
+
+/**
+ * Generate contextual follow-up chips after a follow-up response
+ * More dynamic based on the ongoing conversation
+ */
+function generateConversationalChips(previousMessages, latestResponse) {
+  const chips = [];
+  const responseLower = latestResponse.toLowerCase();
+  
+  // If response contains code
+  if (responseLower.includes('```') || responseLower.includes('function') || responseLower.includes('const ')) {
+    chips.push("Explain this code step by step");
+    chips.push("What does this line do?");
+  }
+  
+  // If response mentions trying something
+  if (responseLower.includes('try') || responseLower.includes('should work')) {
+    chips.push("What if it still doesn't work?");
+    chips.push("Are there alternatives?");
+  }
+  
+  // If response mentions error handling
+  if (responseLower.includes('error') || responseLower.includes('catch') || responseLower.includes('exception')) {
+    chips.push("How do I handle this error properly?");
+  }
+  
+  // If response is about debugging
+  if (responseLower.includes('debug') || responseLower.includes('console.log') || responseLower.includes('breakpoint')) {
+    chips.push("Show me how to debug this");
+  }
+  
+  // If response mentions dependencies
+  if (responseLower.includes('install') || responseLower.includes('package') || responseLower.includes('dependency')) {
+    chips.push("How do I install this?");
+    chips.push("What version do I need?");
+  }
+  
+  // Generic helpful chips
+  if (chips.length < 2) {
+    chips.push("Can you simplify that?");
+    chips.push("Show me an example");
+  }
+  
+  chips.push("Thanks, that helped! 👍");
+  chips.push("I need more help");
+  
+  return [...new Set(chips)].slice(0, 4);
+}
+
+// Export for use in chat controller
+module.exports.generateSuggestedQuestions = generateSuggestedQuestions;
+module.exports.generateConversationalChips = generateConversationalChips;
 
 // Analyze error with AI
 exports.analyzeError = async (req, res) => {
