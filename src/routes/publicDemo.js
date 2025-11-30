@@ -111,13 +111,7 @@ router.post('/analyze', demoRateLimiter, async (req, res) => {
         ],
         demoLimitation: `Demo users get ${DEMO_LIMIT} analyses per day. Sign up for unlimited access!`
       }
-    };    // Set session cookie
-    res.cookie('demo_session_id', sessionId, {
-      maxAge: SESSION_DURATION,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax'
-    });
+    };
     
     res.json(response);
     
