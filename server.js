@@ -442,6 +442,11 @@ const start = async () => {
     usageNotificationJob.initializeNotificationJobs();
     console.log('✅ Email notification jobs initialized (weekly digest, trial warnings)');
     
+    // Initialize newsletter jobs (weekly newsletter to subscribers)
+    const newsletterJob = require('./src/jobs/newsletterJob');
+    newsletterJob.initializeNewsletterJobs();
+    console.log('✅ Newsletter job initialized (weekly updates to subscribers)');
+    
     // Start server
     const port = process.env.PORT || 3001;
     const server = app.listen(port, '0.0.0.0', () => {

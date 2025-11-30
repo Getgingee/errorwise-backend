@@ -808,12 +808,19 @@ exports.subscribeToNewsletter = async (req, res) => {
 
     console.log('✅ New newsletter subscription:', result.rows[0].id, email);
 
-    // TODO: Send welcome email with unsubscribe link
-    // await sendNewsletterWelcomeEmail(result.rows[0], unsubscribe_token);
+    // Send welcome email (async, don't block response)
+    try {
+      const { sendWelcomeEmail } = require('../jobs/newsletterJob');
+      sendWelcomeEmail({ email, name, id: result.rows[0].id }).catch(err => {
+        console.error('❌ Welcome email failed:', err.message);
+      });
+    } catch (welcomeError) {
+      console.error('❌ Welcome email setup failed:', welcomeError.message);
+    }
 
     res.status(201).json({
       success: true,
-      message: 'Thank you for subscribing! Check your email for confirmation.',
+      message: 'Thank you for subscribing! Check your email for a welcome message.',
       subscription: result.rows[0]
     });
   } catch (error) {

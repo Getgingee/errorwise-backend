@@ -184,4 +184,42 @@ router.get('/users', authMiddleware, isAdmin, async (req, res) => {
   }
 });
 
+// ============================================================================
+// NEWSLETTER ADMIN ROUTES
+// ============================================================================
+
+// Manual trigger for weekly newsletter (admin only)
+router.post('/newsletter/send', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    const { triggerNewsletterManually } = require('../jobs/newsletterJob');
+    const result = await triggerNewsletterManually();
+    
+    res.json({
+      success: true,
+      message: 'Newsletter send triggered',
+      result
+    });
+  } catch (error) {
+    console.error('Error triggering newsletter:', error);
+    res.status(500).json({ error: 'Failed to trigger newsletter', details: error.message });
+  }
+});
+
+// Get newsletter subscribers list (admin only)
+router.get('/newsletter/subscribers', authMiddleware, isAdmin, async (req, res) => {
+  try {
+    const { getActiveSubscribers } = require('../jobs/newsletterJob');
+    const subscribers = await getActiveSubscribers();
+    
+    res.json({
+      success: true,
+      count: subscribers.length,
+      subscribers
+    });
+  } catch (error) {
+    console.error('Error fetching subscribers:', error);
+    res.status(500).json({ error: 'Failed to fetch subscribers', details: error.message });
+  }
+});
+
 module.exports = router;
