@@ -11,9 +11,29 @@ const adminController = require('../controllers/adminController');
 // Newsletter Job (moved to top to avoid dynamic require)
 const newsletterJob = require('../jobs/newsletterJob');
 
+// Audit Logger for PII access and security events
+const { 
+  logPiiAccess, 
+  logSecurityEvent, 
+  canViewPii, 
+  hasPermission,
+  ADMIN_PERMISSIONS,
+  maskEmail 
+} = require('../utils/auditLogger');
+
 // Admin middleware - check if user is admin
 const isAdmin = async (req, res, next) => {
-  if (req.user.role !== 'admin') {
+  if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
+    logSecurityEvent({
+      eventType: 'AUTHORIZATION_FAILED',
+      userId: req.user?.id,
+      userEmail: req.user?.email,
+      action: 'ADMIN_ACCESS_ATTEMPT',
+      ipAddress: req.ip || req.connection?.remoteAddress,
+      userAgent: req.get('User-Agent'),
+      success: false,
+      reason: 'Insufficient role'
+    });
     return res.status(403).json({ error: 'Admin access required' });
   }
   next();
@@ -209,6 +229,7 @@ router.post('/newsletter/send', authMiddleware, isAdmin, async (req, res) => {
 });
 
 // Get newsletter subscribers list with pagination (admin only)
+// RBAC: Only admins with VIEW_PII permission can see email addresses
 router.get('/newsletter/subscribers', authMiddleware, isAdmin, async (req, res) => {
   try {
     // Parse pagination params with defaults
@@ -218,15 +239,50 @@ router.get('/newsletter/subscribers', authMiddleware, isAdmin, async (req, res) 
     
     const result = await newsletterJob.getActiveSubscribers({ limit, offset });
     
-    // Sanitize subscriber data - only include non-sensitive fields needed by admins
-    const sanitizedSubscribers = (result.subscribers || []).map(sub => ({
-      id: sub.id,
-      email: sub.email,
-      name: sub.name || null,
-      status: sub.status || 'active',
-      subscriptionType: sub.subscription_type || 'general',
-      createdAt: sub.created_at
-    }));
+    // Check if admin has permission to view PII (emails)
+    const adminCanViewPii = canViewPii(req.user);
+    const ipAddress = req.ip || req.connection?.remoteAddress || 'unknown';
+    
+    // Normalize and sanitize subscriber data
+    // Support both snake_case (from DB) and camelCase (from ORM)
+    const sanitizedSubscribers = (result.subscribers || []).map(sub => {
+      const normalized = {
+        id: sub.id,
+        // Only include name if present (support both cases)
+        name: sub.name || null,
+        // Normalize status field (snake_case || camelCase)
+        status: sub.status || 'active',
+        // Normalize subscriptionType (snake_case || camelCase)
+        subscriptionType: sub.subscription_type || sub.subscriptionType || 'general',
+        // Normalize createdAt (snake_case || camelCase)
+        createdAt: sub.created_at || sub.createdAt || null
+      };
+      
+      // Only include email if admin has VIEW_PII permission
+      if (adminCanViewPii) {
+        normalized.email = sub.email;
+      } else {
+        // Provide masked email for identification without full PII exposure
+        normalized.emailMasked = maskEmail(sub.email);
+      }
+      
+      return normalized;
+    });
+    
+    // Emit audit log for PII access
+    logPiiAccess({
+      action: adminCanViewPii ? 'VIEW_SUBSCRIBER_EMAILS' : 'VIEW_SUBSCRIBER_LIST',
+      admin: req.user,
+      resource: 'newsletter_subscribers',
+      recordCount: sanitizedSubscribers.length,
+      ipAddress,
+      success: true,
+      metadata: {
+        page,
+        limit,
+        piiIncluded: adminCanViewPii
+      }
+    });
     
     res.json({
       success: true,
@@ -234,10 +290,11 @@ router.get('/newsletter/subscribers', authMiddleware, isAdmin, async (req, res) 
         page,
         limit,
         offset,
-        hasMore: sanitizedSubscribers.length === limit
+        hasMore: offset + limit < result.total
       },
       count: sanitizedSubscribers.length,
       total: result.total,
+      piiIncluded: adminCanViewPii,
       subscribers: sanitizedSubscribers
     });
   } catch (error) {
