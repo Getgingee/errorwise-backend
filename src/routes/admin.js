@@ -202,8 +202,9 @@ router.post('/newsletter/send', authMiddleware, isAdmin, async (req, res) => {
       result
     });
   } catch (error) {
+    // Log full error server-side, return generic message to client
     console.error('Error triggering newsletter:', error);
-    res.status(500).json({ error: 'Failed to trigger newsletter', details: error.message });
+    res.status(500).json({ error: 'Failed to trigger newsletter' });
   }
 });
 
@@ -217,21 +218,32 @@ router.get('/newsletter/subscribers', authMiddleware, isAdmin, async (req, res) 
     
     const result = await newsletterJob.getActiveSubscribers({ limit, offset });
     
+    // Sanitize subscriber data - only include non-sensitive fields needed by admins
+    const sanitizedSubscribers = (result.subscribers || []).map(sub => ({
+      id: sub.id,
+      email: sub.email,
+      name: sub.name || null,
+      status: sub.status || 'active',
+      subscriptionType: sub.subscription_type || 'general',
+      createdAt: sub.created_at
+    }));
+    
     res.json({
       success: true,
       pagination: {
         page,
         limit,
         offset,
-        hasMore: result.subscribers.length === limit
+        hasMore: sanitizedSubscribers.length === limit
       },
-      count: result.subscribers.length,
+      count: sanitizedSubscribers.length,
       total: result.total,
-      subscribers: result.subscribers
+      subscribers: sanitizedSubscribers
     });
   } catch (error) {
-    console.error('Error fetching subscribers:', error);
-    res.status(500).json({ error: 'Failed to fetch subscribers', details: error.message });
+    // Log full error server-side, return generic message to client
+    console.error('Error fetching newsletter subscribers:', error);
+    res.status(500).json({ error: 'Failed to fetch subscribers' });
   }
 });
 
