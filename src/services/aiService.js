@@ -398,14 +398,7 @@ async function retryWithBackoff(fn, retries = CONFIG.MAX_RETRIES, context = 'ope
     try {
       const result = await fn();
       
-      // A2: Validate JSON response structure
-      if (result && typeof result === 'object') {
-        // Check for required fields
-        if (!result.explanation && !result.solution) {
-          throw new Error('Invalid response: missing explanation and solution');
-        }
-      }
-      
+      // Return raw result - validation happens at higher level
       return result;
     } catch (error) {
       lastError = error;
@@ -415,6 +408,15 @@ async function retryWithBackoff(fn, retries = CONFIG.MAX_RETRIES, context = 'ope
       // A2: Categorize error type for better logging
       const errorType = categorizeAPIError(error);
       console.warn(`⚠️  [${context}] Attempt ${i + 1}/${retries} failed: ${errorType} - ${errorMessage}`);
+      
+      // Log full error details for debugging
+      console.error(`❌ [${context}] Full error:`, JSON.stringify({
+        message: error?.message,
+        status: error?.status,
+        statusCode: error?.statusCode,
+        code: error?.code,
+        type: error?.type
+      }));
       
       // Don't retry on client errors (4xx) except rate limits (429)
       if (error.status >= 400 && error.status < 500 && error.status !== 429) {
