@@ -71,8 +71,8 @@ router.get('/query-logs', authMiddleware, isAdmin, adminController.getQueryLogs)
 // EXISTING ADMIN ROUTES
 // ============================================================================
 
-// TEMPORARY: Check users endpoint (no auth for debugging)
-router.get('/check-users', async (req, res) => {
+// Check users endpoint (admin only - protected)
+router.get('/check-users', authMiddleware, isAdmin, async (req, res) => {
   try {
     const users = await User.findAll({
       attributes: ['id', 'email', 'username', 'subscriptionTier', 'subscriptionStatus'],
@@ -85,8 +85,8 @@ router.get('/check-users', async (req, res) => {
   }
 });
 
-// TEMPORARY: One-time upgrade endpoint (remove after use)
-router.post('/upgrade-hi-user', async (req, res) => {
+// Admin upgrade endpoint (protected)
+router.post('/upgrade-hi-user', authMiddleware, isAdmin, async (req, res) => {
   try {
     const email = 'Hi@getgingee.com';
     

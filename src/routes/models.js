@@ -6,7 +6,8 @@
 
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require('../middleware/auth');
+const rateLimit = require('express-rate-limit');
+const { authMiddleware } = require('../middleware/auth');
 const User = require('../models/User');
 const {
   getModelsForTier,
@@ -17,11 +18,20 @@ const {
   getModelsGroupedByCategory
 } = require('../config/modelConfig');
 
+// Rate limiter for model preference changes
+const modelPreferenceLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // 20 changes per 15 minutes
+  message: { error: 'Too many model preference changes. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
 /**
  * GET /api/models
  * Get all available AI models for the current user's tier
  */
-router.get('/', authenticate, async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findByPk(userId);
@@ -100,7 +110,7 @@ router.get('/:modelId', async (req, res) => {
  * PUT /api/models/preference
  * Set user's preferred AI model
  */
-router.put('/preference', authenticate, async (req, res) => {
+router.put('/preference', authMiddleware, modelPreferenceLimiter, async (req, res) => {
   try {
     const userId = req.user.id;
     const { modelId } = req.body;
@@ -156,7 +166,7 @@ router.put('/preference', authenticate, async (req, res) => {
  * DELETE /api/models/preference
  * Reset to default model for tier
  */
-router.delete('/preference', authenticate, async (req, res) => {
+router.delete('/preference', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findByPk(userId);

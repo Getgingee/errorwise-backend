@@ -11,14 +11,13 @@ const { authMiddleware } = require('../middleware/auth');
 const { accountLockoutMiddleware, trackFailedAttempt, resetFailedAttempts } = require('../middleware/accountLock');
 const rateLimit = require('express-rate-limit');
 
-// Rate limiter DISABLED for development/testing
+// Rate limiter for sensitive operations
 const resendVerificationLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 999999, // Essentially unlimited
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 3, // Limit to 3 requests per window
   message: { error: 'Too many resend attempts. Please try again later.' },
   standardHeaders: true,
-  legacyHeaders: false,
-  skip: () => true // Skip rate limiting entirely
+  legacyHeaders: false
 });
 
 /**
@@ -482,7 +481,10 @@ router.post('/login/enhanced', accountLockoutMiddleware, async (req, res) => {
       `
     });
     
-    console.log(`📧 Login OTP sent to ${user.email}: ${otp}`); // Dev mode - remove in production
+    // OTP sent successfully (don't log OTP in production)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`📧 Login OTP sent to ${user.email}`);
+    }
     
     // OTP COUNTER DISABLED FOR DEVELOPMENT/TESTING
     /*
@@ -513,9 +515,8 @@ router.post('/login/enhanced', accountLockoutMiddleware, async (req, res) => {
       message: 'OTP sent to your email',
       requiresOTP: true,
       userId: user.id,
-      email: user.email,
-      // In dev mode, return OTP for testing - REMOVE IN PRODUCTION
-      devOTP: process.env.NODE_ENV === 'development' ? otp : undefined
+      email: user.email
+      // OTP is never exposed in API response for security
     });
     
   } catch (error) {

@@ -12,6 +12,14 @@ const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 const weeklyDigestController = require('../controllers/weeklyDigestController');
 
+// Admin middleware
+const isAdmin = (req, res, next) => {
+  if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'super_admin')) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
+};
+
 /**
  * GET /api/digest/track/open/:token
  * Track email open via 1x1 pixel (public)
@@ -22,8 +30,20 @@ router.get('/track/open/:token', weeklyDigestController.trackOpen);
  * GET /api/digest/track/click
  * Track link click and redirect (public)
  * Query: token, url
+ * Security: Validates redirect URL to prevent open redirect
  */
-router.get('/track/click', weeklyDigestController.trackClick);
+router.get('/track/click', (req, res, next) => {
+  const { url } = req.query;
+  const allowedDomains = [process.env.FRONTEND_URL, 'errorwise.tech', 'errorwise.com'];
+  
+  if (url) {
+    const isAllowed = allowedDomains.some(domain => domain && url.startsWith(domain));
+    if (!isAllowed && !url.startsWith('/')) {
+      return res.status(400).json({ error: 'Invalid redirect URL' });
+    }
+  }
+  next();
+}, weeklyDigestController.trackClick);
 
 /**
  * GET /api/digest/unsubscribe/:token
@@ -45,12 +65,12 @@ router.post('/send-test', weeklyDigestController.sendTestDigest);
  * Get digest analytics (admin only)
  * Query: period (optional) - 'week', 'month'
  */
-router.get('/analytics', weeklyDigestController.getDigestAnalytics);
+router.get('/analytics', isAdmin, weeklyDigestController.getDigestAnalytics);
 
 /**
  * GET /api/digest/preview/:userId
  * Preview digest HTML for a user (admin only)
  */
-router.get('/preview/:userId', weeklyDigestController.previewDigest);
+router.get('/preview/:userId', isAdmin, weeklyDigestController.previewDigest);
 
 module.exports = router;

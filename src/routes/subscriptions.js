@@ -1,7 +1,25 @@
 const express = require('express');
 const router = express.Router();
+const rateLimit = require('express-rate-limit');
 const subscriptionController = require('../controllers/subscriptionController');
 const { authMiddleware } = require('../middleware/auth');
+
+// Rate limiters for subscription operations (fraud prevention)
+const checkoutLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // 10 checkout attempts per hour
+  message: { error: 'Too many checkout attempts. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const subscriptionChangeLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours
+  max: 10, // 10 subscription changes per day
+  message: { error: 'Too many subscription changes. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 // Public endpoints (no auth required)
 router.post('/webhook', subscriptionController.handleWebhook);
@@ -14,18 +32,18 @@ router.use(authMiddleware);
 router.get('/', subscriptionController.getSubscription);
 router.get('/current', subscriptionController.getSubscription);
 
-// Create subscription
-router.post('/', subscriptionController.createSubscription);
+// Create subscription (with rate limiting)
+router.post('/', subscriptionChangeLimiter, subscriptionController.createSubscription);
 
-// Checkout session (for Stripe-like flow)
-router.post('/checkout', subscriptionController.createCheckout);
+// Checkout session (with fraud prevention rate limiting)
+router.post('/checkout', checkoutLimiter, subscriptionController.createCheckout);
 
-// Update subscription (legacy)
-router.put('/', subscriptionController.updateSubscription);
+// Update subscription (with rate limiting)
+router.put('/', subscriptionChangeLimiter, subscriptionController.updateSubscription);
 
 // Cancel subscription (support both POST and DELETE)
-router.delete('/', subscriptionController.cancelSubscription);
-router.post('/cancel', subscriptionController.cancelSubscription);
+router.delete('/', subscriptionChangeLimiter, subscriptionController.cancelSubscription);
+router.post('/cancel', subscriptionChangeLimiter, subscriptionController.cancelSubscription);
 
 // Subscription usage
 router.get('/usage', subscriptionController.getUsage);

@@ -12,6 +12,14 @@ const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 const smartUpgradeController = require('../controllers/smartUpgradeController');
 
+// Admin middleware
+const isAdmin = (req, res, next) => {
+  if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'super_admin')) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
+};
+
 // All routes require authentication
 router.use(authenticateToken);
 
@@ -48,6 +56,6 @@ router.post('/dismissed', smartUpgradeController.trackSmartUpgradeDismissed);
  * Get smart upgrade analytics (admin only)
  * Query: period (optional) - 'day', 'week', 'month'
  */
-router.get('/analytics', smartUpgradeController.getSmartUpgradeAnalytics);
+router.get('/analytics', isAdmin, smartUpgradeController.getSmartUpgradeAnalytics);
 
 module.exports = router;
