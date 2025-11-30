@@ -38,24 +38,59 @@ router.get('/toggle', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findByPk(userId, {
-      attributes: ['id', 'subscription_tier', 'preferred_ai_model']
+      attributes: ['id', 'subscription_tier', 'preferred_ai_model', 'trialEndsAt']
     });
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
     
-    const tier = user.subscription_tier || 'free';
-    const toggleConfig = getToggleConfig(tier);
+    // Calculate effective tier (trial users get pro features)
+    const baseTier = user.subscription_tier || 'free';
+    let effectiveTier = baseTier;
+    let trialInfo = null;
+    
+    if (baseTier === 'free' && user.trialEndsAt) {
+      const now = new Date();
+      const trialEnd = new Date(user.trialEndsAt);
+      const daysLeft = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
+      
+      if (daysLeft > 0) {
+        effectiveTier = 'pro'; // Trial users get Pro features
+        trialInfo = {
+          active: true,
+          daysLeft,
+          endsAt: user.trialEndsAt,
+          showUpgradePrompt: daysLeft <= 2
+        };
+      } else {
+        trialInfo = {
+          active: false,
+          expired: true,
+          showUpgradePrompt: true,
+          message: 'Trial ended - upgrade to Pro!'
+        };
+      }
+    } else if (baseTier === 'free') {
+      trialInfo = {
+        active: false,
+        canStart: true,
+        message: 'Start your 7-day Pro trial!'
+      };
+    }
+    
+    const toggleConfig = getToggleConfig(effectiveTier);
     const currentModel = user.preferred_ai_model || toggleConfig.default;
     
     res.json({
       success: true,
-      tier,
+      tier: baseTier,
+      effectiveTier, // The tier being used for features
       showToggle: toggleConfig.show,
       currentModel,
       models: toggleConfig.models,
-      defaultModel: toggleConfig.default
+      defaultModel: toggleConfig.default,
+      trial: trialInfo
     });
   } catch (error) {
     console.error('Error fetching toggle config:', error);
@@ -81,19 +116,30 @@ router.put('/toggle', authMiddleware, modelPreferenceLimiter, async (req, res) =
       return res.status(404).json({ error: 'User not found' });
     }
     
-    const tier = user.subscription_tier || 'free';
+    // Calculate effective tier (trial users get pro features)
+    const baseTier = user.subscription_tier || 'free';
+    let effectiveTier = baseTier;
     
-    // Check if toggle is allowed for this tier
-    if (!shouldShowToggle(tier)) {
+    if (baseTier === 'free' && user.trialEndsAt) {
+      const now = new Date();
+      const trialEnd = new Date(user.trialEndsAt);
+      if (trialEnd > now) {
+        effectiveTier = 'pro'; // Trial active
+      }
+    }
+    
+    // Check if toggle is allowed for this effective tier
+    if (!shouldShowToggle(effectiveTier)) {
       return res.status(403).json({
         error: 'Model selection not available for free tier',
-        suggestion: 'Upgrade to Pro to choose between Fast and Smart modes'
+        suggestion: 'Start your 7-day trial or upgrade to Pro to choose between Fast and Smart modes',
+        canStartTrial: baseTier === 'free' && !user.trialEndsAt
       });
     }
     
-    // Validate model
-    if (!isModelAllowedForTier(modelId, tier)) {
-      const defaultModel = getDefaultModelForTier(tier);
+    // Validate model against effective tier
+    if (!isModelAllowedForTier(modelId, effectiveTier)) {
+      const defaultModel = getDefaultModelForTier(effectiveTier);
       return res.status(403).json({
         error: 'Model not available for your tier',
         currentModel: defaultModel.id

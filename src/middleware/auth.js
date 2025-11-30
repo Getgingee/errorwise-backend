@@ -19,7 +19,7 @@ async function getCachedUser(userId) {
   }
   
   const user = await User.findByPk(userId, {
-    attributes: ['id', 'email', 'username', 'isActive', 'role', 'subscriptionTier', 'subscriptionStatus', 'subscriptionEndDate', 'preferred_ai_model']
+    attributes: ['id', 'email', 'username', 'isActive', 'role', 'subscriptionTier', 'subscriptionStatus', 'subscriptionEndDate', 'trialEndsAt', 'preferred_ai_model']
   });
   
   if (user) {
@@ -40,6 +40,37 @@ async function getCachedUser(userId) {
  */
 function invalidateUserCache(userId) {
   userCache.delete(userId);
+}
+
+/**
+ * Calculate trial status
+ * @param {Date} trialEndsAt - Trial end date
+ * @param {string} subscriptionTier - Current subscription tier
+ * @returns {Object} Trial status info
+ */
+function getTrialStatus(trialEndsAt, subscriptionTier) {
+  // If user already has a paid tier, no trial needed
+  if (subscriptionTier && subscriptionTier !== 'free') {
+    return { isInTrial: false, daysLeft: 0, expired: false };
+  }
+  
+  // No trial date set
+  if (!trialEndsAt) {
+    return { isInTrial: false, daysLeft: 0, expired: false };
+  }
+  
+  const now = new Date();
+  const trialEnd = new Date(trialEndsAt);
+  const diffMs = trialEnd - now;
+  const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  
+  if (daysLeft > 0) {
+    // Still in trial
+    return { isInTrial: true, daysLeft, expired: false };
+  } else {
+    // Trial expired
+    return { isInTrial: false, daysLeft: 0, expired: true };
+  }
 }
 
 const authenticateToken = (req, res, next) => {
@@ -104,6 +135,12 @@ const authMiddleware = async (req, res, next) => {
       });
     }
 
+    // Check trial status
+    const trialInfo = getTrialStatus(user.trialEndsAt, user.subscriptionTier);
+    
+    // Determine effective tier (trial users get 'pro' features)
+    const effectiveTier = trialInfo.isInTrial ? 'pro' : (user.subscriptionTier || 'free');
+
     // Attach user to request object with FULL subscription data
     req.user = {
       id: user.id,
@@ -112,13 +149,19 @@ const authMiddleware = async (req, res, next) => {
       role: user.role || 'user',
       subscriptionTier: user.subscriptionTier || 'free',
       subscription_tier: user.subscriptionTier || 'free', // Alias for compatibility
+      effectiveTier: effectiveTier, // The tier to use for feature access
       subscriptionStatus: user.subscriptionStatus || 'active',
       subscriptionEndDate: user.subscriptionEndDate,
-      preferred_ai_model: user.preferred_ai_model // For AI model selection
+      preferred_ai_model: user.preferred_ai_model, // For AI model selection
+      // Trial info
+      isInTrial: trialInfo.isInTrial,
+      trialEndsAt: user.trialEndsAt,
+      trialDaysLeft: trialInfo.daysLeft,
+      trialExpired: trialInfo.expired
     };
     
-    // Also set userTier for quick access
-    req.userTier = user.subscriptionTier || 'free';
+    // Also set userTier for quick access (use effective tier)
+    req.userTier = effectiveTier;
 
     next();
 

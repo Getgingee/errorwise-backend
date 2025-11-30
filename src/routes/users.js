@@ -35,6 +35,16 @@ router.use(authMiddleware);
 // Get user profile
 router.get('/profile', userController.getProfile);
 
+// ============================================================================
+// TRIAL MANAGEMENT
+// ============================================================================
+
+// Get trial status
+router.get('/trial/status', userController.getTrialStatus);
+
+// Start 7-day trial (can only be done once)
+router.post('/trial/start', userController.startTrial);
+
 // Update user profile (with rate limiting)
 router.put('/profile', profileUpdateLimiter, userController.updateProfile);
 

@@ -1,6 +1,166 @@
 const User = require('../models/User');
 const ErrorQuery = require('../models/ErrorQuery');
 const authService = require('../services/authService');
+const { invalidateUserCache } = require('../middleware/auth');
+
+// ============================================================================
+// TRIAL MANAGEMENT
+// ============================================================================
+
+const TRIAL_DURATION_DAYS = 7;
+
+/**
+ * Get trial status for current user
+ */
+exports.getTrialStatus = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: ['id', 'subscriptionTier', 'trialEndsAt', 'createdAt']
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Already a paid user
+    if (user.subscriptionTier && user.subscriptionTier !== 'free') {
+      return res.json({
+        success: true,
+        trial: {
+          status: 'not_needed',
+          message: 'You already have a paid subscription',
+          tier: user.subscriptionTier,
+          canStartTrial: false
+        }
+      });
+    }
+
+    // Check trial status
+    if (!user.trialEndsAt) {
+      return res.json({
+        success: true,
+        trial: {
+          status: 'not_started',
+          message: 'Start your 7-day free trial to unlock Pro features!',
+          canStartTrial: true,
+          features: [
+            'Auto mode - Intelligent model selection',
+            'Fast ↔ Smart model toggle',
+            'Unlimited error analyses',
+            'Advanced explanations'
+          ]
+        }
+      });
+    }
+
+    const now = new Date();
+    const trialEnd = new Date(user.trialEndsAt);
+    const diffMs = trialEnd - now;
+    const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    if (daysLeft > 0) {
+      return res.json({
+        success: true,
+        trial: {
+          status: 'active',
+          daysLeft,
+          endsAt: user.trialEndsAt,
+          message: `${daysLeft} day${daysLeft === 1 ? '' : 's'} left in your Pro trial`,
+          canStartTrial: false,
+          showUpgradePrompt: daysLeft <= 2 // Show upgrade prompt when 2 days or less
+        }
+      });
+    } else {
+      return res.json({
+        success: true,
+        trial: {
+          status: 'expired',
+          expiredAt: user.trialEndsAt,
+          message: 'Your trial has ended. Upgrade to Pro to continue using advanced features!',
+          canStartTrial: false,
+          showUpgradePrompt: true
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Failed to get trial status:', error);
+    res.status(500).json({ success: false, error: 'Failed to get trial status' });
+  }
+};
+
+/**
+ * Start 7-day trial for current user
+ */
+exports.startTrial = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: ['id', 'subscriptionTier', 'trialEndsAt', 'email']
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Already a paid user
+    if (user.subscriptionTier && user.subscriptionTier !== 'free') {
+      return res.status(400).json({
+        success: false,
+        error: 'You already have a paid subscription. No trial needed!'
+      });
+    }
+
+    // Already used trial
+    if (user.trialEndsAt) {
+      const trialEnd = new Date(user.trialEndsAt);
+      const now = new Date();
+      
+      if (trialEnd > now) {
+        return res.status(400).json({
+          success: false,
+          error: 'You already have an active trial',
+          daysLeft: Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24))
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: 'You have already used your trial. Upgrade to Pro to continue!',
+          showUpgradePrompt: true
+        });
+      }
+    }
+
+    // Start trial
+    const trialEndsAt = new Date();
+    trialEndsAt.setDate(trialEndsAt.getDate() + TRIAL_DURATION_DAYS);
+
+    await User.update(
+      { trialEndsAt },
+      { where: { id: req.user.id } }
+    );
+
+    // Invalidate user cache so new requests get updated trial status
+    invalidateUserCache(req.user.id);
+
+    res.json({
+      success: true,
+      message: `🎉 Your ${TRIAL_DURATION_DAYS}-day Pro trial has started!`,
+      trial: {
+        status: 'active',
+        daysLeft: TRIAL_DURATION_DAYS,
+        endsAt: trialEndsAt,
+        features: [
+          'Auto mode - Intelligent model selection',
+          'Fast ↔ Smart model toggle',
+          'Unlimited error analyses',
+          'Advanced explanations'
+        ]
+      }
+    });
+  } catch (error) {
+    console.error('Failed to start trial:', error);
+    res.status(500).json({ success: false, error: 'Failed to start trial' });
+  }
+};
 
 // Get user profile
 exports.getProfile = async (req, res) => {
