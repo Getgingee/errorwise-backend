@@ -207,6 +207,13 @@ const User = sequelize.define('User', {
     allowNull: true,
     field: 'login_otp_expires'
   },
+  // AI Model Preferences
+  preferredAiModel: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+    field: 'preferred_ai_model',
+    comment: 'User preferred AI model ID (e.g., claude-sonnet-4-5, claude-haiku-4-5)'
+  },
   createdAt: {
     type: DataTypes.DATE,
     field: 'created_at'

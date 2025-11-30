@@ -15,7 +15,7 @@ const queryLogger = require('../services/queryLogger');
 // Analyze error with AI
 exports.analyzeError = async (req, res) => {
   try {
-    const { errorMessage, language, errorType, codeSnippet, fileName, lineNumber, conversationHistory } = req.body;
+    const { errorMessage, language, errorType, codeSnippet, fileName, lineNumber, conversationHistory, preferredModel } = req.body;
     const userId = req.user.id;
 
     if (!errorMessage) {
@@ -30,6 +30,9 @@ exports.analyzeError = async (req, res) => {
 
     // Get user's subscription tier from middleware
     const subscriptionTier = req.userTier || 'free';
+    
+    // Get user's preferred model (from request or user's saved preference)
+    const modelToUse = preferredModel || user.preferred_ai_model || null;
 
     // Call AI service to analyze the error
     const startTime = Date.now();
@@ -43,7 +46,9 @@ exports.analyzeError = async (req, res) => {
         language: language || 'javascript',
         errorType: errorType || 'runtime',
         subscriptionTier,
-        conversationHistory: conversationHistory || [] // Pass conversation context to AI
+        conversationHistory: conversationHistory || [], // Pass conversation context to AI
+        preferredModel: modelToUse, // Pass user's model preference
+        userId
       });
 
       const responseTime = Date.now() - startTime;
@@ -112,6 +117,9 @@ exports.analyzeError = async (req, res) => {
         solution: filteredAnalysis.solution,
         category: filteredAnalysis.category,
         provider: filteredAnalysis.provider,
+        // Model info
+        model: filteredAnalysis.model,
+        modelUsed: filteredAnalysis.model,
         // A3: Include confidence as decimal (0-1) AND percentage for backward compatibility
         confidence: Math.round(confidence * 100),
         confidenceScore: confidence,

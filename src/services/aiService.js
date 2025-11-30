@@ -1676,9 +1676,13 @@ async function processURLs(errorMessage, codeSnippet) {
 // MAIN ERROR ANALYSIS FUNCTION
 // ============================================================================
 
+// Import model configuration
+const modelConfig = require('../config/modelConfig');
+
 /**
  * Analyze error with AI providers, caching, and fallback handling
  * Now with central query logging (A1 - Error Logging & Monitoring)
+ * Updated: Supports user-preferred model selection
  */
 async function analyzeError({ 
   errorMessage, 
@@ -1692,6 +1696,8 @@ async function analyzeError({
   dependencies, 
   conversationHistory = [],
   userId = null,
+  // Model selection
+  preferredModel = null,
   // Additional context for logging
   anonymousId = null,
   ipAddress = null,
@@ -1757,6 +1763,18 @@ async function analyzeError({
     // Get tier config and features
     const tierConfig = TIER_CONFIG[validTier];
     const features = tierConfig.features;
+    
+    // ========================================================================
+    // USER MODEL PREFERENCE - Override tier default with user's preferred model
+    // ========================================================================
+    let resolvedModel = null;
+    if (preferredModel) {
+      // Use model configuration to resolve and validate
+      resolvedModel = modelConfig.resolveModelForRequest(preferredModel, validTier);
+      if (resolvedModel) {
+        console.log(`🎯 Using user's preferred model: ${resolvedModel.name} (${resolvedModel.apiId})`);
+      }
+    }
     
     // Process URLs in error message (only if enabled for tier)
     let urlContext = [];
@@ -1845,9 +1863,23 @@ async function analyzeError({
 
 Remember: Your goal is to help users understand their issues and learn from them, not just provide quick fixes. Write clearly, explain thoroughly, and be genuinely helpful. When dealing with Indian languages, culture, or cuisine, ensure authenticity and respect for regional diversity.`;
 
-    // Build provider chain based on tier
+    // Build provider chain based on tier (with user preference override)
     const providers = [];
-    if (tierConfig.primary) providers.push(tierConfig.primary);
+    
+    // If user has a preferred model, use it as primary
+    if (resolvedModel) {
+      providers.push({
+        provider: 'anthropic',
+        model: resolvedModel.apiId,
+        maxTokens: Math.min(resolvedModel.maxTokens, modelConfig.getMaxTokensForTier(validTier)),
+        temperature: tierConfig.primary?.temperature || 0.3
+      });
+      console.log(`📌 Primary provider set to user's choice: ${resolvedModel.name}`);
+    } else if (tierConfig.primary) {
+      providers.push(tierConfig.primary);
+    }
+    
+    // Add fallback options
     if (tierConfig.secondary) providers.push(tierConfig.secondary);
     if (tierConfig.tertiary) providers.push(tierConfig.tertiary);
     if (tierConfig.fallback) providers.push(tierConfig.fallback);
