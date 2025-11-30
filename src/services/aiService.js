@@ -1477,14 +1477,50 @@ async function callAnthropic(prompt, systemMessage, model, maxTokens, detectedLa
     parsed = JSON.parse(cleanText);
   } catch (parseError) {
     console.error('❌ Failed to parse Anthropic JSON response:', parseError.message);
-    console.error('Raw response:', cleanText.substring(0, 200));
+    console.error('❌ Raw response (first 500 chars):', cleanText.substring(0, 500));
+    console.error('❌ Raw response (last 200 chars):', cleanText.substring(cleanText.length - 200));
     
-    // Attempt to extract JSON from text
-    const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      parsed = JSON.parse(jsonMatch[0]);
-    } else {
-      throw new Error('Invalid JSON response from Anthropic');
+    // Try multiple extraction strategies
+    let jsonMatch = null;
+    
+    // Strategy 1: Find JSON object
+    jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+    
+    // Strategy 2: Try to find JSON after markdown code block
+    if (!jsonMatch) {
+      const afterCodeBlock = cleanText.split('```json')[1] || cleanText.split('```')[1];
+      if (afterCodeBlock) {
+        jsonMatch = afterCodeBlock.match(/\{[\s\S]*\}/);
+      }
+    }
+    
+    // Strategy 3: Find first { and last }
+    if (!jsonMatch) {
+      const firstBrace = cleanText.indexOf('{');
+      const lastBrace = cleanText.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace > firstBrace) {
+        const extracted = cleanText.substring(firstBrace, lastBrace + 1);
+        try {
+          parsed = JSON.parse(extracted);
+          console.log('✅ JSON extracted using brace-finding strategy');
+        } catch (e) {
+          console.error('❌ Brace-finding strategy also failed');
+        }
+      }
+    }
+    
+    if (jsonMatch && !parsed) {
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+        console.log('✅ JSON extracted using regex strategy');
+      } catch (e) {
+        console.error('❌ Regex extraction failed:', e.message);
+        throw new Error('Invalid JSON response from Anthropic');
+      }
+    }
+    
+    if (!parsed) {
+      throw new Error('Invalid JSON response from Anthropic - no valid JSON found');
     }
   }
   
