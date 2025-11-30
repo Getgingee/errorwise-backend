@@ -215,6 +215,25 @@ app.get('/', (req, res) => {
 const healthRoutes = require('./src/routes/health');
 app.use('/', healthRoutes);
 
+// AI Service Health Check (debug endpoint)
+app.get('/api/ai-status', (req, res) => {
+  const aiService = require('./src/services/aiService');
+  const health = aiService.getServiceHealth();
+  
+  // Add config check
+  const configStatus = {
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ? 'SET (length: ' + process.env.ANTHROPIC_API_KEY.length + ')' : 'NOT SET',
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY ? 'SET' : 'NOT SET',
+    NODE_ENV: process.env.NODE_ENV || 'development'
+  };
+  
+  res.json({
+    ...health,
+    config: configStatus,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Platform statistics (public endpoint - real-time calculations)
 app.get('/api/stats', async (req, res) => {
   try {
