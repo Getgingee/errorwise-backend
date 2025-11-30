@@ -8,6 +8,9 @@ const sequelize = require('../config/database');
 // Admin Controller (A1 - Query Logs)
 const adminController = require('../controllers/adminController');
 
+// Metrics Controller (D2, D3 - Analytics Dashboard)
+const metricsController = require('../controllers/metricsController');
+
 // Newsletter Job (moved to top to avoid dynamic require)
 const newsletterJob = require('../jobs/newsletterJob');
 
@@ -206,6 +209,31 @@ router.get('/users', authMiddleware, isAdmin, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
+
+// ============================================================================
+// METRICS & ANALYTICS ROUTES (D2, D3)
+// ============================================================================
+
+// Internal metrics dashboard (D2) - JSON API
+router.get('/metrics/dashboard', authMiddleware, isAdmin, metricsController.getDashboard);
+
+// Month-1 success criteria (D3)
+router.get('/metrics/month-1', authMiddleware, isAdmin, metricsController.getMonth1Criteria);
+
+// Upgrade funnel metrics
+router.get('/metrics/upgrade-funnel', authMiddleware, isAdmin, metricsController.getUpgradeFunnel);
+
+// Event counts breakdown
+router.get('/metrics/events', authMiddleware, isAdmin, metricsController.getEventBreakdown);
+
+// Retention metrics
+router.get('/metrics/retention', authMiddleware, isAdmin, metricsController.getRetention);
+
+// Activity heatmap
+router.get('/metrics/activity-heatmap', authMiddleware, isAdmin, metricsController.getActivityHeatmap);
+
+// Simple HTML dashboard (D2 - very simple internal view)
+router.get('/metrics/html', authMiddleware, isAdmin, metricsController.getHtmlDashboard);
 
 // ============================================================================
 // NEWSLETTER ADMIN ROUTES

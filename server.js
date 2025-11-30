@@ -128,6 +128,7 @@ require('./src/models/User');
 require('./src/models/ErrorQuery');
 require('./src/models/Subscription');
 require('./src/models/QueryLog'); // A1 - Central Error Logging
+require('./src/models/Event'); // D1 - Event Tracking
 
 // Import associations to set up model relationships
 require('./src/models/associations');
@@ -146,6 +147,8 @@ const teamRoutes = require('./src/routes/teams');
 const webhookRoutes = require('./src/routes/webhooks'); // Dodo Payments webhooks
 const adminRoutes = require('./src/routes/admin'); // Admin operations
 const libraryRoutes = require('./src/routes/library'); // Error Library - pre-built solutions
+const usageRoutes = require('./src/routes/usage'); // C3 - Usage meter and limits
+const upgradeRoutes = require('./src/routes/upgrade'); // C4 - Pro upgrade flow
 
 // Health check - Multiple endpoints for Railway compatibility
 app.get('/health', (req, res) => {
@@ -200,6 +203,8 @@ app.use('/api/support', detectSpam, supportRoutes); // Feedback, Contact, Help C
 app.use('/api/teams', teamRoutes); // Team management - requires TEAM subscription
 app.use('/api/admin', adminRoutes); // Admin operations - requires admin role
 app.use('/api/library', libraryRoutes); // Error Library - browse pre-built solutions
+app.use('/api/usage', usageRoutes); // C3 - Usage meter and limit enforcement
+app.use('/api/upgrade', upgradeRoutes); // C4 - Pro upgrade flow with DodoPayments
 
 // TODO: Temporarily disabled for short-term - will enable in future
 // app.use('/api/content', require('./src/routes/content')); // Privacy, Terms, About, Community
@@ -397,6 +402,50 @@ const start = async () => {
           console.log('✅ NewsletterSubscriptions table created');
         } else {
           console.log('✅ NewsletterSubscriptions table exists');
+        }
+        
+        // ============================================================================
+        // EVENTS TABLE: D1 - Event Tracking Layer
+        // ============================================================================
+        console.log('📝 Checking for events table (D1 - Event Tracking)...');
+        
+        const [eventsExists] = await sequelize.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'events'
+          )
+        `);
+        
+        if (!eventsExists[0].exists) {
+          console.log('⚠️  Events table missing. Creating...');
+          await sequelize.query(`
+            CREATE TABLE IF NOT EXISTS events (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+              anonymous_id VARCHAR(64),
+              event_name VARCHAR(100) NOT NULL,
+              timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL,
+              subscription_tier VARCHAR(20) DEFAULT 'free',
+              properties JSONB DEFAULT '{}',
+              session_id VARCHAR(64),
+              ip_hash VARCHAR(64),
+              user_agent VARCHAR(255),
+              page VARCHAR(255),
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            )
+          `);
+          
+          // Create indexes for events table
+          await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_events_user_id ON events(user_id)`);
+          await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_events_event_name ON events(event_name)`);
+          await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_events_timestamp ON events(timestamp)`);
+          await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_events_session_id ON events(session_id)`);
+          await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_events_anonymous_id ON events(anonymous_id)`);
+          await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_events_name_timestamp ON events(event_name, timestamp)`);
+          
+          console.log('✅ Events table created with indexes (D1 - Event Tracking)');
+        } else {
+          console.log('✅ Events table exists');
         }
         
       } catch (migrationError) {
