@@ -51,9 +51,23 @@ app.use(helmet({
 }));
 
 // CORS configuration - supports wildcards like https://*.vercel.app
+// Production fallback includes common ErrorWise domains
+const getDefaultCorsOrigins = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return [
+      'https://errorwise.tech',
+      'https://www.errorwise.tech',
+      'https://*.vercel.app',
+      'https://errorwise-frontend.vercel.app',
+      'https://errorwise-frontend-*.vercel.app'
+    ];
+  }
+  return ['http://localhost:3000', 'http://localhost:5173'];
+};
+
 const corsOrigin = process.env.CORS_ORIGIN 
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-  : (process.env.FRONTEND_URL || 'http://localhost:5173');
+  : getDefaultCorsOrigins();
 
 // Function to check if origin matches wildcard pattern
 const isOriginAllowed = (origin, allowedOrigins) => {
