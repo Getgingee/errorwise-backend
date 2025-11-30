@@ -241,7 +241,7 @@ const start = async () => {
     // Run migrations in production (create ErrorQueries table if missing)
     if (process.env.NODE_ENV === 'production') {
       try {
-        console.log('📝 Checking for required tables...');
+        console.log('📝 Checking for required tables and columns...');
         
         // Check if ErrorQueries table exists
         const [results] = await sequelize.query(`
@@ -284,6 +284,121 @@ const start = async () => {
         } else {
           console.log('✅ ErrorQueries table exists');
         }
+        
+        // ============================================================================
+        // C1 & C2 MIGRATION: Add usage counter columns to users table
+        // ============================================================================
+        console.log('📝 Checking for usage counter columns (C1 & C2)...');
+        
+        const [usersColumns] = await sequelize.query(`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name = 'users' 
+          AND column_name IN (
+            'queries_used_this_period', 'period_start_date', 
+            'trial_queries_used', 'trial_ended_notified',
+            'usage_emails_enabled', 'trial_ending_notified', 'limit_warning_notified'
+          )
+        `);
+        
+        const existingColumns = usersColumns.map(r => r.column_name);
+        
+        // Add queries_used_this_period if missing
+        if (!existingColumns.includes('queries_used_this_period')) {
+          await sequelize.query(`ALTER TABLE users ADD COLUMN queries_used_this_period INTEGER DEFAULT 0`);
+          console.log('✅ Added: queries_used_this_period');
+        }
+        
+        // Add period_start_date if missing
+        if (!existingColumns.includes('period_start_date')) {
+          await sequelize.query(`ALTER TABLE users ADD COLUMN period_start_date TIMESTAMP WITH TIME ZONE`);
+          console.log('✅ Added: period_start_date');
+        }
+        
+        // Add trial_queries_used if missing (C2)
+        if (!existingColumns.includes('trial_queries_used')) {
+          await sequelize.query(`ALTER TABLE users ADD COLUMN trial_queries_used INTEGER DEFAULT 0`);
+          console.log('✅ Added: trial_queries_used');
+        }
+        
+        // Add trial_ended_notified if missing (C2)
+        if (!existingColumns.includes('trial_ended_notified')) {
+          await sequelize.query(`ALTER TABLE users ADD COLUMN trial_ended_notified BOOLEAN DEFAULT false`);
+          console.log('✅ Added: trial_ended_notified');
+        }
+        
+        // Add usage_emails_enabled if missing
+        if (!existingColumns.includes('usage_emails_enabled')) {
+          await sequelize.query(`ALTER TABLE users ADD COLUMN usage_emails_enabled BOOLEAN DEFAULT true`);
+          console.log('✅ Added: usage_emails_enabled');
+        }
+        
+        // Add trial_ending_notified if missing
+        if (!existingColumns.includes('trial_ending_notified')) {
+          await sequelize.query(`ALTER TABLE users ADD COLUMN trial_ending_notified BOOLEAN DEFAULT false`);
+          console.log('✅ Added: trial_ending_notified');
+        }
+        
+        // Add limit_warning_notified if missing
+        if (!existingColumns.includes('limit_warning_notified')) {
+          await sequelize.query(`ALTER TABLE users ADD COLUMN limit_warning_notified BOOLEAN DEFAULT false`);
+          console.log('✅ Added: limit_warning_notified');
+        }
+        
+        // Initialize period_start_date for existing users
+        await sequelize.query(`
+          UPDATE users SET period_start_date = date_trunc('month', CURRENT_TIMESTAMP) 
+          WHERE period_start_date IS NULL
+        `);
+        
+        // Set trial_ends_at for existing free users without it
+        await sequelize.query(`
+          UPDATE users SET trial_ends_at = CURRENT_TIMESTAMP + INTERVAL '7 days' 
+          WHERE trial_ends_at IS NULL AND subscription_tier = 'free'
+        `);
+        
+        console.log('✅ Usage counter columns verified');
+        
+        // ============================================================================
+        // NEWSLETTER TABLE: Create if missing
+        // ============================================================================
+        console.log('📝 Checking for newsletter subscriptions table...');
+        
+        const [newsletterExists] = await sequelize.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'newslettersubscriptions'
+          )
+        `);
+        
+        if (!newsletterExists[0].exists) {
+          console.log('⚠️  NewsletterSubscriptions table missing. Creating...');
+          await sequelize.query(`
+            CREATE TABLE IF NOT EXISTS newslettersubscriptions (
+              id SERIAL PRIMARY KEY,
+              user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+              email VARCHAR(255) NOT NULL UNIQUE,
+              name VARCHAR(255),
+              status VARCHAR(50) DEFAULT 'active',
+              subscription_type VARCHAR(50) DEFAULT 'general',
+              source VARCHAR(50) DEFAULT 'website',
+              unsubscribe_token VARCHAR(255) UNIQUE,
+              ip_address VARCHAR(45),
+              user_agent TEXT,
+              confirmed_at TIMESTAMP WITH TIME ZONE,
+              email_count INTEGER DEFAULT 0,
+              last_email_sent_at TIMESTAMP WITH TIME ZONE,
+              unsubscribed_at TIMESTAMP WITH TIME ZONE,
+              unsubscribe_reason TEXT,
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            )
+          `);
+          console.log('✅ NewsletterSubscriptions table created');
+        } else {
+          console.log('✅ NewsletterSubscriptions table exists');
+        }
+        
       } catch (migrationError) {
         console.error('❌ Migration check failed:', migrationError);
         // Don't fail startup if table already exists
