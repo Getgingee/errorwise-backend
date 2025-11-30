@@ -5,6 +5,8 @@ const Subscription = require('./Subscription');
 const Team = require('./Team');
 const TeamMember = require('./TeamMember');
 const ErrorLibrary = require('./ErrorLibrary');
+const Coupon = require('./Coupon');
+const CouponRedemption = require('./CouponRedemption');
 // const SharedError = require('./SharedError');
 // const SubscriptionPlan = require('./SubscriptionPlan');
 // const Tenant = require('./Tenant');
@@ -79,11 +81,39 @@ User.hasMany(ErrorLibrary, {
   as: 'savedTemplates'
 });
 
+// Coupon associations
+Coupon.hasMany(CouponRedemption, {
+  foreignKey: 'couponId',
+  as: 'redemptions'
+});
+
+CouponRedemption.belongsTo(Coupon, {
+  foreignKey: 'couponId',
+  as: 'Coupon'
+});
+
+CouponRedemption.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'user'
+});
+
+CouponRedemption.belongsTo(Subscription, {
+  foreignKey: 'subscriptionId',
+  as: 'subscription'
+});
+
+User.hasMany(CouponRedemption, {
+  foreignKey: 'userId',
+  as: 'couponRedemptions'
+});
+
 module.exports = {
   User,
   ErrorQuery,
   Subscription,
   Team,
   TeamMember,
-  ErrorLibrary
+  ErrorLibrary,
+  Coupon,
+  CouponRedemption
 };

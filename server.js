@@ -160,6 +160,7 @@ const digestRoutes = require('./src/routes/digest'); // F1 - Weekly email digest
 const feedbackRoutes = require('./src/routes/feedback'); // F2 - Success feedback
 const referralRoutes = require('./src/routes/referral'); // F3 - Referral program
 const modelsRoutes = require('./src/routes/models'); // AI Model selection
+const couponsRoutes = require('./src/routes/coupons'); // Discount coupons system
 
 // Health check - Multiple endpoints for Railway compatibility
 app.get('/health', (req, res) => {
@@ -227,6 +228,7 @@ app.use('/api/digest', digestRoutes); // F1 - Weekly email digest
 app.use('/api/feedback', feedbackRoutes); // F2 - Success feedback with sharing
 app.use('/api/referral', referralRoutes); // F3 - Referral program
 app.use('/api/models', modelsRoutes); // AI Model selection for conversational AI
+app.use('/api/coupons', couponsRoutes); // Discount coupons system
 
 // TODO: Temporarily disabled for short-term - will enable in future
 // app.use('/api/content', require('./src/routes/content')); // Privacy, Terms, About, Community
