@@ -150,6 +150,16 @@ const libraryRoutes = require('./src/routes/library'); // Error Library - pre-bu
 const usageRoutes = require('./src/routes/usage'); // C3 - Usage meter and limits
 const upgradeRoutes = require('./src/routes/upgrade'); // C4 - Pro upgrade flow
 
+// EPIC E - Conversion Optimisation
+const smartUpgradeRoutes = require('./src/routes/smartUpgrade'); // E1 - Smart upgrade prompts
+const plansRoutes = require('./src/routes/plans'); // E2 - Compare plans modal
+const socialProofRoutes = require('./src/routes/socialProof'); // E3 - Social proof section
+
+// EPIC F - Early Retention Hooks
+const digestRoutes = require('./src/routes/digest'); // F1 - Weekly email digest
+const feedbackRoutes = require('./src/routes/feedback'); // F2 - Success feedback
+const referralRoutes = require('./src/routes/referral'); // F3 - Referral program
+
 // Health check - Multiple endpoints for Railway compatibility
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
@@ -205,6 +215,16 @@ app.use('/api/admin', adminRoutes); // Admin operations - requires admin role
 app.use('/api/library', libraryRoutes); // Error Library - browse pre-built solutions
 app.use('/api/usage', usageRoutes); // C3 - Usage meter and limit enforcement
 app.use('/api/upgrade', upgradeRoutes); // C4 - Pro upgrade flow with DodoPayments
+
+// EPIC E - Conversion Optimisation routes
+app.use('/api/smart-upgrade', smartUpgradeRoutes); // E1 - Smart upgrade prompts
+app.use('/api/plans', plansRoutes); // E2 - Compare plans modal
+app.use('/api/social-proof', socialProofRoutes); // E3 - Social proof for landing
+
+// EPIC F - Early Retention Hooks routes
+app.use('/api/digest', digestRoutes); // F1 - Weekly email digest
+app.use('/api/feedback', feedbackRoutes); // F2 - Success feedback with sharing
+app.use('/api/referral', referralRoutes); // F3 - Referral program
 
 // TODO: Temporarily disabled for short-term - will enable in future
 // app.use('/api/content', require('./src/routes/content')); // Privacy, Terms, About, Community

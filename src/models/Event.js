@@ -142,6 +142,37 @@ Event.EVENTS = {
   UPGRADE_COMPLETED: 'upgrade_completed',
   UPGRADE_FAILED: 'upgrade_failed',
   
+  // Smart upgrade events (E1)
+  SMART_UPGRADE_SHOWN: 'smart_upgrade_shown',
+  SMART_UPGRADE_CLICKED: 'smart_upgrade_clicked',
+  SMART_UPGRADE_DISMISSED: 'smart_upgrade_dismissed',
+  
+  // Compare plans events (E2)
+  COMPARE_MODAL_OPENED: 'compare_modal_opened',
+  COMPARE_PLAN_SELECTED: 'compare_plan_selected',
+  COMPARE_UPGRADE_CLICKED: 'compare_upgrade_clicked',
+  
+  // Weekly digest events (F1)
+  WEEKLY_DIGEST_SENT: 'weekly_digest_sent',
+  WEEKLY_DIGEST_OPENED: 'weekly_digest_opened',
+  WEEKLY_DIGEST_CLICKED: 'weekly_digest_clicked',
+  WEEKLY_DIGEST_UNSUBSCRIBED: 'weekly_digest_unsubscribed',
+  
+  // Feedback events (F2)
+  FEEDBACK_SUBMITTED: 'feedback_submitted',
+  FEEDBACK_YES: 'feedback_yes',
+  FEEDBACK_NO: 'feedback_no',
+  FEEDBACK_PARTIAL: 'feedback_partial',
+  SHARE_BONUS_EARNED: 'share_bonus_earned',
+  SHARE_COMPLETED: 'share_completed',
+  
+  // Referral events (F3)
+  REFERRAL_LINK_CREATED: 'referral_link_created',
+  REFERRAL_LINK_CLICKED: 'referral_link_clicked',
+  REFERRAL_SIGNUP: 'referral_signup',
+  REFERRAL_REWARD_EARNED: 'referral_reward_earned',
+  REFERRAL_PRO_REWARD: 'referral_pro_reward',
+  
   // Session events
   SESSION_STARTED: 'session_started',
   SESSION_ENDED: 'session_ended',
@@ -152,7 +183,10 @@ Event.EVENTS = {
   // Trial events
   TRIAL_STARTED: 'trial_started',
   TRIAL_ENDING_SOON: 'trial_ending_soon',
-  TRIAL_ENDED: 'trial_ended'
+  TRIAL_ENDED: 'trial_ended',
+  
+  // Testimonial
+  TESTIMONIAL_SUBMITTED: 'testimonial_submitted'
 };
 
 module.exports = Event;
