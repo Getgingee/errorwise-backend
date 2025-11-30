@@ -40,7 +40,7 @@ const CLAUDE_MODELS = {
   // ==================== FAST MODEL (All tiers) ====================
   'haiku': {
     id: 'haiku',
-    apiId: 'claude-3-5-haiku-latest',  // Using latest alias for stability
+    apiId: 'claude-3-5-haiku-20241022',  // Confirmed working model ID
     name: 'Fast',
     shortName: 'Fast',
     description: 'Quick responses for simple errors',
@@ -59,7 +59,7 @@ const CLAUDE_MODELS = {
   // ==================== SMART MODEL (Pro + Team) ====================
   'sonnet': {
     id: 'sonnet',
-    apiId: 'claude-3-5-sonnet-latest',  // Using latest alias for stability
+    apiId: 'claude-3-5-sonnet-20241022',  // Confirmed working model ID
     name: 'Smart',
     shortName: 'Smart',
     description: 'Better analysis for complex errors',
@@ -78,7 +78,7 @@ const CLAUDE_MODELS = {
   // ==================== GENIUS MODEL (Team only) ====================
   'opus': {
     id: 'opus',
-    apiId: 'claude-3-5-sonnet-latest',  // Using Sonnet as Opus isn't available yet
+    apiId: 'claude-3-5-sonnet-20241022',  // Using Sonnet as Opus isn't available yet
     name: 'Genius',
     shortName: 'Genius',
     description: 'Most intelligent for complex problems',

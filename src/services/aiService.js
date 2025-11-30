@@ -188,8 +188,8 @@ try {
 const TIER_CONFIG = {
   free: {
     primary: { 
-      provider: 'anthropic',  // FREE tier uses Claude 3.5 Haiku (fast & affordable)
-      model: 'claude-3-5-haiku-latest',  // Using latest alias for stability
+      provider: 'anthropic',  // FREE tier uses Claude 3.5 Haiku
+      model: 'claude-3-5-haiku-20241022',  // Confirmed working model ID
       maxTokens: 1000,
       temperature: 0.5,
     },
@@ -208,7 +208,7 @@ const TIER_CONFIG = {
   pro: {
     primary: { 
       provider: 'anthropic',  // PRO tier uses Claude 3.5 Haiku
-      model: 'claude-3-5-haiku-latest',  // Latest Haiku for faster responses
+      model: 'claude-3-5-haiku-20241022',  // Confirmed working model ID
       maxTokens: 2000,
       temperature: 0.4,
     },
@@ -227,13 +227,13 @@ const TIER_CONFIG = {
   team: {
     primary: { 
       provider: 'anthropic',  // TEAM tier uses Claude 3.5 Sonnet (BEST quality)
-      model: 'claude-3-5-sonnet-latest',  // Latest stable Sonnet - most advanced
+      model: 'claude-3-5-sonnet-20241022',  // Confirmed working model ID
       maxTokens: 4000,
       temperature: 0.3,
     },
     fallback: { 
       provider: 'anthropic',
-      model: 'claude-3-5-haiku-latest',  // Fallback to Haiku 3.5
+      model: 'claude-3-5-haiku-20241022',  // Fallback to Haiku 3.5
       maxTokens: 4000,
       temperature: 0.3,
     },
