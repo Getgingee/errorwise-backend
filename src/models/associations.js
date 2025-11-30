@@ -5,8 +5,9 @@ const Subscription = require('./Subscription');
 const Team = require('./Team');
 const TeamMember = require('./TeamMember');
 const ErrorLibrary = require('./ErrorLibrary');
-const Coupon = require('./Coupon');
-const CouponRedemption = require('./CouponRedemption');
+// Coupon system disabled - using Dodo Payments built-in coupons
+// const Coupon = require('./Coupon');
+// const CouponRedemption = require('./CouponRedemption');
 // const SharedError = require('./SharedError');
 // const SubscriptionPlan = require('./SubscriptionPlan');
 // const Tenant = require('./Tenant');
@@ -81,31 +82,31 @@ User.hasMany(ErrorLibrary, {
   as: 'savedTemplates'
 });
 
-// Coupon associations
-Coupon.hasMany(CouponRedemption, {
-  foreignKey: 'couponId',
-  as: 'redemptions'
-});
+// Coupon associations - disabled, using Dodo Payments built-in coupons
+// Coupon.hasMany(CouponRedemption, {
+//   foreignKey: 'couponId',
+//   as: 'redemptions'
+// });
 
-CouponRedemption.belongsTo(Coupon, {
-  foreignKey: 'couponId',
-  as: 'Coupon'
-});
+// CouponRedemption.belongsTo(Coupon, {
+//   foreignKey: 'couponId',
+//   as: 'Coupon'
+// });
 
-CouponRedemption.belongsTo(User, {
-  foreignKey: 'userId',
-  as: 'user'
-});
+// CouponRedemption.belongsTo(User, {
+//   foreignKey: 'userId',
+//   as: 'user'
+// });
 
-CouponRedemption.belongsTo(Subscription, {
-  foreignKey: 'subscriptionId',
-  as: 'subscription'
-});
+// CouponRedemption.belongsTo(Subscription, {
+//   foreignKey: 'subscriptionId',
+//   as: 'subscription'
+// });
 
-User.hasMany(CouponRedemption, {
-  foreignKey: 'userId',
-  as: 'couponRedemptions'
-});
+// User.hasMany(CouponRedemption, {
+//   foreignKey: 'userId',
+//   as: 'couponRedemptions'
+// });
 
 module.exports = {
   User,
@@ -113,7 +114,7 @@ module.exports = {
   Subscription,
   Team,
   TeamMember,
-  ErrorLibrary,
-  Coupon,
-  CouponRedemption
+  ErrorLibrary
+  // Coupon,
+  // CouponRedemption
 };

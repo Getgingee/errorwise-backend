@@ -34,7 +34,9 @@ class DodoPaymentService {
         cancelUrl,
         interval,
         trialDays = 0,
-        allowedPaymentMethodTypes = ['credit', 'debit', 'upi_collect', 'upi_intent']
+        allowedPaymentMethodTypes = ['credit', 'debit', 'upi_collect', 'upi_intent'],
+        discountCode = null, // Dodo Payments discount code
+        couponRedemptionId = null // Internal tracking
       } = subscriptionData;
 
       // Development fallback (no credentials)
@@ -53,7 +55,7 @@ class DodoPaymentService {
             session_id: mockSessionId,
             checkout_url: mockSessionUrl,
             mode: 'mock',
-            metadata: { userId, planId, planName }
+            metadata: { userId, planId, planName, discountCode }
           }
         };
       }
@@ -78,9 +80,19 @@ class DodoPaymentService {
         metadata: {
           userId: String(userId),
           planId,
-          planName
+          planName,
+          couponRedemptionId: couponRedemptionId ? String(couponRedemptionId) : null
+        },
+        // Enable discount code input in Dodo checkout
+        feature_flags: {
+          allow_discount_code: true
         }
       };
+
+      // Pre-fill discount code if provided
+      if (discountCode) {
+        payload.discount_code = discountCode;
+      }
 
       const response = await axios.post(`${this.baseURL}/checkouts`, payload, {
         headers: {

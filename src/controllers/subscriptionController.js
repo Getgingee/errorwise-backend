@@ -669,7 +669,7 @@ exports.updateSubscription = async (req, res) => {
 exports.createCheckout = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { planId, successUrl, cancelUrl, couponCode } = req.body;
+    const { planId, successUrl, cancelUrl, discountCode } = req.body;
 
     if (!planId || !['pro', 'team'].includes(planId)) {
       return res.status(400).json({ error: 'Invalid plan ID. Must be "pro" or "team"' });
@@ -683,39 +683,6 @@ exports.createCheckout = async (req, res) => {
     const plan = SUBSCRIPTION_TIERS[planId];
     if (!plan) {
       return res.status(400).json({ error: 'Invalid plan' });
-    }
-
-    // Handle coupon if provided
-    let couponRedemption = null;
-    let finalPrice = plan.price;
-    let discountInfo = null;
-
-    if (couponCode) {
-      const couponService = require('../services/couponService');
-      const couponResult = await couponService.applyCoupon(
-        couponCode, 
-        userId, 
-        planId, 
-        plan.price,
-        { ipAddress: req.ip, userAgent: req.headers['user-agent'] }
-      );
-
-      if (!couponResult.success) {
-        return res.status(400).json({
-          success: false,
-          error: couponResult.error,
-          errorCode: couponResult.errorCode
-        });
-      }
-
-      couponRedemption = couponResult.redemption;
-      finalPrice = couponResult.redemption.finalPrice;
-      discountInfo = {
-        code: couponResult.redemption.code,
-        discountAmount: couponResult.redemption.amount,
-        originalPrice: plan.price,
-        finalPrice
-      };
     }
 
     // For development: instant upgrade
@@ -733,23 +700,16 @@ exports.createCheckout = async (req, res) => {
         trialEndsAt: endDate
       });
 
-      // Confirm coupon redemption if used
-      if (couponRedemption) {
-        const couponService = require('../services/couponService');
-        await couponService.confirmRedemption(couponRedemption.id);
-      }
-
       return res.json({
         success: true,
         data: {
           url: `${process.env.FRONTEND_URL}/dashboard?upgraded=true`,
           sessionId: `dev_session_${Date.now()}`
-        },
-        discount: discountInfo
+        }
       });
     }
 
-    // Production: Create payment session (Hosted Checkout)
+    // Production: Create payment session (Hosted Checkout with Dodo's built-in coupon support)
     const paymentService = require('../services/paymentService');
     const paymentSession = await paymentService.createPaymentSession({
       userId: user.id,
@@ -757,36 +717,21 @@ exports.createCheckout = async (req, res) => {
       planId,
       planName: plan.name,
       productId: plan.dodo_plan_id,
-      amount: finalPrice, // Use discounted price
-      originalAmount: plan.price,
+      amount: plan.price,
       currency: 'USD',
       interval: plan.interval,
       trialDays: plan.trialDays || 0,
       allowedPaymentMethodTypes: ['credit', 'debit', 'upi_collect', 'upi_intent'],
       successUrl: successUrl || `${process.env.FRONTEND_URL}/dashboard?payment=success`,
       cancelUrl: cancelUrl || `${process.env.FRONTEND_URL}/pricing?payment=cancelled`,
-      couponRedemptionId: couponRedemption?.id
+      discountCode: discountCode || null // Pass to Dodo if pre-filled
     });
 
     if (!paymentSession.success) {
-      // Cancel coupon redemption if payment session failed
-      if (couponRedemption) {
-        const couponService = require('../services/couponService');
-        await couponService.cancelRedemption(couponRedemption.id);
-      }
       return res.status(500).json({ 
         success: false,
         error: paymentSession.error 
       });
-    }
-
-    // Update coupon redemption with payment session ID
-    if (couponRedemption) {
-      const CouponRedemption = require('../models/CouponRedemption');
-      await CouponRedemption.update(
-        { paymentSessionId: paymentSession.sessionId },
-        { where: { id: couponRedemption.id } }
-      );
     }
 
     res.status(200).json({
@@ -794,8 +739,7 @@ exports.createCheckout = async (req, res) => {
       data: {
         url: paymentSession.sessionUrl,
         sessionId: paymentSession.sessionId
-      },
-      discount: discountInfo
+      }
     });
 
   } catch (error) {
