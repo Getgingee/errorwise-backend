@@ -1,3 +1,20 @@
+/**
+ * Error Analysis Routes (Simplified)
+ * 
+ * SIMPLIFIED API STRUCTURE:
+ * - POST /analyze - Analyze error with AI
+ * - GET /history - Get past queries (with ?limit for recent)
+ * - GET /usage - Get usage stats
+ * - GET /:id - Get specific query
+ * - POST /:id/feedback - Submit feedback
+ * - DELETE /:id - Delete query
+ * 
+ * REMOVED redundant endpoints:
+ * - /recent (use /history?limit=10 instead)
+ * - /stats (merged into /usage)
+ * - /search (use /history with search param)
+ */
+
 const express = require('express');
 const router = express.Router();
 const errorController = require('../controllers/errorController');
@@ -7,36 +24,51 @@ const { checkQueryLimit, addSubscriptionInfo, requireFeature } = require('../mid
 
 // All error routes require authentication
 router.use(authMiddleware);
-router.use(addSubscriptionInfo); // Add subscription info to all routes
+router.use(addSubscriptionInfo);
 
-// GET /api/errors/usage - Get user's usage statistics
-router.get('/usage', getUserUsageStats);
+// ============================================================================
+// CORE ENDPOINTS (Simplified)
+// ============================================================================
 
-// POST /api/errors/analyze - Analyze an error with AI (with subscription limits)
+// POST /api/errors/analyze - Analyze an error with AI
 router.post('/analyze', checkQueryLimit, addUsageInfo, errorController.analyzeError);
 
-// GET /api/errors/history - Get user's error query history
+// GET /api/errors/history - Get user's query history
+// Supports: ?limit=10 (for recent), ?search=term, ?page=1
 router.get('/history', errorController.getHistory);
 
-// GET /api/errors/recent - Get user's recent error analyses
-router.get('/recent', errorController.getRecentAnalyses);
+// GET /api/errors/usage - Get usage stats + query count
+router.get('/usage', getUserUsageStats);
 
-// GET /api/errors/stats - Get user's error statistics
-router.get('/stats', errorController.getStats);
-
-// GET /api/errors/search - Search errors with advanced filtering
-router.get('/search', errorController.searchErrors);
-
-// GET /api/errors/export - Export error history (Pro/Team only)
-router.get('/export', requireFeature('exportHistory'), errorController.exportHistory);
-
-// GET /api/errors/:id - Get specific error query details
+// GET /api/errors/:id - Get specific query
 router.get('/:id', errorController.getErrorQuery);
 
-// POST /api/errors/:id/feedback - Submit feedback on analysis result (B2)
+// POST /api/errors/:id/feedback - Thumbs up/down on result
 router.post('/:id/feedback', errorController.submitResultFeedback);
 
-// DELETE /api/errors/:id - Delete an error query
+// DELETE /api/errors/:id - Delete a query
 router.delete('/:id', errorController.deleteErrorQuery);
+
+// ============================================================================
+// LEGACY ENDPOINTS (Keep for backward compatibility, redirect internally)
+// ============================================================================
+
+// /recent -> /history?limit=25 (for existing frontend code)
+router.get('/recent', (req, res, next) => {
+  req.query.limit = req.query.limit || '25';
+  errorController.getHistory(req, res, next);
+});
+
+// /stats -> merged into /usage
+router.get('/stats', errorController.getStats);
+
+// /search -> /history with search param
+router.get('/search', (req, res, next) => {
+  if (req.query.q) req.query.search = req.query.q;
+  errorController.getHistory(req, res, next);
+});
+
+// /export -> Pro/Team only
+router.get('/export', requireFeature('exportHistory'), errorController.exportHistory);
 
 module.exports = router;

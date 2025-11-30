@@ -1,7 +1,10 @@
 /**
- * AI Models Routes
+ * AI Models Routes (SIMPLIFIED)
  * 
- * Endpoints for managing AI model selection and preferences
+ * Simple toggle-based model selection:
+ * - Free: No toggle (uses Fast/Haiku)
+ * - Pro: Fast ↔ Smart toggle
+ * - Team: Fast ↔ Smart ↔ Genius toggle
  */
 
 const express = require('express');
@@ -15,102 +18,56 @@ const {
   getModelById,
   isModelAllowedForTier,
   getDefaultModelForTier,
-  getModelsGroupedByCategory
+  getToggleConfig,
+  shouldShowToggle
 } = require('../config/modelConfig');
 
 // Rate limiter for model preference changes
 const modelPreferenceLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // 20 changes per 15 minutes
-  message: { error: 'Too many model preference changes. Please try again later.' },
-  standardHeaders: true,
-  legacyHeaders: false
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: { error: 'Too many model changes. Please try again later.' }
 });
 
 /**
- * GET /api/models
- * Get all available AI models for the current user's tier
+ * GET /api/models/toggle
+ * Get simple toggle configuration for the user's tier
+ * This is the main endpoint the frontend should use
  */
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/toggle', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
-    const user = await User.findByPk(userId);
+    const user = await User.findByPk(userId, {
+      attributes: ['id', 'subscription_tier', 'preferred_ai_model']
+    });
     
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
     
     const tier = user.subscription_tier || 'free';
-    const models = getModelsForTier(tier);
-    const grouped = getModelsGroupedByCategory(tier);
-    const defaultModel = getDefaultModelForTier(tier);
+    const toggleConfig = getToggleConfig(tier);
+    const currentModel = user.preferred_ai_model || toggleConfig.default;
     
     res.json({
       success: true,
       tier,
-      currentModel: user.preferred_ai_model || defaultModel.id,
-      defaultModel: defaultModel.id,
-      models,
-      grouped,
-      totalModels: models.length
+      showToggle: toggleConfig.show,
+      currentModel,
+      models: toggleConfig.models,
+      defaultModel: toggleConfig.default
     });
   } catch (error) {
-    console.error('Error fetching models:', error);
-    res.status(500).json({ error: 'Failed to fetch models' });
+    console.error('Error fetching toggle config:', error);
+    res.status(500).json({ error: 'Failed to fetch model settings' });
   }
 });
 
 /**
- * GET /api/models/all
- * Get all models (for comparison/upgrade prompts)
+ * PUT /api/models/toggle
+ * Set user's model preference via simple toggle
  */
-router.get('/all', async (req, res) => {
-  try {
-    const models = getAllModels();
-    
-    res.json({
-      success: true,
-      models,
-      categories: {
-        latest: models.filter(m => m.category === 'latest'),
-        current: models.filter(m => m.category === 'current'),
-        legacy: models.filter(m => m.category === 'legacy')
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching all models:', error);
-    res.status(500).json({ error: 'Failed to fetch models' });
-  }
-});
-
-/**
- * GET /api/models/:modelId
- * Get details for a specific model
- */
-router.get('/:modelId', async (req, res) => {
-  try {
-    const { modelId } = req.params;
-    const model = getModelById(modelId);
-    
-    if (!model) {
-      return res.status(404).json({ error: 'Model not found' });
-    }
-    
-    res.json({
-      success: true,
-      model
-    });
-  } catch (error) {
-    console.error('Error fetching model:', error);
-    res.status(500).json({ error: 'Failed to fetch model' });
-  }
-});
-
-/**
- * PUT /api/models/preference
- * Set user's preferred AI model
- */
-router.put('/preference', authMiddleware, modelPreferenceLimiter, async (req, res) => {
+router.put('/toggle', authMiddleware, modelPreferenceLimiter, async (req, res) => {
   try {
     const userId = req.user.id;
     const { modelId } = req.body;
@@ -126,47 +83,51 @@ router.put('/preference', authMiddleware, modelPreferenceLimiter, async (req, re
     
     const tier = user.subscription_tier || 'free';
     
-    // Validate model is allowed for user's tier
-    if (!isModelAllowedForTier(modelId, tier)) {
-      const defaultModel = getDefaultModelForTier(tier);
+    // Check if toggle is allowed for this tier
+    if (!shouldShowToggle(tier)) {
       return res.status(403).json({
-        error: 'Model not available for your subscription tier',
-        suggestion: `Upgrade to access this model. Your current tier allows: ${getModelsForTier(tier).map(m => m.name).join(', ')}`,
-        allowedModels: getModelsForTier(tier),
-        defaultModel: defaultModel.id
+        error: 'Model selection not available for free tier',
+        suggestion: 'Upgrade to Pro to choose between Fast and Smart modes'
       });
     }
     
-    // Get model details
-    const model = getModelById(modelId);
-    if (!model) {
-      return res.status(404).json({ error: 'Invalid model ID' });
+    // Validate model
+    if (!isModelAllowedForTier(modelId, tier)) {
+      const defaultModel = getDefaultModelForTier(tier);
+      return res.status(403).json({
+        error: 'Model not available for your tier',
+        currentModel: defaultModel.id
+      });
     }
     
-    // Update user's preferred model
+    const model = getModelById(modelId);
     await user.update({ preferred_ai_model: modelId });
     
     res.json({
       success: true,
-      message: `AI model changed to ${model.name}`,
+      message: `Switched to ${model.name} mode`,
       model: {
         id: model.id,
         name: model.name,
-        description: model.description,
-        badge: model.badge
+        icon: model.icon,
+        description: model.description
       }
     });
   } catch (error) {
-    console.error('Error setting model preference:', error);
-    res.status(500).json({ error: 'Failed to update model preference' });
+    console.error('Error setting model:', error);
+    res.status(500).json({ error: 'Failed to update model' });
   }
 });
 
+// ============================================================================
+// LEGACY ENDPOINTS (for backward compatibility)
+// ============================================================================
+
 /**
- * DELETE /api/models/preference
- * Reset to default model for tier
+ * GET /api/models
+ * Legacy: Get all models (redirects to toggle internally)
  */
-router.delete('/preference', authMiddleware, async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findByPk(userId);
@@ -176,70 +137,45 @@ router.delete('/preference', authMiddleware, async (req, res) => {
     }
     
     const tier = user.subscription_tier || 'free';
+    const models = getModelsForTier(tier);
+    const toggleConfig = getToggleConfig(tier);
     const defaultModel = getDefaultModelForTier(tier);
-    
-    // Reset to null (will use tier default)
-    await user.update({ preferred_ai_model: null });
     
     res.json({
       success: true,
-      message: `Reset to default model: ${defaultModel.name}`,
-      defaultModel: {
-        id: defaultModel.id,
-        name: defaultModel.name,
-        description: defaultModel.description
-      }
+      tier,
+      currentModel: user.preferred_ai_model || defaultModel.id,
+      defaultModel: defaultModel.id,
+      models,
+      toggle: toggleConfig, // New simplified toggle config
+      totalModels: models.length
     });
   } catch (error) {
-    console.error('Error resetting model preference:', error);
-    res.status(500).json({ error: 'Failed to reset model preference' });
+    console.error('Error fetching models:', error);
+    res.status(500).json({ error: 'Failed to fetch models' });
   }
 });
 
 /**
- * GET /api/models/compare
- * Compare models for upgrade prompts
+ * PUT /api/models/preference
+ * Legacy: Set model preference (redirects to toggle)
  */
-router.get('/compare/:model1/:model2', async (req, res) => {
+router.put('/preference', authMiddleware, modelPreferenceLimiter, async (req, res) => {
+  // Redirect to new toggle endpoint
+  req.url = '/toggle';
+  router.handle(req, res);
+});
+
+/**
+ * GET /api/models/all
+ * Get all models (for comparison)
+ */
+router.get('/all', async (req, res) => {
   try {
-    const { model1, model2 } = req.params;
-    
-    const modelA = getModelById(model1);
-    const modelB = getModelById(model2);
-    
-    if (!modelA || !modelB) {
-      return res.status(404).json({ error: 'One or both models not found' });
-    }
-    
-    res.json({
-      success: true,
-      comparison: {
-        model1: {
-          id: modelA.id,
-          name: modelA.name,
-          speed: modelA.speed,
-          intelligence: modelA.intelligence,
-          inputCost: modelA.inputPricePerMTok,
-          outputCost: modelA.outputPricePerMTok,
-          features: modelA.features,
-          tiers: modelA.tiers
-        },
-        model2: {
-          id: modelB.id,
-          name: modelB.name,
-          speed: modelB.speed,
-          intelligence: modelB.intelligence,
-          inputCost: modelB.inputPricePerMTok,
-          outputCost: modelB.outputPricePerMTok,
-          features: modelB.features,
-          tiers: modelB.tiers
-        },
-        recommendation: modelA.recommended ? model1 : (modelB.recommended ? model2 : null)
-      }
-    });
+    const models = getAllModels();
+    res.json({ success: true, models });
   } catch (error) {
-    console.error('Error comparing models:', error);
-    res.status(500).json({ error: 'Failed to compare models' });
+    res.status(500).json({ error: 'Failed to fetch models' });
   }
 });
 

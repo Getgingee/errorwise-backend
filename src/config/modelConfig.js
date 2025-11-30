@@ -1,239 +1,125 @@
 /**
- * AI Model Configuration
+ * AI Model Configuration (SIMPLIFIED)
  * 
- * This file contains all available Claude/Anthropic models that users can select.
- * Models are organized by tier availability and use case.
+ * Simplified to just 2-3 choices per tier to reduce user confusion.
+ * Users don't need to see 12+ models - they want a simple toggle.
  * 
- * Updated: November 2025 with latest Claude 4.5 models
+ * SIMPLIFIED MODEL TIERS:
+ * - Free: Haiku (fast) - no choice needed
+ * - Pro: Haiku (fast) ↔ Sonnet (smart) toggle
+ * - Team: Haiku ↔ Sonnet ↔ Opus toggle
+ * 
+ * Updated: November 2025
  */
 
 // ============================================================================
-// AVAILABLE CLAUDE MODELS
+// SIMPLIFIED MODEL SELECTION (2-3 per tier max)
 // ============================================================================
 
 const CLAUDE_MODELS = {
-  // ==================== LATEST MODELS (Claude 4.5) ====================
-  'claude-sonnet-4-5': {
-    id: 'claude-sonnet-4-5',
-    apiId: 'claude-sonnet-4-5-20250929',
-    name: 'Claude Sonnet 4.5',
-    description: 'Smartest model for complex agents and coding',
-    category: 'latest',
-    speed: 'fast',
-    intelligence: 'highest',
-    maxTokens: 64000,
-    contextWindow: 200000,
-    extendedContext: 1000000, // 1M beta
-    inputPricePerMTok: 3,
-    outputPricePerMTok: 15,
-    knowledgeCutoff: 'January 2025',
-    features: ['extended-thinking', 'vision', 'coding', 'agents'],
-    tiers: ['team'], // Most expensive - team only
-    recommended: true,
-    badge: '🚀 Latest'
-  },
-  
-  'claude-haiku-4-5': {
-    id: 'claude-haiku-4-5',
-    apiId: 'claude-haiku-4-5-20251001',
-    name: 'Claude Haiku 4.5',
-    description: 'Fastest model with near-frontier intelligence',
-    category: 'latest',
-    speed: 'fastest',
-    intelligence: 'high',
-    maxTokens: 64000,
-    contextWindow: 200000,
-    inputPricePerMTok: 1,
-    outputPricePerMTok: 5,
-    knowledgeCutoff: 'February 2025',
-    features: ['extended-thinking', 'vision', 'fast-responses'],
-    tiers: ['free', 'pro', 'team'], // Available to all tiers
-    recommended: true,
-    badge: '⚡ Fast'
-  },
-  
-  'claude-opus-4-5': {
-    id: 'claude-opus-4-5',
-    apiId: 'claude-opus-4-5-20251101',
-    name: 'Claude Opus 4.5',
-    description: 'Premium model - maximum intelligence with practical performance',
-    category: 'latest',
-    speed: 'moderate',
-    intelligence: 'maximum',
-    maxTokens: 64000,
-    contextWindow: 200000,
-    inputPricePerMTok: 5,
-    outputPricePerMTok: 25,
-    knowledgeCutoff: 'March 2025',
-    features: ['extended-thinking', 'vision', 'complex-reasoning', 'premium'],
-    tiers: ['team'], // Premium - team only
-    recommended: false,
-    badge: '👑 Premium'
-  },
-  
-  'claude-opus-4-1': {
-    id: 'claude-opus-4-1',
-    apiId: 'claude-opus-4-1-20250805',
-    name: 'Claude Opus 4.1',
-    description: 'Exceptional model for specialized reasoning tasks',
-    category: 'latest',
-    speed: 'moderate',
-    intelligence: 'exceptional',
-    maxTokens: 32000,
-    contextWindow: 200000,
-    inputPricePerMTok: 15,
-    outputPricePerMTok: 75,
-    knowledgeCutoff: 'January 2025',
-    features: ['extended-thinking', 'vision', 'specialized-reasoning'],
-    tiers: ['team'], // Most expensive - team only
-    recommended: false,
-    badge: '🧠 Reasoning'
-  },
-
-  // ==================== CLAUDE 4 MODELS ====================
-  'claude-sonnet-4': {
-    id: 'claude-sonnet-4',
-    apiId: 'claude-sonnet-4-20250514',
-    name: 'Claude Sonnet 4',
-    description: 'Excellent balance of speed and intelligence',
-    category: 'current',
-    speed: 'fast',
-    intelligence: 'very-high',
-    maxTokens: 8192,
-    contextWindow: 200000,
-    inputPricePerMTok: 3,
-    outputPricePerMTok: 15,
-    knowledgeCutoff: 'April 2024',
-    features: ['vision', 'coding', 'general-purpose'],
-    tiers: ['pro', 'team'],
-    recommended: true,
-    badge: '⭐ Balanced'
-  },
-
-  // ==================== CLAUDE 3.5 MODELS ====================
-  'claude-3-5-sonnet': {
-    id: 'claude-3-5-sonnet',
-    apiId: 'claude-3-5-sonnet-20241022',
-    name: 'Claude 3.5 Sonnet',
-    description: 'Previous generation - great for most tasks',
-    category: 'legacy',
-    speed: 'fast',
-    intelligence: 'high',
-    maxTokens: 8192,
-    contextWindow: 200000,
-    inputPricePerMTok: 3,
-    outputPricePerMTok: 15,
-    knowledgeCutoff: 'April 2024',
-    features: ['vision', 'coding', 'general-purpose'],
-    tiers: ['pro', 'team'],
-    recommended: false,
-    badge: null
-  },
-  
-  'claude-3-5-haiku': {
-    id: 'claude-3-5-haiku',
+  // ==================== FAST MODEL (All tiers) ====================
+  'haiku': {
+    id: 'haiku',
     apiId: 'claude-3-5-haiku-20241022',
-    name: 'Claude 3.5 Haiku',
-    description: 'Fast and efficient for quick tasks',
-    category: 'legacy',
+    name: 'Fast',
+    shortName: 'Fast',
+    description: 'Quick responses for simple errors',
     speed: 'fastest',
     intelligence: 'good',
     maxTokens: 8192,
     contextWindow: 200000,
     inputPricePerMTok: 1,
     outputPricePerMTok: 5,
-    knowledgeCutoff: 'July 2024',
-    features: ['vision', 'fast-responses'],
+    features: ['fast-responses', 'coding'],
     tiers: ['free', 'pro', 'team'],
-    recommended: false,
-    badge: null
-  },
-
-  // ==================== CLAUDE 3 MODELS (Legacy) ====================
-  'claude-3-haiku': {
-    id: 'claude-3-haiku',
-    apiId: 'claude-3-haiku-20240307',
-    name: 'Claude 3 Haiku',
-    description: 'Budget-friendly option for simple tasks',
-    category: 'legacy',
-    speed: 'fastest',
-    intelligence: 'moderate',
-    maxTokens: 4096,
-    contextWindow: 200000,
-    inputPricePerMTok: 0.25,
-    outputPricePerMTok: 1.25,
-    knowledgeCutoff: 'August 2023',
-    features: ['vision', 'budget-friendly'],
-    tiers: ['free', 'pro', 'team'],
-    recommended: false,
-    badge: '💰 Budget',
-    deprecationWarning: 'This model will be deprecated. Consider upgrading to Claude Haiku 4.5.'
+    icon: '⚡',
+    color: '#22c55e' // Green
   },
   
-  'claude-3-opus': {
-    id: 'claude-3-opus',
-    apiId: 'claude-3-opus-20240229',
-    name: 'Claude 3 Opus',
-    description: 'Previous flagship - powerful reasoning',
-    category: 'legacy',
-    speed: 'slow',
-    intelligence: 'very-high',
-    maxTokens: 4096,
-    contextWindow: 200000,
-    inputPricePerMTok: 15,
-    outputPricePerMTok: 75,
-    knowledgeCutoff: 'August 2023',
-    features: ['vision', 'complex-reasoning'],
-    tiers: ['team'],
-    recommended: false,
-    badge: null,
-    deprecationWarning: 'This model will be deprecated. Consider upgrading to Claude Opus 4.5.'
-  },
-  
-  'claude-3-sonnet': {
-    id: 'claude-3-sonnet',
-    apiId: 'claude-3-sonnet-20240229',
-    name: 'Claude 3 Sonnet',
-    description: 'Previous balanced option',
-    category: 'legacy',
-    speed: 'moderate',
+  // ==================== SMART MODEL (Pro + Team) ====================
+  'sonnet': {
+    id: 'sonnet',
+    apiId: 'claude-sonnet-4-20250514',
+    name: 'Smart',
+    shortName: 'Smart',
+    description: 'Better analysis for complex errors',
+    speed: 'fast',
     intelligence: 'high',
-    maxTokens: 4096,
+    maxTokens: 8192,
     contextWindow: 200000,
     inputPricePerMTok: 3,
     outputPricePerMTok: 15,
-    knowledgeCutoff: 'August 2023',
-    features: ['vision', 'general-purpose'],
+    features: ['coding', 'analysis', 'detailed-explanations'],
     tiers: ['pro', 'team'],
-    recommended: false,
-    badge: null,
-    deprecationWarning: 'This model will be deprecated. Consider upgrading to Claude Sonnet 4.5.'
+    icon: '🧠',
+    color: '#3b82f6' // Blue
+  },
+  
+  // ==================== GENIUS MODEL (Team only) ====================
+  'opus': {
+    id: 'opus',
+    apiId: 'claude-sonnet-4-5-20250929',
+    name: 'Genius',
+    shortName: 'Genius',
+    description: 'Most intelligent for complex problems',
+    speed: 'moderate',
+    intelligence: 'highest',
+    maxTokens: 64000,
+    contextWindow: 200000,
+    inputPricePerMTok: 3,
+    outputPricePerMTok: 15,
+    features: ['extended-thinking', 'complex-reasoning', 'agents'],
+    tiers: ['team'],
+    icon: '🚀',
+    color: '#8b5cf6' // Purple
   }
 };
 
 // ============================================================================
-// TIER-SPECIFIC MODEL DEFAULTS
+// TIER-SPECIFIC DEFAULTS (Simplified)
 // ============================================================================
 
 const TIER_MODEL_DEFAULTS = {
   free: {
-    default: 'claude-haiku-4-5',
-    fallback: 'claude-3-5-haiku',
+    default: 'haiku',
+    allowedModels: ['haiku'],
     maxTokensAllowed: 2000,
-    allowedModels: ['claude-haiku-4-5', 'claude-3-5-haiku', 'claude-3-haiku']
+    showToggle: false // Free users don't see toggle
   },
   pro: {
-    default: 'claude-sonnet-4',
-    fallback: 'claude-3-5-sonnet',
+    default: 'sonnet',
+    allowedModels: ['haiku', 'sonnet'],
     maxTokensAllowed: 4000,
-    allowedModels: ['claude-haiku-4-5', 'claude-3-5-haiku', 'claude-3-haiku', 'claude-sonnet-4', 'claude-3-5-sonnet', 'claude-3-sonnet']
+    showToggle: true // Pro users see Fast ↔ Smart toggle
   },
   team: {
-    default: 'claude-sonnet-4-5',
-    fallback: 'claude-sonnet-4',
+    default: 'sonnet',
+    allowedModels: ['haiku', 'sonnet', 'opus'],
     maxTokensAllowed: 8000,
-    allowedModels: Object.keys(CLAUDE_MODELS) // All models available
+    showToggle: true // Team sees 3-way toggle
   }
+};
+
+// ============================================================================
+// LEGACY MODEL MAPPING (for backward compatibility)
+// ============================================================================
+
+const LEGACY_MODEL_MAP = {
+  // Map old model IDs to new simplified ones
+  'claude-haiku-4-5': 'haiku',
+  'claude-3-5-haiku': 'haiku',
+  'claude-3-5-haiku-20241022': 'haiku',
+  'claude-3-haiku': 'haiku',
+  'claude-3-haiku-20240307': 'haiku',
+  'claude-sonnet-4': 'sonnet',
+  'claude-sonnet-4-20250514': 'sonnet',
+  'claude-3-5-sonnet': 'sonnet',
+  'claude-3-5-sonnet-20241022': 'sonnet',
+  'claude-3-sonnet': 'sonnet',
+  'claude-sonnet-4-5': 'opus',
+  'claude-sonnet-4-5-20250929': 'opus',
+  'claude-opus-4-5': 'opus',
+  'claude-3-opus': 'opus'
 };
 
 // ============================================================================
@@ -241,7 +127,7 @@ const TIER_MODEL_DEFAULTS = {
 // ============================================================================
 
 /**
- * Get all available models for a specific tier
+ * Get models for a tier (simplified list)
  */
 function getModelsForTier(tier = 'free') {
   const tierConfig = TIER_MODEL_DEFAULTS[tier] || TIER_MODEL_DEFAULTS.free;
@@ -257,7 +143,7 @@ function getModelsForTier(tier = 'free') {
 }
 
 /**
- * Get all models with tier availability info
+ * Get all models with tier availability
  */
 function getAllModels() {
   return Object.values(CLAUDE_MODELS).map(model => ({
@@ -271,30 +157,42 @@ function getAllModels() {
 }
 
 /**
- * Get model by ID
+ * Get model by ID (handles legacy IDs)
  */
 function getModelById(modelId) {
-  return CLAUDE_MODELS[modelId] || null;
+  // First check direct match
+  if (CLAUDE_MODELS[modelId]) {
+    return CLAUDE_MODELS[modelId];
+  }
+  
+  // Check legacy mapping
+  const mappedId = LEGACY_MODEL_MAP[modelId];
+  if (mappedId && CLAUDE_MODELS[mappedId]) {
+    return CLAUDE_MODELS[mappedId];
+  }
+  
+  return null;
 }
 
 /**
- * Get model API ID from short ID
+ * Get API model ID from simplified ID
  */
 function getModelApiId(modelId) {
-  const model = CLAUDE_MODELS[modelId];
+  const model = getModelById(modelId);
   return model ? model.apiId : null;
 }
 
 /**
- * Check if a model is allowed for a tier
+ * Check if model is allowed for tier
  */
 function isModelAllowedForTier(modelId, tier = 'free') {
   const tierConfig = TIER_MODEL_DEFAULTS[tier] || TIER_MODEL_DEFAULTS.free;
-  return tierConfig.allowedModels.includes(modelId);
+  const normalizedId = LEGACY_MODEL_MAP[modelId] || modelId;
+  return tierConfig.allowedModels.includes(normalizedId);
 }
 
 /**
- * Get default model for a tier
+ * Get default model for tier
  */
 function getDefaultModelForTier(tier = 'free') {
   const tierConfig = TIER_MODEL_DEFAULTS[tier] || TIER_MODEL_DEFAULTS.free;
@@ -302,15 +200,15 @@ function getDefaultModelForTier(tier = 'free') {
 }
 
 /**
- * Get fallback model for a tier
+ * Get fallback model for tier
  */
 function getFallbackModelForTier(tier = 'free') {
-  const tierConfig = TIER_MODEL_DEFAULTS[tier] || TIER_MODEL_DEFAULTS.free;
-  return CLAUDE_MODELS[tierConfig.fallback];
+  // Always fallback to haiku (fastest/cheapest)
+  return CLAUDE_MODELS['haiku'];
 }
 
 /**
- * Get max tokens allowed for a tier
+ * Get max tokens for tier
  */
 function getMaxTokensForTier(tier = 'free') {
   const tierConfig = TIER_MODEL_DEFAULTS[tier] || TIER_MODEL_DEFAULTS.free;
@@ -318,36 +216,69 @@ function getMaxTokensForTier(tier = 'free') {
 }
 
 /**
- * Validate and resolve model selection
- * Returns the model to use based on user preference and tier
+ * Should show model toggle for this tier?
+ */
+function shouldShowToggle(tier = 'free') {
+  const tierConfig = TIER_MODEL_DEFAULTS[tier] || TIER_MODEL_DEFAULTS.free;
+  return tierConfig.showToggle;
+}
+
+/**
+ * Resolve model for request (handles legacy + tier validation)
  */
 function resolveModelForRequest(preferredModelId, tier = 'free') {
-  // If no preference, use tier default
   if (!preferredModelId) {
     return getDefaultModelForTier(tier);
   }
   
-  // Check if preferred model exists and is allowed
-  const preferredModel = CLAUDE_MODELS[preferredModelId];
-  if (preferredModel && isModelAllowedForTier(preferredModelId, tier)) {
-    return preferredModel;
+  // Handle legacy IDs
+  const normalizedId = LEGACY_MODEL_MAP[preferredModelId] || preferredModelId;
+  
+  if (isModelAllowedForTier(normalizedId, tier)) {
+    return CLAUDE_MODELS[normalizedId] || getDefaultModelForTier(tier);
   }
   
-  // Fall back to tier default if not allowed
-  console.warn(`Model ${preferredModelId} not allowed for ${tier} tier, using default`);
+  // Fall back to tier default
   return getDefaultModelForTier(tier);
 }
 
 /**
- * Get models grouped by category
+ * Get toggle data for frontend
+ * Returns simple toggle config based on tier
+ */
+function getToggleConfig(tier = 'free') {
+  const tierConfig = TIER_MODEL_DEFAULTS[tier] || TIER_MODEL_DEFAULTS.free;
+  
+  if (!tierConfig.showToggle) {
+    return {
+      show: false,
+      models: [],
+      default: tierConfig.default
+    };
+  }
+  
+  return {
+    show: true,
+    models: tierConfig.allowedModels.map(id => ({
+      id: CLAUDE_MODELS[id].id,
+      name: CLAUDE_MODELS[id].shortName,
+      icon: CLAUDE_MODELS[id].icon,
+      color: CLAUDE_MODELS[id].color,
+      description: CLAUDE_MODELS[id].description
+    })),
+    default: tierConfig.default
+  };
+}
+
+/**
+ * Get models grouped by category (for backward compatibility)
  */
 function getModelsGroupedByCategory(tier = 'free') {
   const models = getModelsForTier(tier);
-  
   return {
-    latest: models.filter(m => m.category === 'latest'),
-    current: models.filter(m => m.category === 'current'),
-    legacy: models.filter(m => m.category === 'legacy')
+    latest: models, // All our models are "latest" now
+    current: [],
+    legacy: []
   };
 }
 
@@ -358,6 +289,7 @@ function getModelsGroupedByCategory(tier = 'free') {
 module.exports = {
   CLAUDE_MODELS,
   TIER_MODEL_DEFAULTS,
+  LEGACY_MODEL_MAP,
   getModelsForTier,
   getAllModels,
   getModelById,
@@ -366,6 +298,8 @@ module.exports = {
   getDefaultModelForTier,
   getFallbackModelForTier,
   getMaxTokensForTier,
+  shouldShowToggle,
   resolveModelForRequest,
+  getToggleConfig,
   getModelsGroupedByCategory
 };
