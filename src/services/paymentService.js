@@ -3,21 +3,31 @@ const crypto = require('crypto');
 
 class DodoPaymentService {
   constructor() {
-    // Support both DODO_API_KEY and DODO_PAYMENTS_API_KEY for flexibility
+    // DodoPayments uses two keys:
+    // - API Key (DODO_API_KEY): For Bearer token authentication
+    // - Secret Key (DODO_SECRET_KEY): For webhook signature verification
     this.apiKey = process.env.DODO_API_KEY || process.env.DODO_PAYMENTS_API_KEY;
     this.secretKey = process.env.DODO_SECRET_KEY || process.env.DODO_PAYMENTS_SECRET;
     this.baseURL = process.env.DODO_BASE_URL || process.env.DODO_API_URL || 'https://api.dodopayments.com/v1';
-    this.webhookSecret = process.env.DODO_WEBHOOK_SECRET;
+    this.webhookSecret = process.env.DODO_WEBHOOK_SECRET || this.secretKey;
 
-    // Check if API key is a placeholder
+    // Log configuration status (for debugging in Railway logs)
+    console.log('💳 DodoPayments Configuration:');
+    console.log(`   API Key: ${this.apiKey ? '✅ SET (' + this.apiKey.substring(0, 8) + '...)' : '❌ NOT SET'}`);
+    console.log(`   Secret Key: ${this.secretKey ? '✅ SET' : '❌ NOT SET'}`);
+    console.log(`   Base URL: ${this.baseURL}`);
+
+    // Only treat as placeholder if it contains obvious placeholder text
     const isPlaceholder = !this.apiKey || 
-                          this.apiKey.includes('your_') || 
-                          this.apiKey.includes('placeholder') ||
-                          this.apiKey.includes('_here');
+                          this.apiKey === 'your_actual_dodo_api_key_here' ||
+                          this.apiKey === 'placeholder' ||
+                          this.apiKey.startsWith('your_');
 
     if (isPlaceholder) {
-      console.warn('⚠️ Dodo payment API key not configured or is placeholder. Payment functionality will be limited.');
+      console.warn('⚠️ Dodo payment API key not configured. Payment will use mock mode locally.');
       this.apiKey = null; // Force mock mode
+    } else {
+      console.log('✅ DodoPayments ready for live transactions');
     }
   }  // Generate signature for API requests
   generateSignature(timestamp, method, path, body = '') {
@@ -103,7 +113,7 @@ class DodoPaymentService {
       const response = await axios.post(`${this.baseURL}/checkouts`, payload, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.secretKey}`
+          'Authorization': `Bearer ${this.apiKey}`
         },
         timeout: 15000
       });
