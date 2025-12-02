@@ -22,6 +22,8 @@ router.post('/ask', checkQueryLimit, async (req, res) => {
       includeWebSearch = true
     } = req.body;
 
+    console.log(`[Conversation] Request from user ${req.user.id}: "${message?.substring(0, 50)}..."`);
+
     if (!message || message.trim().length === 0) {
       return res.status(400).json({
         error: 'Message is required',
@@ -34,7 +36,8 @@ router.post('/ask', checkQueryLimit, async (req, res) => {
       attributes: ['id', 'subscriptionTier', 'subscriptionStatus']
     });
 
-    const tier = user.subscriptionTier || 'free';
+    const tier = user?.subscriptionTier || 'free';
+    console.log(`[Conversation] User tier: ${tier}`);
 
     // Get conversational response
     const response = await conversationalAI.getConversationalResponse({
@@ -46,13 +49,26 @@ router.post('/ask', checkQueryLimit, async (req, res) => {
       includeWebSearch: includeWebSearch && (tier === 'pro' || tier === 'team') // Only Pro/Team get web search
     });
 
+    // Check if response is an error
+    if (response.type === 'error') {
+      console.error('[Conversation] AI returned error:', response.error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to get conversational response',
+        details: response.error || 'AI service unavailable'
+      });
+    }
+
+    console.log(`[Conversation] Success, type: ${response.type}, model: ${response.model}`);
+
     res.json({
       success: true,
       ...response
     });
 
   } catch (error) {
-    console.error('Conversation error:', error);
+    console.error('[Conversation] Error:', error.message);
+    console.error('[Conversation] Stack:', error.stack);
     res.status(500).json({
       success: false,
       error: 'Failed to process conversation',

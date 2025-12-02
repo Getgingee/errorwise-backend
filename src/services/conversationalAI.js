@@ -16,11 +16,11 @@ const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GE
 // Conversation context store (use Redis in production)
 const conversationContexts = new Map();
 
-// Tier-based AI configuration (matching pricing page)
+// Tier-based AI configuration - ALL tiers use Claude/Anthropic
 const AI_CONFIG = {
   free: {
-    model: 'gemini-2.0-flash-exp',
-    provider: 'gemini',
+    model: 'claude-3-5-haiku-20241022',  // Claude Haiku for FREE tier (fast & affordable)
+    provider: 'anthropic',
     maxTokens: 800,
     features: {
       basicExplanations: true,
@@ -31,7 +31,7 @@ const AI_CONFIG = {
     }
   },
   pro: {
-    model: 'claude-3-5-haiku-20241022',
+    model: 'claude-3-5-haiku-20241022',  // Claude Haiku for PRO tier (more tokens)
     provider: 'anthropic',
     maxTokens: 1200,
     features: {
@@ -46,7 +46,7 @@ const AI_CONFIG = {
     }
   },
   team: {
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-3-5-sonnet-20241022',  // Claude Sonnet for TEAM tier (best quality)
     provider: 'anthropic',
     maxTokens: 2000,
     features: {
@@ -405,6 +405,8 @@ async function getConversationalResponse({
   includeWebSearch = true
 }) {
   try {
+    console.log(`[ConversationalAI] Starting response for user ${userId}, tier: ${tier}`);
+    
     // Get or create conversation context
     const contextKey = conversationId || `${userId}_${Date.now()}`;
     let conversation = conversationContexts.get(contextKey) || {
@@ -428,6 +430,13 @@ async function getConversationalResponse({
     
     // Get tier configuration
     const config = AI_CONFIG[tier] || AI_CONFIG.free;
+    console.log(`[ConversationalAI] Using config: provider=${config.provider}, model=${config.model}`);
+    
+    // Check if Anthropic is available
+    if (config.provider === 'anthropic' && !anthropic) {
+      console.error('[ConversationalAI] ERROR: Anthropic client not initialized! ANTHROPIC_API_KEY may be missing.');
+      throw new Error('AI service not configured. Please check ANTHROPIC_API_KEY.');
+    }
     
     // Check if we should ask follow-up questions
     const needsFollowUp = shouldAskFollowUp(message, conversation.context, tier);
@@ -457,7 +466,12 @@ async function getConversationalResponse({
     // Web scraping for Pro/Team users
     let webContext = null;
     if (config.features.webScraping && includeWebSearch) {
-      webContext = await scrapeWebForSolutions(message, conversation.context);
+      try {
+        console.log('[ConversationalAI] Web scraping enabled, fetching...');
+        webContext = await scrapeWebForSolutions(message, conversation.context);
+      } catch (webError) {
+        console.warn('[ConversationalAI] Web scraping failed:', webError.message);
+      }
     }
     
     // Build AI prompt with conversation history and web context
@@ -471,13 +485,19 @@ async function getConversationalResponse({
       includeIndianContext: conversation.context.includeIndianContext
     });
     
-    // Get AI response based on tier
+    console.log(`[ConversationalAI] Calling ${config.provider} API...`);
+    
+    // Get AI response based on tier - ALL tiers use Claude now
     let aiResponse;
     if (config.provider === 'anthropic' && anthropic) {
       aiResponse = await getClaudeResponse(aiPrompt, config);
+      console.log('[ConversationalAI] Claude response received');
     } else if (config.provider === 'gemini' && genAI) {
+      // Fallback to Gemini only if explicitly configured
       aiResponse = await getGeminiResponse(aiPrompt, config);
+      console.log('[ConversationalAI] Gemini response received');
     } else {
+      console.error('[ConversationalAI] No AI provider available!');
       aiResponse = getFallbackResponse(message, tier);
     }
     
@@ -499,6 +519,8 @@ async function getConversationalResponse({
     // Save updated conversation
     conversationContexts.set(contextKey, conversation);
     
+    console.log('[ConversationalAI] Response complete');
+    
     return {
       conversationId: contextKey,
       type: 'answer',
@@ -510,11 +532,13 @@ async function getConversationalResponse({
     };
     
   } catch (error) {
-    console.error('Conversational AI error:', error);
+    console.error('[ConversationalAI] Error:', error.message);
+    console.error('[ConversationalAI] Stack:', error.stack);
     return {
       type: 'error',
-      message: 'Sorry, I encountered an error. Please try again.',
-      error: error.message
+      message: 'Sorry, I encountered an error processing your request. Please try again.',
+      error: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     };
   }
 }
@@ -591,10 +615,17 @@ Respond now:`;
 }
 
 /**
- * Get response from Claude (Pro/Team tiers)
+ * Get response from Claude (ALL tiers now use Claude)
  */
 async function getClaudeResponse(prompt, config) {
   try {
+    if (!anthropic) {
+      console.error('[Claude] Anthropic client not initialized!');
+      throw new Error('Anthropic API client not available. Check ANTHROPIC_API_KEY environment variable.');
+    }
+    
+    console.log(`[Claude] Calling model: ${config.model}, maxTokens: ${config.maxTokens}`);
+    
     const message = await anthropic.messages.create({
       model: config.model,
       max_tokens: config.maxTokens,
@@ -604,9 +635,32 @@ async function getClaudeResponse(prompt, config) {
       }]
     });
     
-    return message.content[0].text;
+    if (!message || !message.content || !message.content[0]) {
+      console.error('[Claude] Empty response received');
+      throw new Error('Empty response from Claude API');
+    }
+    
+    const responseText = message.content[0].text;
+    console.log(`[Claude] Response received: ${responseText.length} chars`);
+    
+    return responseText;
   } catch (error) {
-    console.error('Claude API error:', error);
+    console.error('[Claude] API error:', error.message);
+    console.error('[Claude] Error details:', {
+      status: error.status,
+      code: error.code,
+      type: error.type
+    });
+    
+    // Provide more specific error messages
+    if (error.status === 401) {
+      throw new Error('Invalid Anthropic API key. Please check configuration.');
+    } else if (error.status === 429) {
+      throw new Error('Rate limit exceeded. Please try again in a moment.');
+    } else if (error.status >= 500) {
+      throw new Error('Anthropic service temporarily unavailable. Please try again.');
+    }
+    
     throw error;
   }
 }
