@@ -663,6 +663,36 @@ const start = async () => {
           console.log('ℹ️  query_logs table does not exist yet - will be created by sync');
         }
         
+        // === Check error_library table columns (for web sources) ===
+        console.log('🔍 Checking error_library table columns...');
+        const [libraryTableExists] = await sequelize.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'error_library'
+          ) as exists
+        `);
+        
+        if (libraryTableExists[0]?.exists) {
+          const [libraryColumns] = await sequelize.query(`
+            SELECT column_name FROM information_schema.columns 
+            WHERE table_name = 'error_library' 
+            AND column_name IN ('webSources', 'codeExample')
+          `);
+          
+          const libCols = libraryColumns.map(r => r.column_name);
+          
+          if (!libCols.includes('webSources')) {
+            await sequelize.query(`ALTER TABLE "error_library" ADD COLUMN IF NOT EXISTS "webSources" JSONB DEFAULT '[]'`);
+            console.log('✅ Added: error_library.webSources');
+          }
+          if (!libCols.includes('codeExample')) {
+            await sequelize.query(`ALTER TABLE "error_library" ADD COLUMN IF NOT EXISTS "codeExample" TEXT`);
+            console.log('✅ Added: error_library.codeExample');
+          }
+        } else {
+          console.log('ℹ️  error_library table does not exist yet - will be created by sync');
+        }
+        
         console.log('✅ Missing columns check complete');
         
       } catch (migrationError) {

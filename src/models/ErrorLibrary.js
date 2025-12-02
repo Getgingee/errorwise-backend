@@ -172,7 +172,22 @@ const ErrorLibrary = sequelize.define('ErrorLibrary', {
   sourceUrl: {
     type: DataTypes.STRING(500),
     allowNull: true,
-    comment: 'External documentation link'
+    comment: 'Primary external documentation/forum link'
+  },
+  
+  // Web sources (scraped from forums)
+  webSources: {
+    type: DataTypes.JSONB,
+    allowNull: true,
+    defaultValue: [],
+    comment: 'Array of web sources with title, url, source, score'
+  },
+  
+  // Code example
+  codeExample: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    comment: 'Code example to fix the error'
   },
   
   // Last verified date

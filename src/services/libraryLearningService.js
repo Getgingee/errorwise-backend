@@ -2049,6 +2049,177 @@ function cleanupOldPatterns(maxAgeDays = 30) {
 }
 
 // ============================================================================
+// IMMEDIATE LEARNING - Scrape and Store on Every Query
+// ============================================================================
+
+/**
+ * Immediately scrape web sources and store solution in library
+ * Called during AI analysis for instant learning
+ * 
+ * @param {Object} params - Error and solution data
+ * @returns {Object} - Scraped sources and library entry status
+ */
+async function learnAndStoreImmediately(params) {
+  const {
+    errorMessage,
+    errorType,
+    language,
+    category,
+    aiResponse,
+    userId
+  } = params;
+  
+  const startTime = Date.now();
+  const results = {
+    sources: [],
+    libraryEntry: null,
+    scrapedSolutions: [],
+    success: false
+  };
+  
+  try {
+    console.log(`🔍 [LibraryLearning] Starting immediate learning for: ${errorMessage.substring(0, 50)}...`);
+    
+    // Step 1: Detect product/category from error
+    const detectedProducts = detectProductFromError(errorMessage, {
+      language,
+      category
+    });
+    
+    // Step 2: Scrape relevant forums in parallel (with limit)
+    const scrapePromises = [];
+    const maxConcurrentScrapes = 3;
+    
+    for (const productInfo of detectedProducts.slice(0, maxConcurrentScrapes)) {
+      scrapePromises.push(
+        searchProductForums(errorMessage, productInfo)
+          .catch(err => {
+            console.warn(`Forum scrape failed for ${productInfo.vendor}:`, err.message);
+            return [];
+          })
+      );
+    }
+    
+    // Also search Stack Overflow for programming errors
+    if (language && ['javascript', 'python', 'java', 'typescript', 'csharp', 'cpp', 'go', 'rust', 'php', 'ruby'].includes(language.toLowerCase())) {
+      scrapePromises.push(
+        searchStackExchange(extractSearchTerms(errorMessage), 'stackoverflow.com')
+          .catch(err => {
+            console.warn('Stack Overflow search failed:', err.message);
+            return [];
+          })
+      );
+    }
+    
+    // Wait for all scrapes to complete
+    const allResults = await Promise.all(scrapePromises);
+    
+    // Flatten and collect sources
+    for (const forumResults of allResults) {
+      if (Array.isArray(forumResults)) {
+        for (const result of forumResults) {
+          if (result.results && result.results.length > 0) {
+            results.sources.push({
+              forum: result.forum,
+              vendor: result.vendor,
+              product: result.product,
+              topSolution: result.topResult,
+              allResults: result.results.slice(0, 3)
+            });
+            
+            // Extract actual solutions from forum results
+            for (const forumPost of result.results.slice(0, 2)) {
+              if (!forumPost.isSearchLink) {
+                results.scrapedSolutions.push({
+                  title: forumPost.title,
+                  url: forumPost.link,
+                  source: forumPost.source,
+                  score: forumPost.score || 0,
+                  isAnswered: forumPost.isAnswered
+                });
+              }
+            }
+          } else if (result.title && result.link) {
+            // Direct result from Stack Exchange
+            results.scrapedSolutions.push({
+              title: result.title,
+              url: result.link,
+              source: result.source || 'stackoverflow',
+              score: result.score || 0,
+              isAnswered: result.isAnswered
+            });
+          }
+        }
+      }
+    }
+    
+    console.log(`📚 [LibraryLearning] Found ${results.sources.length} sources, ${results.scrapedSolutions.length} solutions`);
+    
+    // Step 3: Store in library if we have good AI response + web verification
+    if (aiResponse && aiResponse.confidence >= 0.7 && results.scrapedSolutions.length > 0) {
+      const topWebSolution = results.scrapedSolutions[0];
+      
+      // Check if this error pattern already exists
+      const pattern = normalizeErrorPattern(errorMessage, errorType, language);
+      const existingEntry = await ErrorLibrary.findOne({
+        where: {
+          errorPattern: pattern,
+          type: 'system',
+          isActive: true
+        }
+      });
+      
+      if (existingEntry) {
+        // Update existing entry with new source
+        await existingEntry.update({
+          viewCount: existingEntry.viewCount + 1,
+          lastVerified: new Date(),
+          sourceUrl: existingEntry.sourceUrl || topWebSolution.url
+        });
+        results.libraryEntry = { updated: true, id: existingEntry.id };
+        console.log(`📖 [LibraryLearning] Updated existing entry: ${existingEntry.id}`);
+      } else {
+        // Create new library entry
+        const entry = await ErrorLibrary.create({
+          type: 'system',
+          errorCode: generateErrorCode({ pattern, language }),
+          errorPattern: pattern,
+          title: generateTitle(errorMessage, errorType),
+          errorMessage: errorMessage.substring(0, 500),
+          category: mapCategory(category),
+          explanation: aiResponse.explanation,
+          solution: aiResponse.solution,
+          codeExample: aiResponse.codeExample || null,
+          tags: generateTags({ language, errorType, category, originalError: errorMessage }),
+          difficulty: 'medium',
+          sourceUrl: topWebSolution.url,
+          webSources: JSON.stringify(results.scrapedSolutions.slice(0, 5)),
+          lastVerified: new Date(),
+          isPublic: true,
+          isActive: true,
+          viewCount: 1,
+          helpfulCount: 0
+        });
+        
+        results.libraryEntry = { created: true, id: entry.id, title: entry.title };
+        console.log(`✅ [LibraryLearning] Created new entry: ${entry.id} - ${entry.title}`);
+      }
+    }
+    
+    results.success = true;
+    results.processingTimeMs = Date.now() - startTime;
+    
+    console.log(`🎓 [LibraryLearning] Completed in ${results.processingTimeMs}ms`);
+    
+  } catch (error) {
+    console.error('❌ [LibraryLearning] Immediate learning failed:', error.message);
+    results.error = error.message;
+  }
+  
+  return results;
+}
+
+// ============================================================================
 // INITIALIZATION
 // ============================================================================
 
@@ -2089,6 +2260,9 @@ module.exports = {
   checkEligibilityForLibrary,
   verifyFromInternetSources,
   addToLibrary,
+  
+  // Immediate learning - scrape and store on every query
+  learnAndStoreImmediately,
   
   // Product detection
   detectProductFromError,

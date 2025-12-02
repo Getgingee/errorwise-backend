@@ -2541,6 +2541,30 @@ Remember: Your goal is to help users understand their issues and learn from them
                 userId,
                 wasHelpful: null // Will be updated when user provides feedback
               });
+              
+              // 🌐 IMMEDIATE WEB SCRAPING: Scrape forums and store in library
+              // Run in background (don't await) to not slow down response
+              libraryLearning.learnAndStoreImmediately({
+                errorMessage: sanitizedMessage,
+                errorType: detectedErrorType,
+                language: detectedLanguage,
+                category: result.category,
+                aiResponse: {
+                  explanation: result.explanation,
+                  solution: result.solution,
+                  codeExample: result.codeExample,
+                  confidence: result.confidence
+                },
+                userId
+              }).then(learningResult => {
+                if (learningResult.success) {
+                  console.log(`📚 [Learning] Scraped ${learningResult.sources.length} sources, ${learningResult.scrapedSolutions.length} solutions`);
+                  if (learningResult.libraryEntry) {
+                    console.log(`📖 [Learning] Library entry: ${JSON.stringify(learningResult.libraryEntry)}`);
+                  }
+                }
+              }).catch(err => console.warn('Background learning failed:', err.message));
+              
             } catch (learningErr) {
               console.warn('Library learning tracking failed:', learningErr.message);
             }
