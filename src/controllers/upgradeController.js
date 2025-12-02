@@ -31,6 +31,10 @@ const DODO_PAYMENTS_CONFIG = {
 /**
  * Get upgrade options and checkout URLs
  * GET /api/upgrade/options
+ * 
+ * Returns available upgrade options. Frontend should use the checkout API
+ * (/api/subscriptions/checkout or /api/upgrade/checkout-url) to get actual
+ * checkout URLs dynamically.
  */
 async function getUpgradeOptions(req, res) {
   try {
@@ -43,69 +47,54 @@ async function getUpgradeOptions(req, res) {
     
     const currentTier = user.subscriptionTier || 'free';
     
+    // Get plan configs from subscription controller
+    const { SUBSCRIPTION_TIERS } = require('./subscriptionController');
+    
     // Build available upgrade options
     const options = [];
     
     if (currentTier === 'free') {
+      const proPlan = SUBSCRIPTION_TIERS.pro;
       options.push({
         tier: 'pro',
-        name: 'Pro',
-        description: 'Unlimited queries, priority support',
+        name: proPlan.name,
+        description: proPlan.description,
         pricing: {
-          monthly: { amount: DODO_PAYMENTS_CONFIG.pricing.pro.monthly, label: '$3/month' },
-          yearly: { amount: DODO_PAYMENTS_CONFIG.pricing.pro.yearly, label: '$30/year (save 17%)' }
+          monthly: { amount: proPlan.price, label: `$${proPlan.price}/month` },
+          yearly: { amount: proPlan.price * 10, label: `$${proPlan.price * 10}/year (save 17%)` }
         },
-        features: [
-          'Unlimited AI queries',
-          'Full error history',
-          'Priority email support',
-          'Advanced AI models'
-        ],
-        checkoutUrls: {
-          monthly: DODO_PAYMENTS_CONFIG.productUrls.pro_monthly,
-          yearly: DODO_PAYMENTS_CONFIG.productUrls.pro_yearly
-        }
+        features: proPlan.displayFeatures.filter(f => f.available).slice(0, 5).map(f => f.text),
+        // Tell frontend to use the checkout API instead of static URLs
+        useCheckoutApi: true,
+        checkoutEndpoint: '/api/subscriptions/checkout'
       });
       
+      const teamPlan = SUBSCRIPTION_TIERS.team;
       options.push({
         tier: 'team',
-        name: 'Team',
-        description: 'For teams up to 10 members',
+        name: teamPlan.name,
+        description: teamPlan.description,
         pricing: {
-          monthly: { amount: DODO_PAYMENTS_CONFIG.pricing.team.monthly, label: '$8/month' },
-          yearly: { amount: DODO_PAYMENTS_CONFIG.pricing.team.yearly, label: '$80/year (save 17%)' }
+          monthly: { amount: teamPlan.price, label: `$${teamPlan.price}/month` },
+          yearly: { amount: teamPlan.price * 10, label: `$${teamPlan.price * 10}/year (save 17%)` }
         },
-        features: [
-          'Everything in Pro',
-          'Up to 10 team members',
-          'Shared error library',
-          'Team analytics',
-          'Priority support'
-        ],
-        checkoutUrls: {
-          monthly: DODO_PAYMENTS_CONFIG.productUrls.team_monthly,
-          yearly: DODO_PAYMENTS_CONFIG.productUrls.team_yearly
-        }
+        features: teamPlan.displayFeatures.filter(f => f.available).slice(0, 5).map(f => f.text),
+        useCheckoutApi: true,
+        checkoutEndpoint: '/api/subscriptions/checkout'
       });
     } else if (currentTier === 'pro') {
+      const teamPlan = SUBSCRIPTION_TIERS.team;
       options.push({
         tier: 'team',
-        name: 'Team',
+        name: teamPlan.name,
         description: 'Upgrade for team features',
         pricing: {
-          monthly: { amount: DODO_PAYMENTS_CONFIG.pricing.team.monthly, label: '$8/month' },
-          yearly: { amount: DODO_PAYMENTS_CONFIG.pricing.team.yearly, label: '$80/year (save 17%)' }
+          monthly: { amount: teamPlan.price, label: `$${teamPlan.price}/month` },
+          yearly: { amount: teamPlan.price * 10, label: `$${teamPlan.price * 10}/year (save 17%)` }
         },
-        features: [
-          'Everything in Pro',
-          'Up to 10 team members',
-          'Shared error library',
-          'Team analytics'
-        ],
-        checkoutUrls: {
-          monthly: DODO_PAYMENTS_CONFIG.productUrls.team_monthly,
-          yearly: DODO_PAYMENTS_CONFIG.productUrls.team_yearly
-        }
+        features: teamPlan.displayFeatures.filter(f => f.available).slice(0, 5).map(f => f.text),
+        useCheckoutApi: true,
+        checkoutEndpoint: '/api/subscriptions/checkout'
       });
     }
     
@@ -166,6 +155,9 @@ async function trackUpgradeClick(req, res) {
 /**
  * Get checkout URL for specific plan
  * GET /api/upgrade/checkout-url
+ * 
+ * Uses the dynamic payment service to create DodoPayments checkout sessions
+ * instead of hardcoded URLs.
  */
 async function getCheckoutUrl(req, res) {
   try {
@@ -187,17 +179,15 @@ async function getCheckoutUrl(req, res) {
     if (!['monthly', 'yearly'].includes(cycle)) {
       return res.status(400).json({ error: 'Invalid billing cycle. Must be monthly or yearly.' });
     }
+
+    // Get plan config from subscription controller
+    const { SUBSCRIPTION_TIERS } = require('./subscriptionController');
+    const plan = SUBSCRIPTION_TIERS[tier];
     
-    // Get checkout URL
-    const urlKey = `${tier}_${cycle}`;
-    let checkoutUrl = DODO_PAYMENTS_CONFIG.productUrls[urlKey];
-    
-    // Add user context to URL (email for pre-fill)
-    if (checkoutUrl) {
-      const separator = checkoutUrl.includes('?') ? '&' : '?';
-      checkoutUrl = `${checkoutUrl}${separator}email=${encodeURIComponent(user.email)}&user_id=${userId}`;
+    if (!plan || !plan.dodo_plan_id) {
+      return res.status(400).json({ error: 'Plan not found or not configured for payment' });
     }
-    
+
     // Track the click
     await eventTracking.trackUpgradeClicked(userId, {
       source: 'checkout_url',
@@ -210,14 +200,45 @@ async function getCheckoutUrl(req, res) {
       userAgent: req.get('User-Agent'),
       sessionId: req.headers['x-session-id']
     });
+
+    // Use the payment service to create a dynamic checkout session
+    const paymentService = require('../services/paymentService');
     
-    res.json({
-      success: true,
-      checkoutUrl,
-      tier,
-      billingCycle: cycle,
-      price: DODO_PAYMENTS_CONFIG.pricing[tier][cycle]
-    });
+    try {
+      const paymentSession = await paymentService.createPaymentSession({
+        userId: user.id,
+        userEmail: user.email,
+        planId: tier,
+        planName: plan.name,
+        productId: plan.dodo_plan_id,
+        amount: plan.price,
+        currency: 'USD',
+        interval: plan.interval,
+        trialDays: user.hasUsedTrial ? 0 : (plan.trialDays || 0),
+        allowedPaymentMethodTypes: ['credit', 'debit', 'upi_collect', 'upi_intent'],
+        successUrl: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard?payment=success`,
+        cancelUrl: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/subscription?payment=cancelled`
+      });
+
+      if (paymentSession.success) {
+        return res.json({
+          success: true,
+          checkoutUrl: paymentSession.sessionUrl,
+          sessionId: paymentSession.sessionId,
+          tier,
+          billingCycle: cycle,
+          price: DODO_PAYMENTS_CONFIG.pricing[tier][cycle]
+        });
+      } else {
+        throw new Error('Failed to create payment session');
+      }
+    } catch (paymentError) {
+      console.error('Payment session creation failed:', paymentError.message);
+      return res.status(500).json({ 
+        error: 'Payment service unavailable. Please try again later.',
+        details: paymentError.message
+      });
+    }
     
   } catch (error) {
     console.error('Error getting checkout URL:', error);
