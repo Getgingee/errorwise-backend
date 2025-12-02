@@ -293,6 +293,40 @@ function calculateRelevance(content, query) {
 }
 
 /**
+ * Detect programming language from message content
+ */
+function detectProgrammingLanguage(text) {
+  const lowerText = text.toLowerCase();
+  
+  const languagePatterns = {
+    'javascript': /javascript|js|node|react|vue|angular|express|npm|yarn|const |let |var |=>|\.then\(|async |await /i,
+    'typescript': /typescript|ts|\.tsx|\.ts|interface |type |: string|: number|: boolean/i,
+    'python': /python|pip|django|flask|pandas|numpy|def |import |from .* import|print\(|__init__|\.py/i,
+    'java': /\bjava\b|spring|maven|gradle|public class|private |void |System\.out/i,
+    'csharp': /c#|csharp|\.net|asp\.net|using |namespace |public class|Console\.Write/i,
+    'cpp': /c\+\+|cpp|#include|iostream|std::|cout|cin|nullptr/i,
+    'go': /golang|\bgo\b|func |package main|fmt\.|goroutine/i,
+    'rust': /\brust\b|cargo|fn |let mut|impl |pub fn|println!/i,
+    'php': /\bphp\b|\$_GET|\$_POST|<?php|echo |->|::/i,
+    'ruby': /\bruby\b|rails|gem|def |end$|puts |attr_/i,
+    'swift': /\bswift\b|ios|xcode|var |let |func |guard |optional/i,
+    'kotlin': /kotlin|android|fun |val |var |data class/i,
+    'sql': /\bsql\b|mysql|postgres|select |insert |update |delete |from |where |join /i,
+    'html': /html|<div|<span|<p>|<body|<head|<!DOCTYPE/i,
+    'css': /\bcss\b|scss|sass|@media|margin:|padding:|display:|flex|grid/i,
+    'bash': /bash|shell|sh|terminal|chmod|grep|sed|awk|\$\(|#!/i
+  };
+  
+  for (const [lang, pattern] of Object.entries(languagePatterns)) {
+    if (pattern.test(lowerText)) {
+      return lang;
+    }
+  }
+  
+  return null;
+}
+
+/**
  * Extract context from user message
  * Enhanced to handle universal queries, not just technical errors
  */
@@ -303,7 +337,9 @@ function extractContext(message) {
     errorType: null,
     queryType: 'general',
     language: 'english',
-    includeIndianContext: false
+    includeIndianContext: false,
+    programmingLanguage: detectProgrammingLanguage(message),
+    framework: null
   };
   
   const messageLower = message.toLowerCase();
@@ -318,6 +354,14 @@ function extractContext(message) {
   } else if (/latest|news|current|today|recent|trending/i.test(message)) {
     context.queryType = 'news';
   }
+  
+  // Detect frameworks
+  const frameworks = ['react', 'angular', 'vue', 'express', 'django', 'flask', 'spring', 'rails', 'laravel', 'next.js', 'nuxt', 'svelte'];
+  frameworks.forEach(fw => {
+    if (messageLower.includes(fw)) {
+      context.framework = fw;
+    }
+  });
   
   // Common manufacturers (for technical queries)
   const manufacturers = ['dell', 'hp', 'lenovo', 'asus', 'acer', 'apple', 'microsoft', 'samsung'];
@@ -380,24 +424,49 @@ function shouldAskFollowUp(message, context, tier) {
 }
 
 /**
- * Generate follow-up questions based on context
+ * Generate intelligent follow-up questions based on context
+ * Enhanced with smarter, error-specific suggestions
  */
 function generateFollowUpQuestions(message, context) {
   const questions = [];
+  const lowerMessage = message.toLowerCase();
   
-  if (!context.manufacturer && message.toLowerCase().includes('laptop')) {
-    questions.push("What brand/manufacturer is your laptop? (e.g., Dell, HP, Lenovo)");
+  // Programming/Error specific follow-ups
+  if (lowerMessage.includes('error') || lowerMessage.includes('exception') || lowerMessage.includes('fail')) {
+    if (!context.errorMessage) {
+      questions.push("Could you share the complete error message or stack trace?");
+    }
+    if (!context.language) {
+      questions.push("What programming language or framework are you using?");
+    }
+    if (!context.codeSnippet) {
+      questions.push("Can you share the relevant code snippet where the error occurs?");
+    }
+    if (!context.triedSolutions) {
+      questions.push("What solutions have you already tried?");
+    }
+  }
+  
+  // Device/Hardware specific
+  if (!context.manufacturer && (lowerMessage.includes('laptop') || lowerMessage.includes('computer') || lowerMessage.includes('device'))) {
+    questions.push("What brand/manufacturer is your device? (e.g., Dell, HP, Lenovo)");
   }
   
   if (!context.model && context.manufacturer) {
-    questions.push(`What's your ${context.manufacturer} laptop model number?`);
+    questions.push(`What's your ${context.manufacturer} model number?`);
   }
   
-  if (!context.errorType) {
-    questions.push("What specific error or issue are you experiencing?");
+  // Software/Environment specific
+  if (!context.os && (lowerMessage.includes('install') || lowerMessage.includes('setup') || lowerMessage.includes('config'))) {
+    questions.push("What operating system are you using? (Windows, macOS, Linux)");
   }
   
-  return questions;
+  if (!context.version && (lowerMessage.includes('update') || lowerMessage.includes('version') || lowerMessage.includes('upgrade'))) {
+    questions.push("What version are you currently using?");
+  }
+  
+  // Limit to 3 most relevant questions
+  return questions.slice(0, 3);
 }
 
 /**
@@ -552,7 +621,7 @@ async function getConversationalResponse({
 
 /**
  * Build comprehensive prompt for AI with context
- * Enhanced to handle universal queries (not just errors)
+ * Enhanced for highly intelligent, context-aware conversations
  */
 function buildConversationalPrompt({
   currentMessage,
@@ -563,60 +632,101 @@ function buildConversationalPrompt({
   language,
   includeIndianContext
 }) {
-  // Detect query type
-  const isErrorQuery = /error|exception|bug|issue|failed|crash|not working|broken/i.test(currentMessage);
-  const isHowTo = /how to|how do|tutorial|guide|steps|learn/i.test(currentMessage);
-  const isFactual = /what is|who is|when|where|why|define|explain/i.test(currentMessage);
+  // Detect query type with enhanced patterns
+  const isErrorQuery = /error|exception|bug|issue|failed|crash|not working|broken|undefined|null|cannot|unable/i.test(currentMessage);
+  const isHowTo = /how to|how do|tutorial|guide|steps|learn|teach|show me|explain how/i.test(currentMessage);
+  const isFactual = /what is|who is|when|where|why|define|explain|meaning|difference between/i.test(currentMessage);
   const isNews = /latest|news|current|today|recent|trending/i.test(currentMessage);
+  const isCodeRequest = /code|example|snippet|implement|write|create|build|make/i.test(currentMessage);
+  const isDebugRequest = /debug|fix|solve|troubleshoot|diagnose|investigate/i.test(currentMessage);
   
-  let prompt = `You are ErrorWise AI, a universal knowledge assistant similar to Google Assistant.
+  // Detect programming language from context
+  const detectedLanguage = detectProgrammingLanguage(currentMessage + ' ' + (context.codeSnippet || ''));
+  
+  let prompt = `You are ErrorWise AI, a highly intelligent and versatile AI assistant - think of yourself as a brilliant senior developer combined with a helpful Google Assistant.
 
-CAPABILITIES:
-- Technical troubleshooting and error resolution
-- Programming tutorials and how-to guides  
-- General knowledge and factual information
-- Current news and trending topics
-- Indian cultural and regional context awareness
+🧠 INTELLIGENCE PROFILE:
+- Expert-level programming knowledge across ALL languages and frameworks
+- Deep understanding of debugging, optimization, and best practices
+- Ability to explain complex concepts simply
+- Proactive problem-solving mindset
 
-CONVERSATION CONTEXT:
-${conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
+💬 CONVERSATION CONTEXT:
+${conversationHistory.length > 0 ? conversationHistory.map(msg => `${msg.role.toUpperCase()}: ${msg.content}`).join('\n\n') : 'This is the start of the conversation.'}
 
-USER CONTEXT:
-${context.manufacturer ? `- Device: ${context.manufacturer}` : ''}
-${context.model ? `- Model: ${context.model}` : ''}
-${context.errorType ? `- Issue type: ${context.errorType}` : ''}
-${includeIndianContext ? '- Regional context: India (consider local tech support, Indian forums, regional issues)' : ''}
+📋 EXTRACTED CONTEXT:
+${context.manufacturer ? `• Device: ${context.manufacturer}` : ''}
+${context.model ? `• Model: ${context.model}` : ''}
+${context.errorType ? `• Issue type: ${context.errorType}` : ''}
+${context.language || detectedLanguage ? `• Programming Language: ${context.language || detectedLanguage}` : ''}
+${context.framework ? `• Framework: ${context.framework}` : ''}
+${context.os ? `• Operating System: ${context.os}` : ''}
+${includeIndianContext ? '• Regional context: India (consider local patterns, Indian tech ecosystem)' : ''}
 
 ${webContext && webContext.length > 0 ? `
-WEB SEARCH RESULTS (from across the internet):
+🌐 LIVE WEB SEARCH RESULTS:
 ${webContext.map((result, i) => `
-Source ${i + 1}: ${result.title}
-URL: ${result.url}
-${result.content}
+📄 Source ${i + 1}: ${result.title}
+🔗 ${result.url}
+${result.content.substring(0, 500)}...
 `).join('\n')}
 ` : ''}
 
-USER'S QUESTION: ${currentMessage}
+❓ CURRENT QUESTION: ${currentMessage}
 
-QUERY TYPE: ${isErrorQuery ? 'Technical Problem/Error' : isHowTo ? 'Tutorial/How-To' : isFactual ? 'Factual Information' : isNews ? 'News/Current Events' : 'General Query'}
+🏷️ QUERY CLASSIFICATION: ${isErrorQuery ? '🐛 Technical Problem/Error' : isDebugRequest ? '🔍 Debug Request' : isCodeRequest ? '💻 Code Request' : isHowTo ? '📚 Tutorial/How-To' : isFactual ? 'ℹ️ Factual Information' : isNews ? '📰 News/Current Events' : '💬 General Query'}
 
-INSTRUCTIONS:
-- Be conversational, friendly, and helpful like Google Assistant
-- Answer ANY question accurately using web search results when available
-${isErrorQuery ? '- Provide step-by-step troubleshooting solutions\n- Include code examples and fixes' : ''}
-${isHowTo ? '- Give clear tutorial steps\n- Include practical examples and best practices' : ''}
-${isFactual ? '- Provide accurate definitions and explanations\n- Cite sources when available' : ''}
-${isNews ? '- Summarize latest information from search results\n- Include relevant details and context' : ''}
-- ${tier === 'free' ? 'Give concise, basic explanations' : 'Provide detailed, comprehensive answers with examples'}
-- ${includeIndianContext ? 'Consider Indian regional context, local patterns, and cultural nuances' : ''}
-- ${language !== 'english' ? `Respond in ${language}` : 'Respond in English'}
-- ${webContext && webContext.length > 0 ? 'Use the web search results to provide accurate, up-to-date information from across the internet' : 'Use your knowledge to provide the best answer'}
-- If web results are available, synthesize them into a coherent answer
-- Format code in markdown code blocks when relevant
-- Be concise but thorough
-- If uncertain, acknowledge limitations
+📜 RESPONSE GUIDELINES:
 
-Respond now:`;
+${isErrorQuery || isDebugRequest ? `
+🐛 ERROR/DEBUG MODE:
+1. Identify the root cause clearly
+2. Explain WHY this error happens (not just how to fix)
+3. Provide step-by-step solution
+4. Include working code example with syntax highlighting
+5. Suggest preventive measures
+6. If multiple solutions exist, rank by effectiveness
+` : ''}
+
+${isCodeRequest ? `
+💻 CODE MODE:
+1. Provide complete, production-ready code
+2. Include all necessary imports/setup
+3. Add clear comments explaining logic
+4. Show usage examples
+5. Mention any dependencies
+6. Consider edge cases
+` : ''}
+
+${isHowTo ? `
+📚 TUTORIAL MODE:
+1. Break into numbered steps
+2. Start with prerequisites
+3. Explain each step clearly
+4. Include code examples where relevant
+5. Add tips and best practices
+6. Mention common pitfalls to avoid
+` : ''}
+
+${isFactual ? `
+ℹ️ KNOWLEDGE MODE:
+1. Provide accurate, comprehensive information
+2. Use analogies for complex concepts
+3. Include relevant examples
+4. Cite sources when available
+5. Connect to related concepts
+` : ''}
+
+📊 QUALITY STANDARDS:
+- ${tier === 'free' ? 'Be helpful and clear within concise responses' : tier === 'pro' ? 'Provide detailed, expert-level explanations with multiple examples' : 'Give the most comprehensive, senior-developer-level analysis possible'}
+- Use proper markdown formatting
+- Code blocks with language syntax: \`\`\`${detectedLanguage || 'javascript'}
+- Be conversational and friendly
+- If uncertain, acknowledge and provide best guidance
+${webContext && webContext.length > 0 ? '- Synthesize web results into a coherent, helpful answer' : '- Use your comprehensive knowledge base'}
+${language !== 'english' ? `- Respond in ${language}` : ''}
+
+🎯 Now provide your intelligent, helpful response:`;
 
   return prompt;
 }
