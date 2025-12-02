@@ -45,4 +45,14 @@ router.get('/user/my-templates', authMiddleware, libraryController.getMyTemplate
 // Delete user template
 router.delete('/:id', authMiddleware, libraryController.deleteTemplate);
 
+// ============================================================================
+// ADMIN ROUTES - Bulk add entries
+// ============================================================================
+
+// Bulk add system entries (admin only)
+router.post('/admin/seed', authMiddleware, libraryController.seedLibrary);
+
+// Bulk add entries from JSON
+router.post('/admin/bulk-add', authMiddleware, libraryController.bulkAddEntries);
+
 module.exports = router;

@@ -581,3 +581,330 @@ exports.markUsed = async (req, res) => {
     });
   }
 };
+
+// ============================================================================
+// ADMIN FUNCTIONS - Seed and Bulk Add
+// ============================================================================
+
+/**
+ * Seed library with pre-built error solutions
+ * POST /api/library/admin/seed
+ */
+exports.seedLibrary = async (req, res) => {
+  try {
+    // Check if user is admin
+    const userRole = req.user?.role;
+    if (userRole !== 'admin' && userRole !== 'super_admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required'
+      });
+    }
+
+    // Pre-built error solutions
+    const errorEntries = [
+      // PAYMENT ERRORS
+      {
+        type: 'system',
+        category: 'payment',
+        errorCode: 'CARD_DECLINED',
+        title: 'Credit Card Declined',
+        errorMessage: 'Your card was declined. Please try a different payment method.',
+        explanation: 'This error occurs when your bank or card issuer refuses to authorize the transaction.',
+        solution: '1. Check if you have sufficient balance\n2. Verify card details are correct\n3. Contact your bank\n4. Try a different payment method',
+        commonCauses: ['Insufficient funds', 'Card expired', 'International transactions blocked'],
+        tags: ['payment', 'card', 'declined', 'bank'],
+        difficulty: 'easy'
+      },
+      {
+        type: 'system',
+        category: 'payment',
+        errorCode: 'UPI_TIMEOUT',
+        title: 'UPI Payment Timeout',
+        errorMessage: 'UPI payment timed out. Please try again.',
+        explanation: 'The UPI payment request expired before completion.',
+        solution: '1. Open your UPI app\n2. Check if payment is pending\n3. Wait 2-3 minutes before retrying\n4. Amount auto-refunds if deducted incorrectly',
+        commonCauses: ['Slow internet', 'UPI app not opened in time', 'Server busy'],
+        tags: ['upi', 'payment', 'timeout', 'gpay', 'phonepe'],
+        difficulty: 'easy'
+      },
+      // WEBSITE ERRORS
+      {
+        type: 'system',
+        category: 'website',
+        errorCode: '404',
+        title: 'Page Not Found (404 Error)',
+        errorMessage: '404 - Page Not Found',
+        explanation: 'The webpage you are trying to visit does not exist at that URL.',
+        solution: '1. Check the URL for typos\n2. Go to homepage and navigate from there\n3. Use website search\n4. Try Google searching for the page',
+        commonCauses: ['URL typed incorrectly', 'Page deleted or moved', 'Broken link'],
+        tags: ['404', 'not found', 'missing page'],
+        difficulty: 'easy'
+      },
+      {
+        type: 'system',
+        category: 'website',
+        errorCode: '500',
+        title: 'Internal Server Error (500)',
+        errorMessage: '500 Internal Server Error',
+        explanation: 'The website server encountered an unexpected problem.',
+        solution: '1. Wait a few minutes and refresh\n2. Clear browser cache\n3. Try different device or network\n4. Check if website is down for everyone',
+        commonCauses: ['Server overload', 'Website update in progress', 'Database issue'],
+        tags: ['500', 'server error', 'website down'],
+        difficulty: 'easy'
+      },
+      {
+        type: 'system',
+        category: 'website',
+        errorCode: 'SSL_ERROR',
+        title: 'SSL Certificate Error',
+        errorMessage: 'Your connection is not private',
+        explanation: 'The website security certificate has a problem.',
+        solution: '1. Check if your device date/time are correct\n2. Try with https:// explicitly\n3. Do not enter personal info on this site\n4. Wait and try later',
+        commonCauses: ['Expired SSL certificate', 'Wrong date/time on device', 'Untrusted certificate'],
+        tags: ['ssl', 'https', 'certificate', 'not secure'],
+        difficulty: 'medium'
+      },
+      // GAMING ERRORS
+      {
+        type: 'system',
+        category: 'gaming',
+        errorCode: 'BGMI_SERVER_BUSY',
+        title: 'BGMI/PUBG Server is Busy',
+        errorMessage: 'Server is busy. Please try again later.',
+        explanation: 'Game servers are overloaded with too many players.',
+        solution: '1. Wait 5-10 minutes\n2. Restart the game\n3. Check for updates\n4. Try during off-peak hours',
+        commonCauses: ['New update released', 'In-game event', 'Peak hours'],
+        tags: ['bgmi', 'pubg', 'server', 'busy'],
+        difficulty: 'easy'
+      },
+      {
+        type: 'system',
+        category: 'gaming',
+        errorCode: 'FREE_FIRE_NETWORK',
+        title: 'Free Fire Network Error',
+        errorMessage: 'Network connection error',
+        explanation: 'Free Fire cannot connect to its servers.',
+        solution: '1. Switch between WiFi and mobile data\n2. Restart router\n3. Close other apps\n4. Clear Free Fire cache',
+        commonCauses: ['Weak internet', 'ISP issues', 'Game server problems'],
+        tags: ['free fire', 'network', 'connection'],
+        difficulty: 'easy'
+      },
+      // MOBILE ERRORS
+      {
+        type: 'system',
+        category: 'mobile',
+        errorCode: 'APP_CRASH',
+        title: 'App Keeps Crashing',
+        errorMessage: 'Unfortunately, [App] has stopped',
+        explanation: 'The app encountered an error it could not recover from.',
+        solution: '1. Force close and reopen\n2. Clear app cache\n3. Check for updates\n4. Restart phone\n5. Reinstall app',
+        commonCauses: ['Corrupted cache', 'App bug', 'Insufficient storage'],
+        tags: ['crash', 'stopped', 'app', 'android'],
+        difficulty: 'easy'
+      },
+      {
+        type: 'system',
+        category: 'mobile',
+        errorCode: 'PLAYSTORE_PENDING',
+        title: 'Play Store Download Pending',
+        errorMessage: 'Download pending...',
+        explanation: 'Play Store is waiting to download the app.',
+        solution: '1. Check internet connection\n2. Cancel other pending downloads\n3. Clear Play Store cache\n4. Check download settings',
+        commonCauses: ['Other downloads in queue', 'WiFi-only setting', 'Insufficient storage'],
+        tags: ['play store', 'download', 'pending'],
+        difficulty: 'easy'
+      },
+      // NETWORK ERRORS
+      {
+        type: 'system',
+        category: 'network',
+        errorCode: 'DNS_NXDOMAIN',
+        title: 'DNS Error - Site Not Found',
+        errorMessage: 'DNS_PROBE_FINISHED_NXDOMAIN',
+        explanation: 'Your browser cannot find the website address.',
+        solution: '1. Check URL spelling\n2. Flush DNS cache\n3. Change DNS to 8.8.8.8 or 1.1.1.1\n4. Restart router',
+        commonCauses: ['Typo in URL', 'DNS server issues', 'Domain expired'],
+        tags: ['dns', 'nxdomain', 'site not found'],
+        difficulty: 'medium'
+      },
+      {
+        type: 'system',
+        category: 'network',
+        errorCode: 'NO_INTERNET',
+        title: 'Connected But No Internet',
+        errorMessage: 'WiFi connected but no internet access',
+        explanation: 'Device connected to router but router is not connected to internet.',
+        solution: '1. Restart router (unplug 30 seconds)\n2. Forget and reconnect WiFi\n3. Restart device\n4. Reset network settings',
+        commonCauses: ['Router needs restart', 'IP conflict', 'ISP outage'],
+        tags: ['no internet', 'wifi', 'connected'],
+        difficulty: 'easy'
+      },
+      // AUTHENTICATION ERRORS
+      {
+        type: 'system',
+        category: 'authentication',
+        errorCode: 'INVALID_CREDENTIALS',
+        title: 'Invalid Username or Password',
+        errorMessage: 'The username or password is incorrect',
+        explanation: 'Login credentials do not match what is stored.',
+        solution: '1. Check caps lock is off\n2. Verify correct email/username\n3. Use Forgot Password\n4. Try different login method',
+        commonCauses: ['Caps lock on', 'Typo', 'Using wrong account'],
+        tags: ['login', 'password', 'username'],
+        difficulty: 'easy'
+      },
+      {
+        type: 'system',
+        category: 'authentication',
+        errorCode: 'OTP_EXPIRED',
+        title: 'OTP Expired',
+        errorMessage: 'The OTP has expired. Please request a new one.',
+        explanation: 'One-Time Passwords are valid only for 5-10 minutes.',
+        solution: '1. Click Resend OTP\n2. Enter immediately after receiving\n3. Check device time is correct\n4. Check SMS spam folder',
+        commonCauses: ['Took too long', 'Using old OTP', 'Wrong device time'],
+        tags: ['otp', 'expired', 'verification'],
+        difficulty: 'easy'
+      },
+      // SOFTWARE ERRORS
+      {
+        type: 'system',
+        category: 'software',
+        errorCode: 'DLL_MISSING',
+        title: 'DLL File Missing',
+        errorMessage: 'MSVCR110.dll is missing from your computer',
+        explanation: 'Program needs Microsoft Visual C++ libraries.',
+        solution: '1. Download Visual C++ Redistributable from Microsoft\n2. Install both x86 and x64 versions\n3. Restart PC',
+        commonCauses: ['Missing runtime', 'Incomplete installation'],
+        tags: ['dll', 'missing', 'vcredist'],
+        difficulty: 'medium'
+      },
+      // API ERRORS
+      {
+        type: 'system',
+        category: 'api',
+        errorCode: 'CORS_ERROR',
+        title: 'CORS Policy Error',
+        errorMessage: 'Blocked by CORS policy',
+        explanation: 'Browser blocking request to different domain for security.',
+        solution: '1. Add CORS headers to API\n2. Use cors npm package\n3. Use a CORS proxy for testing',
+        commonCauses: ['API missing CORS headers', 'Wrong domain configuration'],
+        tags: ['cors', 'api', 'blocked'],
+        difficulty: 'medium'
+      }
+    ];
+
+    let created = 0;
+    let skipped = 0;
+
+    for (const entry of errorEntries) {
+      const existing = await ErrorLibrary.findOne({
+        where: { errorCode: entry.errorCode, type: 'system' }
+      });
+
+      if (existing) {
+        skipped++;
+        continue;
+      }
+
+      await ErrorLibrary.create(entry);
+      created++;
+    }
+
+    const totalCount = await ErrorLibrary.count({ where: { type: 'system' } });
+
+    res.json({
+      success: true,
+      message: 'Library seeded successfully',
+      stats: {
+        created,
+        skipped,
+        total: totalCount
+      }
+    });
+  } catch (error) {
+    console.error('Seed library error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to seed library'
+    });
+  }
+};
+
+/**
+ * Bulk add entries from JSON
+ * POST /api/library/admin/bulk-add
+ * Body: { entries: [...] }
+ */
+exports.bulkAddEntries = async (req, res) => {
+  try {
+    const userRole = req.user?.role;
+    if (userRole !== 'admin' && userRole !== 'super_admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required'
+      });
+    }
+
+    const { entries } = req.body;
+
+    if (!entries || !Array.isArray(entries) || entries.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Entries array is required'
+      });
+    }
+
+    let created = 0;
+    let failed = 0;
+    const errors = [];
+
+    for (const entry of entries) {
+      try {
+        // Validate required fields
+        if (!entry.title || !entry.errorMessage || !entry.explanation || !entry.solution) {
+          errors.push({ entry: entry.title || 'Unknown', error: 'Missing required fields' });
+          failed++;
+          continue;
+        }
+
+        // Check for duplicate
+        if (entry.errorCode) {
+          const existing = await ErrorLibrary.findOne({
+            where: { errorCode: entry.errorCode, type: 'system' }
+          });
+          if (existing) {
+            errors.push({ entry: entry.title, error: 'Duplicate error code' });
+            failed++;
+            continue;
+          }
+        }
+
+        await ErrorLibrary.create({
+          type: 'system',
+          ...entry
+        });
+        created++;
+      } catch (err) {
+        errors.push({ entry: entry.title || 'Unknown', error: err.message });
+        failed++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Bulk add completed',
+      stats: {
+        submitted: entries.length,
+        created,
+        failed
+      },
+      errors: errors.length > 0 ? errors : undefined
+    });
+  } catch (error) {
+    console.error('Bulk add error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to bulk add entries'
+    });
+  }
+};
