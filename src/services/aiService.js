@@ -500,6 +500,7 @@ function checkUserRateLimit(userId, tier) {
 /**
  * Validate AI response structure
  * Relaxed validation - AI responses vary in length but should be meaningful
+ * If solution is too short, we'll use a fallback in the response builder
  */
 function validateAIResponse(response) {
   if (!response || typeof response !== 'object') {
@@ -512,6 +513,7 @@ function validateAIResponse(response) {
     explanationLength: response.explanation?.length || 0,
     hasSolution: !!response.solution,
     solutionLength: response.solution?.length || 0,
+    solutionPreview: response.solution?.substring(0, 50) || 'N/A',
     keys: Object.keys(response).slice(0, 10)
   });
   
@@ -520,9 +522,13 @@ function validateAIResponse(response) {
     throw new Error(`AI response invalid: explanation is missing or too short (min 20 chars, got ${response.explanation?.length || 0})`);
   }
   
-  // Check solution (required, min 10 chars - some solutions can be brief)
-  if (!response.solution || typeof response.solution !== 'string' || response.solution.length < 10) {
-    throw new Error(`AI response invalid: solution is missing or too short (min 10 chars, got ${response.solution?.length || 0})`);
+  // Solution validation is now lenient - we'll use codeExample as fallback if solution is short
+  // This handles cases where AI puts the solution in codeExample instead
+  const hasSolution = response.solution && typeof response.solution === 'string' && response.solution.length >= 10;
+  const hasCodeExample = response.codeExample && typeof response.codeExample === 'string' && response.codeExample.length >= 20;
+  
+  if (!hasSolution && !hasCodeExample) {
+    throw new Error(`AI response invalid: both solution and codeExample are missing or too short`);
   }
   
   return true;
@@ -1913,9 +1919,16 @@ async function callAnthropic(prompt, systemMessage, model, maxTokens, detectedLa
   }
   
   // Return structured response with all fields
+  // Use codeExample as fallback if solution is too short (AI sometimes puts solution there)
+  const finalSolution = (parsed.solution && parsed.solution.length >= 10) 
+    ? parsed.solution 
+    : (parsed.codeExample && parsed.codeExample.length >= 20)
+      ? `Apply this fix:\n\n${parsed.codeExample}`
+      : 'Please review the code and error message for the specific fix needed.';
+  
   return {
     explanation: parsed.explanation || 'Unable to analyze this error.',
-    solution: parsed.solution || 'Please review the code and error message.',
+    solution: finalSolution,
     codeExample: parsed.codeExample || '',
     category: parsed.category || detectedErrorType,
     tags: Array.isArray(parsed.tags) ? parsed.tags : [detectedLanguage, detectedErrorType],

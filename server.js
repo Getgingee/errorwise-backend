@@ -627,6 +627,42 @@ const start = async () => {
           console.log('✅ Added: Subscriptions.cancelAtPeriodEnd');
         }
         
+        // === Check query_logs table columns (snake_case - for QueryLog model) ===
+        console.log('🔍 Checking query_logs table columns...');
+        const [queryLogsColumns] = await sequelize.query(`
+          SELECT column_name FROM information_schema.columns 
+          WHERE table_name = 'query_logs' 
+          AND column_name IN ('feedback', 'feedback_at', 'feedback_comment')
+        `);
+        
+        const qlColumns = queryLogsColumns.map(r => r.column_name);
+        console.log('📊 query_logs existing columns:', qlColumns);
+        
+        // Check if query_logs table exists first
+        const [tableExists] = await sequelize.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'query_logs'
+          ) as exists
+        `);
+        
+        if (tableExists[0]?.exists) {
+          if (!qlColumns.includes('feedback')) {
+            await sequelize.query(`ALTER TABLE "query_logs" ADD COLUMN IF NOT EXISTS "feedback" VARCHAR(10)`);
+            console.log('✅ Added: query_logs.feedback');
+          }
+          if (!qlColumns.includes('feedback_at')) {
+            await sequelize.query(`ALTER TABLE "query_logs" ADD COLUMN IF NOT EXISTS "feedback_at" TIMESTAMP`);
+            console.log('✅ Added: query_logs.feedback_at');
+          }
+          if (!qlColumns.includes('feedback_comment')) {
+            await sequelize.query(`ALTER TABLE "query_logs" ADD COLUMN IF NOT EXISTS "feedback_comment" TEXT`);
+            console.log('✅ Added: query_logs.feedback_comment');
+          }
+        } else {
+          console.log('ℹ️  query_logs table does not exist yet - will be created by sync');
+        }
+        
         console.log('✅ Missing columns check complete');
         
       } catch (migrationError) {
