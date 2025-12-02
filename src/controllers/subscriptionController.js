@@ -81,7 +81,7 @@ const SUBSCRIPTION_TIERS = {
       { text: 'UNLIMITED error solutions', available: true, highlight: true, badge: 'NEW' },
       { text: 'Ask anything about tech', available: true, highlight: true, badge: 'NEW' },
       { text: 'Web search for latest solutions', available: true, highlight: true, badge: 'Live' },
-      { text: '5 follow-up questions per query', available: true, highlight: true, badge: 'NEW' },
+      { text: '10 follow-up questions per query', available: true, highlight: true, badge: 'NEW' },
       { text: 'Visual guides & screenshots', available: true },
       { text: 'How-to tutorials', available: true },
       { text: 'Prevention tips', available: true },
