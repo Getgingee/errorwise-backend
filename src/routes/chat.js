@@ -19,18 +19,14 @@ const { authMiddleware } = require('../middleware/auth');
 const { requireFeature, checkQueryLimit, checkFollowUpLimit } = require('../middleware/tierAccess');
 const chatController = require('../controllers/chatController');
 
-// Rate limiters
+// Light rate limiter for starting new conversations only
 const chatLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 20, // 20 messages per minute
-  message: { error: 'Too many messages. Please slow down.' }
+  max: 30, // 30 messages per minute
+  message: { error: 'Too many requests. Please wait a moment.' }
 });
 
-const followUpLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 10, // 10 follow-ups per minute
-  message: { error: 'Too many follow-up messages.' }
-});
+// No rate limiting on follow-ups - keep conversation flowing!
 
 // All routes require authentication
 router.use(authMiddleware);
@@ -46,11 +42,11 @@ router.post('/start',
 );
 
 /**
- * Send a follow-up message (Pro/Team only)
+ * Send a follow-up message - Available to all tiers!
+ * Free: 3 follow-ups, Pro: 5, Team: 10
  */
 router.post('/follow-up',
-  followUpLimiter,
-  requireFeature('followUpQuestions'),
+  authMiddleware,
   chatController.sendFollowUp
 );
 

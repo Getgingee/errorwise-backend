@@ -23,54 +23,69 @@ const conversationContexts = new Map();
 const CONTEXT_TTL = 30 * 60 * 1000; // 30 minutes
 
 /**
- * Generate contextual follow-up chips based on AI response
+ * Generate engaging, conversational follow-up chips based on AI response
+ * Made for non-tech users - friendly and helpful!
  */
 function generateConversationalChips(previousMessages, latestResponse) {
   const chips = [];
   const responseLower = latestResponse.toLowerCase();
   
-  // If response contains code
+  // For code-related responses
   if (responseLower.includes('```') || responseLower.includes('function') || responseLower.includes('const ')) {
-    chips.push("Explain this code step by step");
-    chips.push("What does this line do?");
+    chips.push("🤔 Can you explain this simpler?");
+    chips.push("📝 Show me step by step");
   }
   
-  // If response mentions trying something
-  if (responseLower.includes('try') || responseLower.includes('should work')) {
-    chips.push("What if it still doesn't work?");
-    chips.push("Are there alternatives?");
+  // If solution involves trying something
+  if (responseLower.includes('try') || responseLower.includes('should work') || responseLower.includes('fix')) {
+    chips.push("😕 What if it still doesn't work?");
+    chips.push("🔄 Any other ways to fix this?");
   }
   
-  // If response mentions error handling
-  if (responseLower.includes('error') || responseLower.includes('catch') || responseLower.includes('exception')) {
-    chips.push("How do I handle this error properly?");
+  // If response mentions settings or configuration
+  if (responseLower.includes('setting') || responseLower.includes('config') || responseLower.includes('option')) {
+    chips.push("📍 Where do I find this setting?");
+    chips.push("🖼️ Can you show me exactly?");
   }
   
-  // If response is about debugging
-  if (responseLower.includes('debug') || responseLower.includes('console.log') || responseLower.includes('breakpoint')) {
-    chips.push("Show me how to debug this");
+  // If response mentions installing or downloading
+  if (responseLower.includes('install') || responseLower.includes('download') || responseLower.includes('update')) {
+    chips.push("📥 How do I install this?");
+    chips.push("⚠️ Is it safe to download?");
   }
   
-  // If response mentions dependencies
-  if (responseLower.includes('install') || responseLower.includes('package') || responseLower.includes('dependency')) {
-    chips.push("How do I install this?");
-    chips.push("What version do I need?");
+  // If response mentions restarting or refreshing
+  if (responseLower.includes('restart') || responseLower.includes('refresh') || responseLower.includes('reboot')) {
+    chips.push("💡 What should I save first?");
   }
   
-  // If response mentions configuration
-  if (responseLower.includes('config') || responseLower.includes('setting') || responseLower.includes('environment')) {
-    chips.push("Show me the config");
-    chips.push("What should I set?");
+  // If about password or login issues
+  if (responseLower.includes('password') || responseLower.includes('login') || responseLower.includes('account')) {
+    chips.push("🔐 How do I reset my password?");
+    chips.push("📧 What if I forgot my email too?");
   }
   
-  // Generic helpful chips
-  if (chips.length < 2) {
-    chips.push("Can you simplify that?");
-    chips.push("Give me an example");
+  // If about payment or billing
+  if (responseLower.includes('payment') || responseLower.includes('card') || responseLower.includes('charge')) {
+    chips.push("💳 Is my payment info safe?");
+    chips.push("📞 How do I contact support?");
   }
   
-  chips.push("Thanks, that helped! 👍");
+  // Generic helpful chips based on response length
+  if (latestResponse.length > 500) {
+    chips.push("📋 Give me the quick version");
+  }
   
+  // Always add some engaging options
+  if (chips.length < 3) {
+    chips.push("🤷 I'm confused, help!");
+    chips.push("✨ Any tips to prevent this?");
+  }
+  
+  // Success chip
+  chips.push("✅ That fixed it, thanks!");
+  
+  // Remove duplicates and limit to 4 chips
   return [...new Set(chips)].slice(0, 4);
 }
 

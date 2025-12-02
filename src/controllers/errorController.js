@@ -75,105 +75,93 @@ function logQueryAsync(data) {
 }
 
 /**
- * Generate suggested follow-up questions based on error and analysis
+ * Generate engaging suggested follow-up questions
  * These appear as clickable chips for easy follow-up
+ * Made friendly for non-tech users!
  */
 function generateSuggestedQuestions(errorMessage, analysis, turn = 1) {
   const suggestions = [];
   const errorLower = errorMessage.toLowerCase();
   const solutionLower = (analysis.solution || '').toLowerCase();
-  const explanationLower = (analysis.explanation || '').toLowerCase();
-  
+
   // First turn - based on error type
   if (turn === 1) {
-    // Error-specific suggestions
-    if (errorLower.includes('undefined') || errorLower.includes('null') || errorLower.includes('is not defined')) {
-      suggestions.push("Why is this variable undefined?");
-      suggestions.push("How do I check for null safely?");
+    // Payment/Banking errors
+    if (errorLower.includes('payment') || errorLower.includes('card') || errorLower.includes('declined') || errorLower.includes('transaction')) {
+      suggestions.push("💳 Why was my payment declined?");
+      suggestions.push("🔒 Is my card info safe?");
+      suggestions.push("📞 How do I contact support?");
     }
-    
-    if (errorLower.includes('import') || errorLower.includes('module') || errorLower.includes('require')) {
-      suggestions.push("How do I install this package?");
-      suggestions.push("What's the correct import syntax?");
+
+    // Login/Password issues
+    if (errorLower.includes('password') || errorLower.includes('login') || errorLower.includes('sign in') || errorLower.includes('access')) {
+      suggestions.push("🔑 How do I reset my password?");
+      suggestions.push("📧 I forgot my email too!");
+      suggestions.push("🔐 Is my account hacked?");
     }
-    
-    if (errorLower.includes('type') || errorLower.includes('typescript') || errorLower.includes('cannot read property')) {
-      suggestions.push("Can you explain this type error?");
-      suggestions.push("How do I fix the type mismatch?");
+
+    // App crashes
+    if (errorLower.includes('crash') || errorLower.includes('stopped') || errorLower.includes('not responding') || errorLower.includes('frozen')) {
+      suggestions.push("🔄 How do I restart the app?");
+      suggestions.push("💾 Will I lose my data?");
+      suggestions.push("📲 Should I reinstall?");
     }
-    
-    if (errorLower.includes('async') || errorLower.includes('promise') || errorLower.includes('await') || errorLower.includes('unhandled')) {
-      suggestions.push("How do I handle this async error?");
-      suggestions.push("Should I use try-catch here?");
+
+    // Connection/Network issues
+    if (errorLower.includes('connection') || errorLower.includes('network') || errorLower.includes('internet') || errorLower.includes('wifi') || errorLower.includes('offline')) {
+      suggestions.push("📶 How do I fix my connection?");
+      suggestions.push("🔌 Should I restart my router?");
+      suggestions.push("📱 Is my device the problem?");
     }
-    
-    if (errorLower.includes('cors') || errorLower.includes('network') || errorLower.includes('fetch')) {
-      suggestions.push("How do I fix CORS issues?");
-      suggestions.push("What headers should I add?");
+
+    // Storage/Memory issues
+    if (errorLower.includes('storage') || errorLower.includes('memory') || errorLower.includes('full') || errorLower.includes('space')) {
+      suggestions.push("🗑️ What can I safely delete?");
+      suggestions.push("☁️ How do I use cloud storage?");
+      suggestions.push("📊 What's using all my space?");
     }
-    
-    if (errorLower.includes('syntax') || errorLower.includes('unexpected token')) {
-      suggestions.push("Where exactly is the syntax error?");
-      suggestions.push("Show me the corrected code");
+
+    // Update/Version issues
+    if (errorLower.includes('update') || errorLower.includes('version') || errorLower.includes('upgrade') || errorLower.includes('outdated')) {
+      suggestions.push("⬆️ How do I update?");
+      suggestions.push("⚠️ Is it safe to update?");
+      suggestions.push("🕐 How long will it take?");
     }
-    
-    if (errorLower.includes('permission') || errorLower.includes('access denied') || errorLower.includes('forbidden')) {
-      suggestions.push("Why am I getting permission denied?");
-      suggestions.push("How do I fix file permissions?");
+
+    // Error codes
+    if (errorLower.includes('error') || errorLower.includes('code') || /\d{3,}/.test(errorLower)) {
+      suggestions.push("🔍 What does this error mean?");
+      suggestions.push("🛠️ How do I fix it?");
     }
-    
-    if (errorLower.includes('memory') || errorLower.includes('heap') || errorLower.includes('stack overflow')) {
-      suggestions.push("What's causing the memory issue?");
-      suggestions.push("How do I optimize memory usage?");
-    }
-    
-    if (errorLower.includes('database') || errorLower.includes('sql') || errorLower.includes('connection')) {
-      suggestions.push("How do I fix the database connection?");
-      suggestions.push("Is my query correct?");
-    }
-    
-    // Generic first-turn suggestions
+
+    // Generic helpful suggestions
     if (suggestions.length < 2) {
-      suggestions.push("Explain this in simpler terms");
-      suggestions.push("Show me a code example");
+      suggestions.push("🤔 Explain this simply please");
+      suggestions.push("📝 Show me step by step");
     }
-    
-    suggestions.push("What caused this error?");
-    suggestions.push("How can I prevent this?");
   }
-  
-  // Later turns - based on analysis content
+
+  // Later turns - conversation continuers
   else {
-    // If solution mentions specific things
-    if (solutionLower.includes('install') || solutionLower.includes('npm') || solutionLower.includes('yarn')) {
-      suggestions.push("What version should I install?");
+    if (solutionLower.includes('click') || solutionLower.includes('tap') || solutionLower.includes('go to')) {
+      suggestions.push("📍 Where exactly do I click?");
+    }
+    if (solutionLower.includes('download') || solutionLower.includes('install')) {
+      suggestions.push("✅ Is this download safe?");
     }
     
-    if (solutionLower.includes('config') || solutionLower.includes('settings')) {
-      suggestions.push("Show me the config file");
-    }
-    
-    if (solutionLower.includes('function') || solutionLower.includes('method')) {
-      suggestions.push("Show me how to call this function");
-    }
-    
-    if (explanationLower.includes('deprecated')) {
-      suggestions.push("What should I use instead?");
-    }
-    
-    // Understanding-focused follow-ups
-    suggestions.push("Can you explain that differently?");
-    suggestions.push("Give me a complete example");
-    suggestions.push("What if that doesn't work?");
-    suggestions.push("Are there other ways to fix this?");
+    suggestions.push("😕 I'm still confused");
+    suggestions.push("🔄 What if that doesn't work?");
+    suggestions.push("💡 Any other solutions?");
   }
-  
-  // Dedupe and limit
+
+  // Always add success option
+  suggestions.push("✅ That fixed it!");
+
+  // Dedupe and limit to 4
   const unique = [...new Set(suggestions)];
   return unique.slice(0, 4);
-}
-
-/**
+}/**
  * Generate contextual follow-up chips after a follow-up response
  * More dynamic based on the ongoing conversation
  */
