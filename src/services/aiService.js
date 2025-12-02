@@ -344,14 +344,17 @@ try {
 // Initialize Anthropic
 try {
   if (!process.env.ANTHROPIC_API_KEY) {
-    console.warn('⚠️  WARNING: ANTHROPIC_API_KEY not set. Pro/Team tiers will use fallback.');
+    console.warn('⚠️  WARNING: ANTHROPIC_API_KEY not set. AI service will not work.');
   } else {
+    const apiKey = process.env.ANTHROPIC_API_KEY.trim();
+    console.log(`🔑 Anthropic API Key: ${apiKey.substring(0, 10)}...${apiKey.substring(apiKey.length - 4)} (length: ${apiKey.length})`);
+    
     anthropic = new Anthropic({ 
-      apiKey: process.env.ANTHROPIC_API_KEY,
+      apiKey: apiKey,
       timeout: CONFIG.REQUEST_TIMEOUT_MS,
       maxRetries: 2,
     });
-    console.log('✅ Anthropic client initialized successfully (PRO/TEAM tiers)');
+    console.log('✅ Anthropic client initialized successfully');
   }
 } catch (error) {
   console.error('❌ Failed to initialize Anthropic client:', error.message);
@@ -1768,10 +1771,13 @@ async function callGemini(prompt, model, detectedLanguage, detectedErrorType, st
  */
 async function callAnthropic(prompt, systemMessage, model, maxTokens, detectedLanguage, detectedErrorType, stackTrace, conversationHistory = [], temperature = 0.3) {
   if (!anthropic) {
+    console.error('❌ Anthropic client not initialized!');
+    console.error('   ANTHROPIC_API_KEY env var:', process.env.ANTHROPIC_API_KEY ? `SET (${process.env.ANTHROPIC_API_KEY.substring(0,10)}...)` : 'NOT SET');
     throw new Error('Anthropic client not initialized. Check ANTHROPIC_API_KEY.');
   }
   
   console.log(`🔵 Calling Anthropic Claude: ${model} (max_tokens: ${maxTokens})`);
+  console.log(`   Using API key: ${anthropic.apiKey ? anthropic.apiKey.substring(0,10) + '...' : 'NOT SET'}`);
   
   // Build messages array with conversation history
   const messages = [];
