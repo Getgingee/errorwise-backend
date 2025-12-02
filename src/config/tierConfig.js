@@ -101,7 +101,7 @@ const TIERS = {
       queriesPerDay: -1, // Unlimited
       historyRetentionDays: -1, // Unlimited
       maxErrorLength: 15000,
-      maxFollowUps: 5, // Per conversation
+      maxFollowUps: 10, // 10 follow-ups per conversation for Pro
       savedSolutionsLimit: -1 // Unlimited
     },
     
@@ -169,7 +169,7 @@ const TIERS = {
       queriesPerDay: -1, // Unlimited
       historyRetentionDays: -1, // Unlimited
       maxErrorLength: 25000,
-      maxFollowUps: 10, // More follow-ups
+      maxFollowUps: -1, // Unlimited follow-ups for Team
       savedSolutionsLimit: -1, // Unlimited
       maxTeamMembers: 10
     },
@@ -288,7 +288,7 @@ const COMPARISON_TABLE = {
       name: 'AI Features',
       rows: [
         { feature: 'Conversational AI', free: '✅', pro: '✅', team: '✅' },
-        { feature: 'Follow-up Questions', free: '3 per chat', pro: '5 per chat', team: '10 per chat' },
+        { feature: 'Follow-up Questions', free: '3 per chat', pro: '10 per chat', team: 'Unlimited' },
         { feature: 'Context Memory', free: '✅', pro: '✅', team: '✅' },
         { feature: 'AI Model Selection', free: '❌', pro: '✅ Auto + Toggle', team: '✅ All Models' },
         { feature: 'Auto Mode', free: '❌', pro: '✅', team: '✅' }
