@@ -258,6 +258,40 @@ app.get('/api/stats', async (req, res) => {
 
 // Mount API routes
 app.use('/api/public/demo', detectSpam, publicDemoRoutes); // Public demo - with spam detection
+
+// Debug: AI service test endpoint
+app.get('/api/ai-test', async (req, res) => {
+  try {
+    const aiService = require('./src/services/aiService');
+    
+    // Just check if the service loads
+    const health = aiService.getServiceHealth();
+    
+    // Try a simple analyze
+    const result = await aiService.analyzeError({
+      errorMessage: 'Test JavaScript undefined error',
+      errorType: 'general',
+      subscriptionTier: 'free',
+      userId: null,
+      codeSnippet: null
+    });
+    
+    res.json({
+      success: true,
+      health,
+      resultKeys: Object.keys(result || {}),
+      hasExplanation: !!result?.explanation,
+      hasSolution: !!result?.solution
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      name: error.name,
+      stack: error.stack?.split('\n').slice(0, 5)
+    });
+  }
+});
 app.use('/api/auth', authRoutes);
 app.use('/api/auth', authEnhancedRoutes); // Enhanced auth with tracking
 app.use('/api/errors', errorRoutes);
