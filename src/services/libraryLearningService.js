@@ -2026,13 +2026,135 @@ const SMART_CATEGORIES = {
   }
 };
 
+// ============================================================================
+// INPUT TYPE DETECTION - Error vs Query/Question
+// ============================================================================
+
+/**
+ * Detect if input is an ERROR or a QUERY/QUESTION
+ * @param {string} input - User's input text
+ * @returns {Object} - { type: 'error'|'query'|'mixed', confidence: number, indicators: [] }
+ */
+function detectInputType(input) {
+  const text = input.toLowerCase();
+  const result = {
+    type: 'query', // default
+    confidence: 0.5,
+    indicators: [],
+    errorDetails: null,
+    queryDetails: null
+  };
+
+  // ERROR INDICATORS - Technical error patterns
+  const errorPatterns = {
+    // Stack traces and line numbers
+    stackTrace: /at\s+[\w.]+\s*\(.*:\d+:\d+\)|line\s+\d+|:\d+:\d+/i,
+    // Error types
+    errorTypes: /\b(TypeError|ReferenceError|SyntaxError|RangeError|URIError|EvalError|AggregateError|InternalError|Error|Exception|NullPointerException|IndexOutOfBoundsException|ClassNotFoundException|FileNotFoundException|IOException|SQLException|RuntimeException|ArithmeticException|IllegalArgumentException|OutOfMemoryError|StackOverflowError|AssertionError|AttributeError|KeyError|ValueError|IndentationError|ImportError|ModuleNotFoundError|NameError|ZeroDivisionError|OSError|PermissionError|TimeoutError|ConnectionError|HTTPError)\b/i,
+    // Error codes
+    errorCodes: /\b(ERR_|E_|ERROR_|ERRNO|exit\s*code\s*\d+|status\s*code\s*[45]\d{2}|0x[0-9a-f]+|ENOENT|EACCES|EPERM|ECONNREFUSED|ETIMEDOUT)\b/i,
+    // Failed/error keywords in context
+    failureKeywords: /\b(failed|error|exception|crashed|thrown|raised|fatal|critical|aborted|terminated|segfault|core\s*dump|panic|undefined\s+is\s+not|cannot\s+read\s+property|null\s+reference|stack\s+trace)\b/i,
+    // Code-like error messages
+    codeErrors: /\b(unexpected\s+token|unexpected\s+end|missing\s+semicolon|unterminated\s+string|invalid\s+syntax|compilation\s+failed|build\s+failed|unresolved\s+reference)\b/i,
+    // HTTP errors
+    httpErrors: /\b(4\d{2}|5\d{2})\s*(error|not\s*found|internal\s*server|bad\s*request|unauthorized|forbidden|timeout|gateway)/i
+  };
+
+  // QUERY/QUESTION INDICATORS
+  const queryPatterns = {
+    // Question words
+    questionWords: /^(how|what|why|when|where|which|who|can|could|would|should|is|are|does|do|will|has|have)\b/i,
+    // Question marks
+    hasQuestionMark: /\?$/,
+    // Help-seeking phrases
+    helpPhrases: /\b(how\s+to|how\s+do\s+i|how\s+can\s+i|what\s+is|what\s+are|why\s+does|why\s+is|can\s+you|could\s+you|please\s+help|need\s+help|looking\s+for|trying\s+to|want\s+to|best\s+way|best\s+practice|recommended|difference\s+between|explain|tutorial|guide|example|sample)\b/i,
+    // Comparison queries
+    comparisonQueries: /\b(vs|versus|compared\s+to|better\s+than|difference|alternative|similar|instead\s+of)\b/i,
+    // Learning queries
+    learningQueries: /\b(learn|understand|concept|meaning|definition|purpose|use\s+case|when\s+to\s+use|pros\s+and\s+cons)\b/i
+  };
+
+  // Score error indicators
+  let errorScore = 0;
+  let queryScore = 0;
+
+  for (const [patternName, regex] of Object.entries(errorPatterns)) {
+    if (regex.test(text)) {
+      errorScore += (patternName === 'errorTypes' || patternName === 'stackTrace') ? 3 : 2;
+      result.indicators.push({ type: 'error', pattern: patternName });
+    }
+  }
+
+  for (const [patternName, regex] of Object.entries(queryPatterns)) {
+    if (regex.test(text)) {
+      queryScore += (patternName === 'questionWords' || patternName === 'hasQuestionMark') ? 2 : 1;
+      result.indicators.push({ type: 'query', pattern: patternName });
+    }
+  }
+
+  // Check for code blocks (often errors)
+  const hasCodeBlock = /```[\s\S]*```|`[^`]+`/.test(input);
+  if (hasCodeBlock) {
+    errorScore += 1;
+    result.indicators.push({ type: 'error', pattern: 'codeBlock' });
+  }
+
+  // Check for file paths (often errors)
+  const hasFilePath = /[\/\\][\w.-]+\.(js|ts|py|java|cpp|c|go|rs|rb|php|jsx|tsx|vue|css|html|json|xml|yaml|yml|md|sql)(\s|:|$)/i.test(text);
+  if (hasFilePath) {
+    errorScore += 1;
+    result.indicators.push({ type: 'error', pattern: 'filePath' });
+  }
+
+  // Determine type based on scores
+  const totalScore = errorScore + queryScore;
+  
+  if (errorScore > queryScore * 2) {
+    result.type = 'error';
+    result.confidence = Math.min(0.95, 0.6 + (errorScore / totalScore) * 0.35);
+    result.errorDetails = {
+      hasStackTrace: errorPatterns.stackTrace.test(text),
+      hasErrorType: errorPatterns.errorTypes.test(text),
+      hasErrorCode: errorPatterns.errorCodes.test(text)
+    };
+  } else if (queryScore > errorScore * 2) {
+    result.type = 'query';
+    result.confidence = Math.min(0.95, 0.6 + (queryScore / totalScore) * 0.35);
+    result.queryDetails = {
+      isQuestion: queryPatterns.hasQuestionMark.test(text) || queryPatterns.questionWords.test(text),
+      isHowTo: /how\s+to/i.test(text),
+      isComparison: queryPatterns.comparisonQueries.test(text)
+    };
+  } else if (totalScore > 0) {
+    result.type = 'mixed';
+    result.confidence = 0.5 + Math.abs(errorScore - queryScore) / (totalScore * 2) * 0.3;
+  }
+
+  console.log(`📋 [InputType] Detected: ${result.type} (confidence: ${(result.confidence * 100).toFixed(0)}%) - Error: ${errorScore}, Query: ${queryScore}`);
+
+  return result;
+}
+
 /**
  * Smart category detection from error message and context
+ * Now includes input type (error vs query) detection
  */
 function detectSmartCategory(errorMessage, context = {}) {
   const text = (errorMessage + ' ' + JSON.stringify(context)).toLowerCase();
   
-  let bestMatch = { category: 'general', subcategory: null, score: 0 };
+  // First, detect if this is an error or a query
+  const inputType = detectInputType(errorMessage);
+  
+  let bestMatch = { 
+    category: 'general', 
+    subcategory: null, 
+    score: 0,
+    inputType: inputType.type,
+    inputTypeConfidence: inputType.confidence,
+    isError: inputType.type === 'error' || inputType.type === 'mixed',
+    isQuery: inputType.type === 'query' || inputType.type === 'mixed'
+  };
   
   for (const [categoryKey, categoryData] of Object.entries(SMART_CATEGORIES)) {
     let score = 0;
@@ -2055,6 +2177,7 @@ function detectSmartCategory(errorMessage, context = {}) {
     
     if (score > bestMatch.score) {
       bestMatch = {
+        ...bestMatch,
         category: categoryKey,
         subcategory: matchedSubcategory,
         score
@@ -2376,11 +2499,12 @@ async function learnAndStoreImmediately(params) {
         results.libraryEntry = { updated: true, id: existingEntry.id };
         console.log(`📖 [LibraryLearning] Updated existing entry: ${existingEntry.id}`);
       } else {
-        // Smart category detection
+        // Smart category detection (includes input type: error vs query)
         const smartCat = detectSmartCategory(errorMessage, { language, errorType, category });
         console.log(`🏷️ [LibraryLearning] Detected category: ${smartCat.category} / ${smartCat.subcategory}`);
+        console.log(`📋 [LibraryLearning] Input type: ${smartCat.inputType} (${smartCat.isError ? 'ERROR' : 'QUERY'}) - confidence: ${(smartCat.inputTypeConfidence * 100).toFixed(0)}%`);
         
-        // Create new library entry with smart categorization
+        // Create new library entry with smart categorization and input type
         const entry = await ErrorLibrary.create({
           type: 'system',
           errorCode: generateErrorCode({ pattern, language }),
@@ -2389,6 +2513,8 @@ async function learnAndStoreImmediately(params) {
           errorMessage: errorMessage.substring(0, 500),
           category: smartCat.category,
           subcategory: smartCat.subcategory || language || null,
+          inputType: smartCat.inputType, // 'error', 'query', or 'mixed'
+          isErrorInput: smartCat.isError,
           explanation: aiResponse.explanation,
           solution: aiResponse.solution,
           codeExample: aiResponse.codeExample || null,
@@ -2466,8 +2592,9 @@ module.exports = {
   // Immediate learning - scrape and store on every query
   learnAndStoreImmediately,
   
-  // Smart categorization
+  // Smart categorization & input type detection
   detectSmartCategory,
+  detectInputType,
   SMART_CATEGORIES,
   
   // Product detection

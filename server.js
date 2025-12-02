@@ -689,6 +689,14 @@ const start = async () => {
             await sequelize.query(`ALTER TABLE "error_library" ADD COLUMN IF NOT EXISTS "codeExample" TEXT`);
             console.log('✅ Added: error_library.codeExample');
           }
+          if (!libCols.includes('inputType')) {
+            await sequelize.query(`ALTER TABLE "error_library" ADD COLUMN IF NOT EXISTS "inputType" VARCHAR(20) DEFAULT 'error'`);
+            console.log('✅ Added: error_library.inputType (error/query/mixed detection)');
+          }
+          if (!libCols.includes('isErrorInput')) {
+            await sequelize.query(`ALTER TABLE "error_library" ADD COLUMN IF NOT EXISTS "isErrorInput" BOOLEAN DEFAULT true`);
+            console.log('✅ Added: error_library.isErrorInput');
+          }
         } else {
           console.log('ℹ️  error_library table does not exist yet - will be created by sync');
         }

@@ -76,6 +76,22 @@ const ErrorLibrary = sequelize.define('ErrorLibrary', {
     comment: 'Subcategory within main category'
   },
   
+  // Input type detection - was this an error or a question/query?
+  inputType: {
+    type: DataTypes.ENUM('error', 'query', 'mixed'),
+    allowNull: true,
+    defaultValue: 'error',
+    comment: 'Type of input: error with stack trace, query/question, or mixed'
+  },
+  
+  // Is this an error input (has error codes, stack traces, etc.)
+  isErrorInput: {
+    type: DataTypes.BOOLEAN,
+    allowNull: true,
+    defaultValue: true,
+    comment: 'True if input contained error patterns (vs just a question)'
+  },
+  
   // Plain English explanation
   explanation: {
     type: DataTypes.TEXT,
