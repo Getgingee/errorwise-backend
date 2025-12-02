@@ -456,13 +456,34 @@ exports.createSubscription = async (req, res) => {
       amount: plan.price
     });
     
+    // Check if plan has a valid Dodo product ID
+    if (!plan.dodo_plan_id) {
+      console.error('❌ No Dodo product ID configured for plan:', planId);
+      return res.status(503).json({
+        error: 'Payment product not configured',
+        message: 'This plan is not yet available for purchase. Please contact support.',
+        code: 'PRODUCT_NOT_CONFIGURED'
+      });
+    }
+    
     // Check if payment service is properly configured
-    if (!process.env.DODO_SECRET_KEY && !process.env.DODO_API_KEY) {
+    const dodoKey = process.env.DODO_SECRET_KEY || process.env.DODO_API_KEY;
+    if (!dodoKey) {
       console.error('❌ No Dodo payment API key configured');
       return res.status(503).json({
         error: 'Payment service not configured',
         message: 'Please contact support to set up payments',
         code: 'PAYMENT_NOT_CONFIGURED'
+      });
+    }
+    
+    // Warn if using wrong key type
+    if (dodoKey.startsWith('pk_')) {
+      console.error('❌ Using PUBLIC key for Dodo API - need SECRET key (sk_...)');
+      return res.status(503).json({
+        error: 'Payment service misconfigured',
+        message: 'Payment system configuration error. Please contact support.',
+        code: 'PAYMENT_KEY_TYPE_ERROR'
       });
     }
     
