@@ -344,11 +344,6 @@ const errorHandler = (err, req, res, next) => {
       ? 'Internal server error' 
       : err.message,
     code: 'INTERNAL_ERROR',
-    // Temporarily include debug info
-    debugInfo: {
-      name: err.name,
-      hint: err.message?.substring(0, 100)
-    },
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 };
