@@ -43,225 +43,654 @@ const CONFIG = {
 };
 
 // ============================================================================
-// PRODUCT-SPECIFIC FORUM SOURCES
-// Maps product keywords to their official forums/communities
+// FORUM SOURCES FOR ALL CATEGORIES
+// Comprehensive list for everyday non-tech users: banking, vehicles, electronics, appliances, etc.
 // ============================================================================
 
-const PRODUCT_FORUMS = {
-  // Adobe Products
-  adobe: {
-    photoshop: {
-      name: 'Adobe Photoshop',
-      forums: [
-        'https://community.adobe.com/t5/photoshop-ecosystem/ct-p/ct-photoshop',
-        'https://helpx.adobe.com/photoshop/kb/troubleshoot-photoshop.html'
-      ],
-      searchUrl: 'https://community.adobe.com/t5/forums/searchpage/tab/message?filter=location&q={query}&location=category:ct-photoshop',
-      keywords: ['photoshop', 'psd', 'adobe photoshop', 'ps cc', 'photoshop cc']
-    },
-    illustrator: {
-      name: 'Adobe Illustrator',
-      forums: ['https://community.adobe.com/t5/illustrator/ct-p/ct-illustrator'],
-      searchUrl: 'https://community.adobe.com/t5/forums/searchpage/tab/message?filter=location&q={query}&location=category:ct-illustrator',
-      keywords: ['illustrator', 'ai file', 'adobe illustrator']
-    },
-    premiere: {
-      name: 'Adobe Premiere Pro',
-      forums: ['https://community.adobe.com/t5/premiere-pro/ct-p/ct-premiere-pro'],
-      searchUrl: 'https://community.adobe.com/t5/forums/searchpage/tab/message?q={query}&location=category:ct-premiere-pro',
-      keywords: ['premiere', 'premiere pro', 'video editing adobe']
-    },
-    aftereffects: {
-      name: 'Adobe After Effects',
-      forums: ['https://community.adobe.com/t5/after-effects/ct-p/ct-after-effects'],
-      keywords: ['after effects', 'ae', 'motion graphics adobe']
-    },
-    acrobat: {
-      name: 'Adobe Acrobat',
-      forums: ['https://community.adobe.com/t5/acrobat/ct-p/ct-acrobat'],
-      keywords: ['acrobat', 'pdf', 'adobe reader', 'acrobat reader']
-    }
+const FORUM_SOURCES = {
+  // ============================================================================
+  // BANKING & FINANCE
+  // ============================================================================
+  banking: {
+    forums: [
+      'reddit.com/r/Banking',
+      'reddit.com/r/personalfinance',
+      'reddit.com/r/CreditCards',
+      'bankrate.com/forums',
+      'myfico.com/forums',
+      'creditkarma.com/advice'
+    ],
+    products: ['bank', 'credit card', 'debit card', 'atm', 'online banking', 'mobile banking', 'wire transfer', 'direct deposit', 'overdraft', 'loan', 'mortgage', 'checking', 'savings', 'account'],
+    rateLimit: { perMinute: 20, perHour: 150 }
   },
   
-  // Microsoft Products
-  microsoft: {
-    windows: {
-      name: 'Microsoft Windows',
-      forums: [
-        'https://answers.microsoft.com/en-us/windows',
-        'https://learn.microsoft.com/en-us/troubleshoot/windows-client/'
-      ],
-      searchUrl: 'https://answers.microsoft.com/en-us/search/search?SearchTerm={query}&tab=All&status=all&adlt=off&adlt_set=off&filters=all',
-      keywords: ['windows', 'win10', 'win11', 'windows 10', 'windows 11', 'bsod', 'blue screen']
-    },
-    office: {
-      name: 'Microsoft Office',
-      forums: ['https://answers.microsoft.com/en-us/msoffice'],
-      searchUrl: 'https://answers.microsoft.com/en-us/search/search?SearchTerm={query}&IsSuggest=false',
-      keywords: ['excel', 'word', 'powerpoint', 'outlook', 'office 365', 'microsoft 365']
-    },
-    azure: {
-      name: 'Microsoft Azure',
-      forums: [
-        'https://learn.microsoft.com/en-us/answers/tags/133/azure',
-        'https://stackoverflow.com/questions/tagged/azure'
-      ],
-      keywords: ['azure', 'azure devops', 'azure functions', 'azure storage']
-    },
-    vscode: {
-      name: 'Visual Studio Code',
-      forums: [
-        'https://github.com/microsoft/vscode/issues',
-        'https://stackoverflow.com/questions/tagged/visual-studio-code'
-      ],
-      keywords: ['vscode', 'visual studio code', 'vs code']
-    }
+  paypal: {
+    forums: ['community.paypal.com', 'reddit.com/r/paypal'],
+    products: ['paypal', 'venmo', 'paypal checkout', 'paypal business'],
+    rateLimit: { perMinute: 20, perHour: 100 }
   },
   
-  // Gaming
+  cryptocurrency: {
+    forums: ['reddit.com/r/Bitcoin', 'reddit.com/r/CryptoCurrency', 'bitcointalk.org'],
+    products: ['bitcoin', 'crypto', 'wallet', 'blockchain', 'coinbase', 'binance', 'metamask'],
+    rateLimit: { perMinute: 15, perHour: 100 }
+  },
+
+  // ============================================================================
+  // VEHICLES & AUTOMOTIVE
+  // ============================================================================
+  automotive: {
+    forums: [
+      'reddit.com/r/MechanicAdvice',
+      'reddit.com/r/Cartalk',
+      'bobistheoilguy.com/forums',
+      'automotiveforums.com',
+      'carcomplaints.com'
+    ],
+    products: ['car', 'vehicle', 'engine', 'brake', 'transmission', 'oil', 'tire', 'battery', 'alternator', 'starter', 'check engine', 'dashboard', 'warning light', 'fuel', 'radiator', 'coolant'],
+    rateLimit: { perMinute: 25, perHour: 180 }
+  },
+  
+  toyota: {
+    forums: ['toyotanation.com/forums', 'reddit.com/r/Toyota', 'priuschat.com'],
+    products: ['toyota', 'camry', 'corolla', 'rav4', 'highlander', 'prius', 'tacoma', 'tundra'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  honda: {
+    forums: ['honda-tech.com', 'reddit.com/r/Honda', 'civicforums.com'],
+    products: ['honda', 'civic', 'accord', 'cr-v', 'pilot', 'odyssey', 'fit'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  ford: {
+    forums: ['fordf150.net', 'reddit.com/r/Ford', 'blueovalforums.com', 'f150forum.com'],
+    products: ['ford', 'f-150', 'f150', 'mustang', 'explorer', 'escape', 'bronco', 'ranger'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  chevrolet: {
+    forums: ['reddit.com/r/Chevrolet', 'chevroletforum.com', 'corvetteforum.com'],
+    products: ['chevrolet', 'chevy', 'silverado', 'equinox', 'malibu', 'camaro', 'corvette', 'tahoe'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  bmw: {
+    forums: ['bimmerfest.com', 'e90post.com', 'reddit.com/r/BMW'],
+    products: ['bmw', 'bimmer', '3 series', '5 series', 'x3', 'x5', 'm3', 'm5'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  mercedes: {
+    forums: ['benzworld.org', 'mbworld.org', 'reddit.com/r/mercedes_benz'],
+    products: ['mercedes', 'benz', 'c-class', 'e-class', 's-class', 'gle', 'glc', 'amg'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  tesla: {
+    forums: ['teslamotorsclub.com', 'reddit.com/r/TeslaMotors', 'reddit.com/r/teslamodel3'],
+    products: ['tesla', 'model 3', 'model y', 'model s', 'model x', 'supercharger', 'autopilot', 'fsd'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  motorcycle: {
+    forums: ['reddit.com/r/motorcycles', 'advrider.com', 'sportbikes.net'],
+    products: ['motorcycle', 'harley', 'honda bike', 'yamaha', 'kawasaki', 'ducati', 'suzuki', 'motorbike'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+
+  // ============================================================================
+  // ELECTRONICS & GADGETS
+  // ============================================================================
+  electronics: {
+    forums: [
+      'reddit.com/r/techsupport',
+      'reddit.com/r/electronics',
+      'ifixit.com/Answers',
+      'tomshardware.com/forums'
+    ],
+    products: ['electronic', 'gadget', 'device', 'charger', 'cable', 'adapter', 'power supply', 'battery', 'screen', 'display', 'speaker', 'microphone'],
+    rateLimit: { perMinute: 30, perHour: 200 }
+  },
+  
+  smartphone: {
+    forums: ['reddit.com/r/smartphones', 'xda-developers.com', 'androidcentral.com/forums'],
+    products: ['phone', 'smartphone', 'android', 'iphone', 'samsung galaxy', 'pixel', 'oneplus', 'xiaomi', 'mobile'],
+    rateLimit: { perMinute: 25, perHour: 180 }
+  },
+  
+  samsung: {
+    forums: ['us.community.samsung.com', 'reddit.com/r/samsung', 'reddit.com/r/GalaxyS'],
+    products: ['samsung', 'galaxy', 'galaxy s', 'galaxy note', 'samsung tv', 'samsung washer', 'samsung fridge'],
+    rateLimit: { perMinute: 25, perHour: 150 }
+  },
+  
+  apple: {
+    forums: ['discussions.apple.com', 'reddit.com/r/apple', 'reddit.com/r/iphone', 'macrumors.com/forums'],
+    products: ['apple', 'iphone', 'ipad', 'mac', 'macbook', 'imac', 'airpods', 'apple watch', 'ios', 'macos', 'itunes', 'app store'],
+    rateLimit: { perMinute: 25, perHour: 150 }
+  },
+  
+  laptop: {
+    forums: ['reddit.com/r/laptops', 'notebookreview.com/forums', 'laptopmag.com'],
+    products: ['laptop', 'notebook', 'chromebook', 'dell laptop', 'hp laptop', 'lenovo', 'asus', 'acer'],
+    rateLimit: { perMinute: 25, perHour: 150 }
+  },
+  
+  tv: {
+    forums: ['reddit.com/r/hometheater', 'reddit.com/r/4ktv', 'avsforum.com'],
+    products: ['tv', 'television', 'smart tv', 'roku', 'fire stick', 'chromecast', 'lg tv', 'sony tv', 'vizio', 'tcl', 'hdmi', 'remote'],
+    rateLimit: { perMinute: 25, perHour: 150 }
+  },
+  
+  audio: {
+    forums: ['reddit.com/r/headphones', 'reddit.com/r/audiophile', 'head-fi.org'],
+    products: ['headphones', 'earbuds', 'speaker', 'soundbar', 'bluetooth speaker', 'subwoofer', 'amplifier', 'receiver', 'bose', 'sonos', 'jbl'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  camera: {
+    forums: ['dpreview.com/forums', 'reddit.com/r/photography', 'reddit.com/r/Cameras'],
+    products: ['camera', 'dslr', 'mirrorless', 'canon', 'nikon', 'sony camera', 'gopro', 'lens', 'tripod', 'webcam'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  printer: {
+    forums: ['reddit.com/r/printers', 'fixyourownprinter.com'],
+    products: ['printer', 'scanner', 'hp printer', 'epson', 'canon printer', 'brother printer', 'ink', 'toner', 'paper jam', 'print queue'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+
+  // ============================================================================
+  // HOME APPLIANCES
+  // ============================================================================
+  appliances: {
+    forums: [
+      'reddit.com/r/appliancerepair',
+      'applianceblog.com/mainforums',
+      'repairclinic.com/RepairHelp'
+    ],
+    products: ['appliance', 'refrigerator', 'fridge', 'washer', 'dryer', 'dishwasher', 'oven', 'stove', 'microwave', 'freezer', 'garbage disposal'],
+    rateLimit: { perMinute: 25, perHour: 180 }
+  },
+  
+  hvac: {
+    forums: ['reddit.com/r/HVAC', 'hvac-talk.com', 'doityourself.com/forum/air-conditioning-cooling-systems'],
+    products: ['ac', 'air conditioner', 'heating', 'furnace', 'thermostat', 'hvac', 'heat pump', 'central air', 'nest', 'ecobee', 'ventilation'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  whirlpool: {
+    forums: ['reddit.com/r/appliancerepair', 'applianceblog.com'],
+    products: ['whirlpool', 'maytag', 'kitchenaid appliance', 'kenmore'],
+    rateLimit: { perMinute: 20, perHour: 100 }
+  },
+  
+  lg_appliances: {
+    forums: ['reddit.com/r/appliancerepair', 'lg.com/us/support'],
+    products: ['lg washer', 'lg dryer', 'lg refrigerator', 'lg dishwasher', 'lg oven'],
+    rateLimit: { perMinute: 20, perHour: 100 }
+  },
+  
+  ge_appliances: {
+    forums: ['reddit.com/r/appliancerepair', 'geappliances.com/support'],
+    products: ['ge washer', 'ge dryer', 'ge refrigerator', 'ge dishwasher', 'ge oven', 'ge microwave'],
+    rateLimit: { perMinute: 20, perHour: 100 }
+  },
+
+  // ============================================================================
+  // SMART HOME & IOT
+  // ============================================================================
+  smarthome: {
+    forums: ['reddit.com/r/smarthome', 'reddit.com/r/homeautomation', 'community.smartthings.com'],
+    products: ['smart home', 'alexa', 'google home', 'smart plug', 'smart light', 'smart lock', 'ring doorbell', 'nest cam', 'hue', 'zigbee', 'z-wave'],
+    rateLimit: { perMinute: 20, perHour: 150 }
+  },
+  
+  amazon_devices: {
+    forums: ['reddit.com/r/amazonecho', 'reddit.com/r/FireTV', 'amazonforum.com'],
+    products: ['echo', 'alexa', 'fire tv', 'fire stick', 'kindle', 'ring', 'blink camera', 'amazon prime'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  google_home: {
+    forums: ['reddit.com/r/googlehome', 'support.google.com/googlenest/community'],
+    products: ['google home', 'nest hub', 'nest thermostat', 'google assistant', 'nest doorbell', 'nest camera', 'chromecast'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+
+  // ============================================================================
+  // INTERNET & NETWORKING
+  // ============================================================================
+  internet: {
+    forums: [
+      'reddit.com/r/HomeNetworking',
+      'reddit.com/r/techsupport',
+      'dslreports.com/forums'
+    ],
+    products: ['wifi', 'internet', 'router', 'modem', 'ethernet', 'network', 'dns', 'ip address', 'connection', 'buffering', 'slow internet', 'no internet'],
+    rateLimit: { perMinute: 25, perHour: 180 }
+  },
+  
+  isp: {
+    forums: ['reddit.com/r/Comcast_Xfinity', 'reddit.com/r/ATT', 'reddit.com/r/verizon', 'reddit.com/r/tmobile'],
+    products: ['comcast', 'xfinity', 'att', 'verizon', 'spectrum', 't-mobile', 'sprint', 'fiber', 'cable internet', 'dsl'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+
+  // ============================================================================
+  // STREAMING & ENTERTAINMENT
+  // ============================================================================
+  streaming: {
+    forums: ['reddit.com/r/cordcutters', 'reddit.com/r/streaming'],
+    products: ['netflix', 'hulu', 'disney plus', 'hbo max', 'amazon prime video', 'peacock', 'paramount plus', 'youtube tv', 'sling', 'fubo'],
+    rateLimit: { perMinute: 20, perHour: 150 }
+  },
+  
+  spotify: {
+    forums: ['community.spotify.com', 'reddit.com/r/spotify'],
+    products: ['spotify', 'spotify premium', 'spotify connect', 'playlist'],
+    rateLimit: { perMinute: 20, perHour: 100 }
+  },
+
+  // ============================================================================
+  // GAMING (Consumer Focus)
+  // ============================================================================
   gaming: {
-    steam: {
-      name: 'Steam',
-      forums: ['https://steamcommunity.com/discussions/'],
-      searchUrl: 'https://steamcommunity.com/discussions/search/?q={query}',
-      keywords: ['steam', 'steam error', 'steam client']
-    },
-    epic: {
-      name: 'Epic Games',
-      forums: ['https://www.epicgames.com/help/'],
-      keywords: ['epic games', 'epic launcher', 'fortnite', 'unreal']
-    },
-    nvidia: {
-      name: 'NVIDIA',
-      forums: ['https://www.nvidia.com/en-us/geforce/forums/'],
-      keywords: ['nvidia', 'geforce', 'cuda', 'gpu driver']
-    },
-    amd: {
-      name: 'AMD',
-      forums: ['https://community.amd.com/'],
-      keywords: ['amd', 'radeon', 'ryzen', 'amd driver']
-    }
+    forums: ['reddit.com/r/gaming', 'reddit.com/r/Games', 'gamefaqs.gamespot.com'],
+    products: ['game', 'gaming', 'controller', 'console', 'game crash', 'lag', 'fps drop'],
+    rateLimit: { perMinute: 25, perHour: 180 }
   },
   
-  // Development
-  development: {
-    nodejs: {
-      name: 'Node.js',
-      forums: [
-        'https://stackoverflow.com/questions/tagged/node.js',
-        'https://github.com/nodejs/node/issues'
-      ],
-      searchUrl: 'https://stackoverflow.com/search?q={query}+[node.js]',
-      keywords: ['node', 'nodejs', 'npm', 'node.js']
-    },
-    python: {
-      name: 'Python',
-      forums: [
-        'https://stackoverflow.com/questions/tagged/python',
-        'https://discuss.python.org/'
-      ],
-      searchUrl: 'https://stackoverflow.com/search?q={query}+[python]',
-      keywords: ['python', 'pip', 'python3', 'django', 'flask']
-    },
-    react: {
-      name: 'React',
-      forums: [
-        'https://stackoverflow.com/questions/tagged/reactjs',
-        'https://github.com/facebook/react/issues'
-      ],
-      keywords: ['react', 'reactjs', 'react native', 'jsx']
-    },
-    angular: {
-      name: 'Angular',
-      forums: ['https://stackoverflow.com/questions/tagged/angular'],
-      keywords: ['angular', 'ng', 'angular cli']
-    },
-    vue: {
-      name: 'Vue.js',
-      forums: ['https://stackoverflow.com/questions/tagged/vue.js'],
-      keywords: ['vue', 'vuejs', 'vue.js', 'nuxt']
-    },
-    java: {
-      name: 'Java',
-      forums: ['https://stackoverflow.com/questions/tagged/java'],
-      keywords: ['java', 'jvm', 'spring', 'maven', 'gradle']
-    },
-    dotnet: {
-      name: '.NET',
-      forums: [
-        'https://stackoverflow.com/questions/tagged/.net',
-        'https://learn.microsoft.com/en-us/answers/tags/3/dotnet'
-      ],
-      keywords: ['.net', 'dotnet', 'c#', 'csharp', 'asp.net']
-    }
+  playstation: {
+    forums: ['reddit.com/r/playstation', 'reddit.com/r/PS5', 'community.playstation.com'],
+    products: ['playstation', 'ps5', 'ps4', 'psn', 'playstation network', 'dualshock', 'dualsense'],
+    rateLimit: { perMinute: 20, perHour: 120 }
   },
   
-  // Mobile
-  mobile: {
-    android: {
-      name: 'Android',
-      forums: [
-        'https://stackoverflow.com/questions/tagged/android',
-        'https://support.google.com/android/community'
-      ],
-      keywords: ['android', 'android studio', 'google play', 'apk']
-    },
-    ios: {
-      name: 'iOS/Apple',
-      forums: [
-        'https://stackoverflow.com/questions/tagged/ios',
-        'https://discussions.apple.com/'
-      ],
-      keywords: ['ios', 'iphone', 'ipad', 'xcode', 'swift', 'apple']
-    }
+  xbox: {
+    forums: ['reddit.com/r/xbox', 'reddit.com/r/XboxSeriesX', 'answers.microsoft.com/en-us/xbox'],
+    products: ['xbox', 'xbox series x', 'xbox series s', 'xbox one', 'xbox live', 'game pass'],
+    rateLimit: { perMinute: 20, perHour: 120 }
   },
   
-  // Databases
-  database: {
-    mysql: {
-      name: 'MySQL',
-      forums: ['https://stackoverflow.com/questions/tagged/mysql'],
-      keywords: ['mysql', 'mariadb']
-    },
-    postgresql: {
-      name: 'PostgreSQL',
-      forums: ['https://stackoverflow.com/questions/tagged/postgresql'],
-      keywords: ['postgresql', 'postgres', 'psql']
-    },
-    mongodb: {
-      name: 'MongoDB',
-      forums: ['https://www.mongodb.com/community/forums/'],
-      keywords: ['mongodb', 'mongo', 'mongoose']
-    },
-    redis: {
-      name: 'Redis',
-      forums: ['https://stackoverflow.com/questions/tagged/redis'],
-      keywords: ['redis', 'cache']
-    }
+  nintendo: {
+    forums: ['reddit.com/r/NintendoSwitch', 'reddit.com/r/nintendo', 'gamefaqs.gamespot.com'],
+    products: ['nintendo', 'switch', 'nintendo switch', 'joy-con', 'eshop', 'mario', 'zelda', 'pokemon'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+
+  // ============================================================================
+  // COMPUTERS (Consumer Focus)
+  // ============================================================================
+  windows: {
+    forums: ['answers.microsoft.com/en-us/windows', 'reddit.com/r/Windows10', 'reddit.com/r/Windows11', 'tenforums.com'],
+    products: ['windows', 'windows 10', 'windows 11', 'blue screen', 'bsod', 'update', 'start menu', 'taskbar', 'file explorer', 'microsoft store'],
+    rateLimit: { perMinute: 25, perHour: 180 }
   },
   
-  // Cloud
-  cloud: {
-    aws: {
-      name: 'Amazon Web Services',
-      forums: ['https://repost.aws/', 'https://stackoverflow.com/questions/tagged/amazon-web-services'],
-      keywords: ['aws', 'amazon', 's3', 'ec2', 'lambda', 'dynamodb']
-    },
-    gcp: {
-      name: 'Google Cloud',
-      forums: ['https://stackoverflow.com/questions/tagged/google-cloud-platform'],
-      keywords: ['gcp', 'google cloud', 'firebase', 'gcs']
-    },
-    vercel: {
-      name: 'Vercel',
-      forums: ['https://github.com/vercel/vercel/discussions'],
-      keywords: ['vercel', 'next.js', 'nextjs']
-    },
-    railway: {
-      name: 'Railway',
-      forums: ['https://help.railway.app/', 'https://discord.gg/railway'],
-      keywords: ['railway', 'railway.app']
-    }
+  macos: {
+    forums: ['discussions.apple.com', 'reddit.com/r/MacOS', 'macrumors.com/forums'],
+    products: ['mac', 'macos', 'finder', 'safari', 'time machine', 'spotlight', 'dock', 'macbook'],
+    rateLimit: { perMinute: 25, perHour: 150 }
+  },
+
+  // ============================================================================
+  // SOFTWARE (Consumer Apps)
+  // ============================================================================
+  office: {
+    forums: ['answers.microsoft.com/en-us/msoffice', 'reddit.com/r/excel', 'reddit.com/r/MicrosoftWord'],
+    products: ['excel', 'word', 'powerpoint', 'outlook', 'office 365', 'microsoft 365', 'onedrive', 'sharepoint', 'teams'],
+    rateLimit: { perMinute: 25, perHour: 180 }
+  },
+  
+  adobe_consumer: {
+    forums: ['community.adobe.com', 'reddit.com/r/AdobeIllustrator', 'reddit.com/r/photoshop'],
+    products: ['photoshop', 'lightroom', 'acrobat', 'pdf', 'premiere', 'illustrator', 'adobe reader'],
+    rateLimit: { perMinute: 20, perHour: 150 }
+  },
+  
+  browsers: {
+    forums: ['reddit.com/r/chrome', 'reddit.com/r/firefox', 'reddit.com/r/edge'],
+    products: ['chrome', 'firefox', 'edge', 'safari', 'browser', 'bookmark', 'extension', 'cache', 'cookies', 'popup'],
+    rateLimit: { perMinute: 20, perHour: 150 }
+  },
+  
+  antivirus: {
+    forums: ['reddit.com/r/antivirus', 'forums.malwarebytes.com', 'community.norton.com'],
+    products: ['antivirus', 'malware', 'virus', 'norton', 'mcafee', 'avast', 'windows defender', 'malwarebytes', 'kaspersky'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+
+  // ============================================================================
+  // E-COMMERCE & SHOPPING
+  // ============================================================================
+  amazon: {
+    forums: ['reddit.com/r/amazon', 'sellercentral.amazon.com/forums'],
+    products: ['amazon', 'amazon order', 'prime', 'amazon return', 'amazon shipping', 'amazon payment'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  ebay: {
+    forums: ['community.ebay.com', 'reddit.com/r/Ebay'],
+    products: ['ebay', 'ebay order', 'ebay seller', 'ebay buyer', 'ebay shipping', 'paypal ebay'],
+    rateLimit: { perMinute: 20, perHour: 100 }
+  },
+  
+  etsy: {
+    forums: ['community.etsy.com', 'reddit.com/r/Etsy'],
+    products: ['etsy', 'etsy order', 'etsy seller', 'etsy payment'],
+    rateLimit: { perMinute: 15, perHour: 80 }
+  },
+
+  // ============================================================================
+  // SOCIAL MEDIA
+  // ============================================================================
+  social_media: {
+    forums: ['reddit.com/r/socialmedia'],
+    products: ['social media', 'account locked', 'account hacked', 'login problem', 'two factor', '2fa'],
+    rateLimit: { perMinute: 20, perHour: 150 }
+  },
+  
+  facebook: {
+    forums: ['reddit.com/r/facebook', 'facebook.com/help/community'],
+    products: ['facebook', 'fb', 'messenger', 'facebook marketplace', 'facebook login', 'facebook account'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  instagram: {
+    forums: ['reddit.com/r/Instagram', 'help.instagram.com'],
+    products: ['instagram', 'ig', 'instagram story', 'instagram reels', 'instagram login'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  twitter: {
+    forums: ['reddit.com/r/Twitter', 'help.twitter.com'],
+    products: ['twitter', 'x', 'tweet', 'twitter login', 'twitter account'],
+    rateLimit: { perMinute: 20, perHour: 100 }
+  },
+  
+  tiktok: {
+    forums: ['reddit.com/r/Tiktok', 'support.tiktok.com'],
+    products: ['tiktok', 'tiktok video', 'tiktok account', 'tiktok login'],
+    rateLimit: { perMinute: 20, perHour: 100 }
+  },
+  
+  whatsapp: {
+    forums: ['reddit.com/r/whatsapp', 'faq.whatsapp.com'],
+    products: ['whatsapp', 'whatsapp web', 'whatsapp backup', 'whatsapp call'],
+    rateLimit: { perMinute: 20, perHour: 100 }
+  },
+
+  // ============================================================================
+  // TRAVEL & TRANSPORTATION
+  // ============================================================================
+  travel: {
+    forums: ['reddit.com/r/travel', 'flyertalk.com', 'tripadvisor.com/ShowForum'],
+    products: ['flight', 'airline', 'booking', 'reservation', 'hotel', 'airbnb', 'travel'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  uber: {
+    forums: ['reddit.com/r/uber', 'reddit.com/r/uberdrivers', 'help.uber.com'],
+    products: ['uber', 'uber eats', 'uber ride', 'uber driver', 'uber app'],
+    rateLimit: { perMinute: 20, perHour: 100 }
+  },
+  
+  lyft: {
+    forums: ['reddit.com/r/lyft', 'help.lyft.com'],
+    products: ['lyft', 'lyft ride', 'lyft driver', 'lyft app'],
+    rateLimit: { perMinute: 15, perHour: 80 }
+  },
+  
+  doordash: {
+    forums: ['reddit.com/r/doordash', 'reddit.com/r/doordash_drivers'],
+    products: ['doordash', 'door dash', 'dasher', 'delivery'],
+    rateLimit: { perMinute: 15, perHour: 80 }
+  },
+
+  // ============================================================================
+  // HEALTH & FITNESS
+  // ============================================================================
+  fitness: {
+    forums: ['reddit.com/r/fitbit', 'reddit.com/r/AppleWatch', 'reddit.com/r/GarminWatches'],
+    products: ['fitbit', 'apple watch', 'garmin', 'fitness tracker', 'step counter', 'heart rate', 'sleep tracker'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  peloton: {
+    forums: ['reddit.com/r/pelotoncycle', 'community.onepeloton.com'],
+    products: ['peloton', 'peloton bike', 'peloton tread', 'peloton app'],
+    rateLimit: { perMinute: 15, perHour: 80 }
+  },
+
+  // ============================================================================
+  // UTILITIES & BILLS
+  // ============================================================================
+  utilities: {
+    forums: ['reddit.com/r/personalfinance', 'reddit.com/r/Frugal'],
+    products: ['electric bill', 'gas bill', 'water bill', 'utility', 'meter', 'power outage', 'billing error'],
+    rateLimit: { perMinute: 15, perHour: 100 }
+  },
+
+  // ============================================================================
+  // HOME REPAIR & DIY
+  // ============================================================================
+  home_repair: {
+    forums: [
+      'reddit.com/r/HomeImprovement',
+      'reddit.com/r/DIY',
+      'reddit.com/r/fixit',
+      'doityourself.com/forum'
+    ],
+    products: ['plumbing', 'electrical', 'drywall', 'paint', 'flooring', 'roof', 'gutter', 'door', 'window', 'lock', 'faucet', 'toilet', 'sink', 'shower', 'bathtub', 'water heater', 'pipe', 'leak', 'clog', 'drain'],
+    rateLimit: { perMinute: 25, perHour: 150 }
+  },
+  
+  plumbing: {
+    forums: ['reddit.com/r/Plumbing', 'terrylove.com/forums'],
+    products: ['plumber', 'pipe', 'faucet', 'toilet', 'water heater', 'drain', 'clog', 'leak', 'sewer', 'septic', 'garbage disposal', 'water pressure', 'hot water'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  electrical: {
+    forums: ['reddit.com/r/electricians', 'reddit.com/r/electrical', 'diychatroom.com/forums/electrical'],
+    products: ['circuit breaker', 'outlet', 'switch', 'wiring', 'fuse', 'gfci', 'light fixture', 'dimmer', 'electrical panel', 'voltage', 'tripped breaker', 'power outage'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+
+  // ============================================================================
+  // LAWN & GARDEN
+  // ============================================================================
+  lawn_garden: {
+    forums: ['reddit.com/r/lawncare', 'reddit.com/r/gardening', 'reddit.com/r/landscaping'],
+    products: ['lawn mower', 'grass', 'weed', 'fertilizer', 'sprinkler', 'irrigation', 'hedge trimmer', 'leaf blower', 'chainsaw', 'garden', 'plant', 'tree', 'shrub'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  power_tools: {
+    forums: ['reddit.com/r/Tools', 'reddit.com/r/powerwashingporn', 'garagejournal.com/forum'],
+    products: ['drill', 'saw', 'sander', 'power tool', 'dewalt', 'makita', 'milwaukee', 'ryobi', 'craftsman', 'pressure washer', 'generator'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+
+  // ============================================================================
+  // KITCHEN APPLIANCES
+  // ============================================================================
+  kitchen: {
+    forums: ['reddit.com/r/Appliances', 'reddit.com/r/KitchenConfidential', 'reddit.com/r/Cooking'],
+    products: ['oven', 'stove', 'range', 'cooktop', 'microwave', 'toaster', 'coffee maker', 'keurig', 'nespresso', 'blender', 'food processor', 'instant pot', 'air fryer', 'stand mixer', 'kitchenaid'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  refrigeration: {
+    forums: ['reddit.com/r/appliancerepair', 'applianceblog.com/mainforums'],
+    products: ['refrigerator', 'fridge', 'freezer', 'ice maker', 'not cooling', 'defrost', 'water dispenser', 'compressor', 'thermostat'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+
+  // ============================================================================
+  // MEDICAL DEVICES & HEALTH
+  // ============================================================================
+  medical_devices: {
+    forums: ['reddit.com/r/diabetes', 'reddit.com/r/CPAP', 'reddit.com/r/HearingAids'],
+    products: ['blood pressure monitor', 'glucose meter', 'cpap', 'hearing aid', 'pulse oximeter', 'thermometer', 'nebulizer', 'insulin pump', 'cgm', 'continuous glucose'],
+    rateLimit: { perMinute: 15, perHour: 80 }
+  },
+  
+  pharmacy: {
+    forums: ['reddit.com/r/pharmacy', 'reddit.com/r/HealthInsurance'],
+    products: ['prescription', 'refill', 'insurance', 'copay', 'pharmacy', 'cvs', 'walgreens', 'medication', 'generic'],
+    rateLimit: { perMinute: 15, perHour: 80 }
+  },
+
+  // ============================================================================
+  // EDUCATION & LEARNING
+  // ============================================================================
+  education: {
+    forums: ['reddit.com/r/college', 'reddit.com/r/GradSchool', 'reddit.com/r/Teachers'],
+    products: ['canvas', 'blackboard', 'moodle', 'zoom class', 'google classroom', 'turnitin', 'gradebook', 'lms', 'student portal', 'financial aid', 'fafsa'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  online_learning: {
+    forums: ['reddit.com/r/learnprogramming', 'reddit.com/r/coursera', 'reddit.com/r/udemy'],
+    products: ['coursera', 'udemy', 'linkedin learning', 'skillshare', 'khan academy', 'duolingo', 'online course', 'certificate'],
+    rateLimit: { perMinute: 15, perHour: 100 }
+  },
+
+  // ============================================================================
+  // PETS & ANIMALS
+  // ============================================================================
+  pets: {
+    forums: ['reddit.com/r/dogs', 'reddit.com/r/cats', 'reddit.com/r/Pets'],
+    products: ['pet camera', 'automatic feeder', 'pet tracker', 'gps collar', 'pet door', 'aquarium', 'fish tank', 'pet fountain'],
+    rateLimit: { perMinute: 15, perHour: 100 }
+  },
+
+  // ============================================================================
+  // OFFICE & WORK FROM HOME
+  // ============================================================================
+  office_equipment: {
+    forums: ['reddit.com/r/homeoffice', 'reddit.com/r/WFH', 'reddit.com/r/battlestations'],
+    products: ['monitor', 'keyboard', 'mouse', 'webcam', 'headset', 'desk', 'chair', 'standing desk', 'dock', 'usb hub', 'kvm switch'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+  
+  video_conferencing: {
+    forums: ['reddit.com/r/Zoom', 'reddit.com/r/MicrosoftTeams', 'reddit.com/r/slack'],
+    products: ['zoom', 'teams', 'webex', 'google meet', 'slack', 'skype', 'discord', 'video call', 'screen share', 'microphone not working', 'camera not working'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+
+  // ============================================================================
+  // SECURITY & SAFETY
+  // ============================================================================
+  home_security: {
+    forums: ['reddit.com/r/homesecurity', 'reddit.com/r/homedefense', 'reddit.com/r/Ring'],
+    products: ['ring doorbell', 'nest cam', 'arlo', 'security camera', 'motion sensor', 'alarm system', 'smart lock', 'deadbolt', 'safe', 'smoke detector', 'carbon monoxide'],
+    rateLimit: { perMinute: 20, perHour: 120 }
+  },
+
+  // ============================================================================
+  // BABY & KIDS
+  // ============================================================================
+  baby_products: {
+    forums: ['reddit.com/r/beyondthebump', 'reddit.com/r/Parenting', 'reddit.com/r/NewParents'],
+    products: ['baby monitor', 'car seat', 'stroller', 'breast pump', 'bottle warmer', 'baby swing', 'crib', 'bassinet', 'diaper genie', 'baby gate'],
+    rateLimit: { perMinute: 15, perHour: 100 }
+  },
+
+  // ============================================================================
+  // OUTDOOR & RECREATION
+  // ============================================================================
+  outdoor: {
+    forums: ['reddit.com/r/camping', 'reddit.com/r/CampingGear', 'reddit.com/r/Kayaking'],
+    products: ['tent', 'sleeping bag', 'camping stove', 'cooler', 'grill', 'bbq', 'smoker', 'kayak', 'bike', 'e-bike', 'scooter', 'hoverboard'],
+    rateLimit: { perMinute: 15, perHour: 100 }
+  },
+  
+  pool_spa: {
+    forums: ['reddit.com/r/pools', 'reddit.com/r/hottub', 'troublefreepool.com/forums'],
+    products: ['pool pump', 'pool filter', 'hot tub', 'spa', 'chlorine', 'pool cleaner', 'pool heater', 'salt water pool'],
+    rateLimit: { perMinute: 15, perHour: 80 }
+  },
+
+  // ============================================================================
+  // WATCHES & JEWELRY
+  // ============================================================================
+  watches: {
+    forums: ['reddit.com/r/Watches', 'reddit.com/r/WatchRepair', 'reddit.com/r/smartwatch'],
+    products: ['watch', 'smartwatch', 'fitbit', 'garmin watch', 'apple watch', 'samsung watch', 'rolex', 'seiko', 'watch battery', 'watch band'],
+    rateLimit: { perMinute: 15, perHour: 100 }
+  },
+
+  // ============================================================================
+  // SEWING & CRAFTS
+  // ============================================================================
+  crafts: {
+    forums: ['reddit.com/r/sewing', 'reddit.com/r/quilting', 'reddit.com/r/cricut'],
+    products: ['sewing machine', 'singer', 'brother sewing', 'serger', 'cricut', 'silhouette', 'embroidery machine', 'knitting machine'],
+    rateLimit: { perMinute: 15, perHour: 80 }
+  },
+
+  // ============================================================================
+  // MUSICAL INSTRUMENTS
+  // ============================================================================
+  music: {
+    forums: ['reddit.com/r/Guitar', 'reddit.com/r/piano', 'reddit.com/r/WeAreTheMusicMakers'],
+    products: ['guitar', 'piano', 'keyboard', 'drums', 'amp', 'amplifier', 'tuner', 'midi', 'audio interface', 'microphone', 'daw'],
+    rateLimit: { perMinute: 15, perHour: 100 }
+  },
+
+  // ============================================================================
+  // FOOD DELIVERY & RESTAURANTS
+  // ============================================================================
+  food_delivery: {
+    forums: ['reddit.com/r/grubhub', 'reddit.com/r/postmates', 'reddit.com/r/UberEats'],
+    products: ['grubhub', 'postmates', 'uber eats', 'doordash', 'instacart', 'seamless', 'order wrong', 'delivery late', 'refund', 'missing item'],
+    rateLimit: { perMinute: 15, perHour: 100 }
+  },
+
+  // ============================================================================
+  // INSURANCE
+  // ============================================================================
+  insurance: {
+    forums: ['reddit.com/r/Insurance', 'reddit.com/r/HealthInsurance', 'reddit.com/r/personalfinance'],
+    products: ['car insurance', 'home insurance', 'health insurance', 'life insurance', 'claim', 'deductible', 'premium', 'coverage', 'geico', 'state farm', 'progressive', 'allstate'],
+    rateLimit: { perMinute: 15, perHour: 100 }
+  },
+
+  // ============================================================================
+  // TAXES & ACCOUNTING
+  // ============================================================================
+  taxes: {
+    forums: ['reddit.com/r/tax', 'reddit.com/r/taxpros', 'reddit.com/r/personalfinance'],
+    products: ['turbotax', 'h&r block', 'tax return', 'irs', 'w2', '1099', 'refund', 'audit', 'quickbooks', 'tax software'],
+    rateLimit: { perMinute: 15, perHour: 100 }
+  },
+
+  // ============================================================================
+  // REAL ESTATE & HOUSING
+  // ============================================================================
+  real_estate: {
+    forums: ['reddit.com/r/RealEstate', 'reddit.com/r/homeowners', 'reddit.com/r/FirstTimeHomeBuyer'],
+    products: ['mortgage', 'zillow', 'redfin', 'realtor', 'closing', 'escrow', 'appraisal', 'inspection', 'hoa', 'property tax', 'title'],
+    rateLimit: { perMinute: 15, perHour: 100 }
+  },
+
+  // ============================================================================
+  // GENERAL TECH SUPPORT
+  // ============================================================================
+  general_tech: {
+    forums: [
+      'reddit.com/r/techsupport',
+      'superuser.com',
+      'answers.microsoft.com',
+      'support.google.com/community'
+    ],
+    products: ['error', 'not working', 'crashed', 'frozen', 'slow', 'won\'t start', 'won\'t turn on', 'restart', 'update failed', 'install failed'],
+    rateLimit: { perMinute: 30, perHour: 200 }
   }
 };
 
@@ -499,7 +928,8 @@ function calculateEligibilityScore(tracker) {
 // ============================================================================
 
 /**
- * Detect product/application from error message and context
+ * Detect product/category from error message and context
+ * Works for everyday users: banking, vehicles, electronics, appliances, etc.
  */
 function detectProductFromError(errorMessage, additionalContext = {}) {
   const errorLower = (errorMessage || '').toLowerCase();
@@ -507,35 +937,129 @@ function detectProductFromError(errorMessage, additionalContext = {}) {
   const combined = errorLower + ' ' + contextLower;
   
   const detectedProducts = [];
+  const matchedVendors = new Set();
   
   // Check against all forum sources
   for (const [vendor, config] of Object.entries(FORUM_SOURCES)) {
+    // Skip if already matched this vendor
+    if (matchedVendors.has(vendor)) continue;
+    
     for (const product of config.products) {
-      if (combined.includes(product.toLowerCase())) {
+      const productLower = product.toLowerCase();
+      // Use word boundary check for better matching
+      const regex = new RegExp(`\\b${productLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      
+      if (regex.test(combined) || combined.includes(productLower)) {
+        matchedVendors.add(vendor);
         detectedProducts.push({
           vendor,
           product,
           forums: config.forums,
           rateLimit: config.rateLimit || { perMinute: 30, perHour: 200 }
         });
+        break; // One match per vendor is enough
       }
     }
   }
   
-  // Additional keyword matching for common patterns
-  const keywordPatterns = {
-    adobe: /\b(psd|ai file|indd|prproj|aep|lightroom catalog)\b/i,
-    microsoft: /\b(\.docx?|\.xlsx?|\.pptx?|ntfs|registry|dll|exe|msi)\b/i,
-    apple: /\b(\.app|cocoa|nswindow|uikit|swift error|xcode)\b/i,
-    google: /\b(firebase|gcp|bigquery|dataflow|pubsub)\b/i,
-    gaming: /\b(steam api|epic games|origin|battlenet|directx|vulkan)\b/i,
-    database: /\b(sqlstate|pg_|mysql_|mongodb|redis|elasticsearch)\b/i
+  // Additional context-based detection for common error patterns
+  const contextPatterns = {
+    // Banking & Finance patterns
+    banking: /\b(transaction|declined|insufficient|overdraft|routing number|account number|wire|ach|direct deposit|atm pin|card blocked|bank error|transfer failed|statement)\b/i,
+    paypal: /\b(paypal|venmo|payment failed|checkout error|paypal hold|venmo declined)\b/i,
+    cryptocurrency: /\b(wallet|blockchain|crypto|bitcoin|ethereum|coinbase|binance|transfer pending|gas fee)\b/i,
+    
+    // Vehicle & Automotive patterns
+    automotive: /\b(engine light|check engine|transmission|brake warning|oil pressure|airbag light|abs light|coolant|overheating|won't start|battery dead|alternator|starter|car trouble|vehicle issue|mechanic)\b/i,
+    motorcycle: /\b(motorcycle|harley|motorbike|bike won't start|carburetor|clutch|exhaust)\b/i,
+    
+    // Home Appliance patterns
+    appliances: /\b(not draining|not spinning|not heating|not cooling|error code|beeping|leaking|won't turn on|making noise|washer error|dryer error)\b/i,
+    hvac: /\b(thermostat|furnace|ac unit|compressor|refrigerant|filter|ductwork|heating system|cooling system|air conditioner|heat pump)\b/i,
+    refrigeration: /\b(fridge|refrigerator|freezer|ice maker|not cold|defrost|compressor running)\b/i,
+    kitchen: /\b(oven|stove|microwave|dishwasher|coffee maker|keurig|instant pot|air fryer|blender)\b/i,
+    
+    // Electronics patterns
+    smartphone: /\b(screen frozen|app crash|battery drain|won't charge|touch screen|face id|fingerprint|sim card|no signal|phone error|iphone|android|galaxy)\b/i,
+    tv: /\b(no picture|no sound|black screen|flickering|hdmi|remote not working|smart tv|roku|fire stick|chromecast)\b/i,
+    printer: /\b(paper jam|print queue|offline|ink|toner|spooler|printer error|won't print|hp printer|epson|canon printer)\b/i,
+    laptop: /\b(laptop|notebook|won't boot|overheating laptop|battery not charging|keyboard not working|touchpad|screen flicker)\b/i,
+    audio: /\b(headphones|earbuds|bluetooth speaker|no audio|sound not working|airpods|speaker crackling)\b/i,
+    camera: /\b(camera error|lens error|sd card|memory card|photo corrupt|gopro|dslr)\b/i,
+    
+    // Internet & Network patterns
+    internet: /\b(no internet|wifi not working|slow connection|buffering|router|modem|dns|ip address|connection timeout|network error)\b/i,
+    isp: /\b(comcast|xfinity|spectrum|att|verizon|t-mobile|internet outage|service down)\b/i,
+    
+    // Social Media patterns
+    social_media: /\b(account locked|can't login|suspended|hacked|two factor|verification code|password reset|account recovery)\b/i,
+    facebook: /\b(facebook|fb|messenger|facebook marketplace|facebook login)\b/i,
+    instagram: /\b(instagram|ig|instagram story|reels|instagram error)\b/i,
+    
+    // Streaming & Entertainment patterns
+    streaming: /\b(buffering|playback error|stream quality|audio sync|subtitle|content unavailable|won't play)\b/i,
+    spotify: /\b(spotify|playlist|spotify connect|spotify error|songs won't play)\b/i,
+    
+    // Home Repair patterns
+    home_repair: /\b(plumbing|electrical|drywall|paint|flooring|roof|gutter|door|window|lock|leak|clog)\b/i,
+    plumbing: /\b(toilet|faucet|pipe|drain|clog|leak|water heater|no hot water|low pressure|sewer|garbage disposal)\b/i,
+    electrical: /\b(circuit breaker|outlet|switch|wiring|fuse|gfci|light fixture|dimmer|tripped|power out)\b/i,
+    
+    // Lawn & Outdoor patterns
+    lawn_garden: /\b(lawn mower|grass|weed|sprinkler|irrigation|chainsaw|leaf blower|won't start)\b/i,
+    pool_spa: /\b(pool pump|pool filter|hot tub|spa|chlorine|pool heater|pool cleaner)\b/i,
+    
+    // Office & Work patterns
+    office_equipment: /\b(monitor|keyboard|mouse|webcam|headset|dock|usb hub|desk setup)\b/i,
+    video_conferencing: /\b(zoom|teams|webex|google meet|video call|screen share|mic not working|camera not working)\b/i,
+    
+    // Medical & Health patterns
+    medical_devices: /\b(blood pressure|glucose meter|cpap|hearing aid|pulse oximeter|insulin pump|cgm)\b/i,
+    fitness: /\b(fitbit|apple watch|garmin|fitness tracker|step counter|heart rate|sleep tracker)\b/i,
+    
+    // Shopping & Delivery patterns
+    amazon: /\b(amazon|prime|amazon order|amazon return|shipping|tracking)\b/i,
+    food_delivery: /\b(doordash|uber eats|grubhub|postmates|instacart|order wrong|delivery late|missing item)\b/i,
+    
+    // Travel patterns
+    travel: /\b(flight|airline|booking|reservation|hotel|airbnb|travel|rental car)\b/i,
+    uber: /\b(uber|lyft|ride share|driver|uber eats|uber app)\b/i,
+    
+    // Baby & Kids patterns
+    baby_products: /\b(baby monitor|car seat|stroller|breast pump|crib|baby gate)\b/i,
+    
+    // Security patterns
+    home_security: /\b(ring doorbell|nest cam|arlo|security camera|motion sensor|alarm|smart lock|smoke detector)\b/i,
+    
+    // Smart Home patterns
+    smarthome: /\b(alexa|google home|smart plug|smart light|smart lock|ring|hue|zigbee)\b/i,
+    
+    // Gaming (consumer) patterns
+    gaming: /\b(game crash|lag|fps drop|controller|won't load|multiplayer|online|co-op)\b/i,
+    playstation: /\b(playstation|ps5|ps4|psn|dualshock|dualsense)\b/i,
+    xbox: /\b(xbox|xbox series|xbox one|xbox live|game pass)\b/i,
+    nintendo: /\b(nintendo|switch|joy-con|eshop)\b/i,
+    
+    // Financial patterns
+    insurance: /\b(insurance|claim|deductible|premium|coverage|geico|state farm|progressive|denied claim)\b/i,
+    taxes: /\b(turbotax|tax return|irs|refund|w2|1099|h&r block|quickbooks)\b/i,
+    real_estate: /\b(mortgage|zillow|redfin|realtor|closing|escrow|appraisal|hoa)\b/i,
+    
+    // Education patterns
+    education: /\b(canvas|blackboard|moodle|zoom class|google classroom|turnitin|student portal|fafsa)\b/i,
+    
+    // General tech patterns
+    windows: /\b(windows|blue screen|bsod|windows update|start menu|taskbar|microsoft store)\b/i,
+    macos: /\b(mac|macos|finder|time machine|spotlight|dock|macbook)\b/i,
+    office: /\b(excel|word|powerpoint|outlook|office 365|microsoft 365|onedrive|teams)\b/i,
+    general_tech: /\b(crashed|frozen|not responding|update failed|install error|driver|reboot loop|slow computer|virus|malware)\b/i
   };
   
-  for (const [vendor, pattern] of Object.entries(keywordPatterns)) {
-    if (pattern.test(combined) && !detectedProducts.some(p => p.vendor === vendor)) {
+  for (const [vendor, pattern] of Object.entries(contextPatterns)) {
+    if (pattern.test(combined) && !matchedVendors.has(vendor)) {
       const config = FORUM_SOURCES[vendor];
       if (config) {
+        matchedVendors.add(vendor);
         detectedProducts.push({
           vendor,
           product: 'auto-detected',
@@ -546,44 +1070,93 @@ function detectProductFromError(errorMessage, additionalContext = {}) {
     }
   }
   
+  // If no specific product detected, try general categories based on category hint
+  if (detectedProducts.length === 0 && additionalContext.category) {
+    const categoryMappings = {
+      'payment': ['banking', 'paypal', 'cryptocurrency'],
+      'website': ['browsers', 'internet'],
+      'gaming': ['gaming', 'playstation', 'xbox', 'nintendo'],
+      'mobile': ['smartphone', 'apple'],
+      'software': ['windows', 'office', 'adobe_consumer'],
+      'network': ['internet', 'isp'],
+      'database': ['general_tech'],
+      'authentication': ['social_media', 'banking'],
+      'api': ['general_tech'],
+      'appliances': ['appliances', 'hvac', 'refrigeration', 'kitchen'],
+      'automotive': ['automotive', 'toyota', 'honda', 'ford'],
+      'home': ['home_repair', 'plumbing', 'electrical', 'home_security'],
+      'health': ['medical_devices', 'fitness', 'pharmacy'],
+      'finance': ['banking', 'insurance', 'taxes', 'real_estate'],
+      'general': ['general_tech']
+    };
+    
+    const vendorsToCheck = categoryMappings[additionalContext.category] || ['general_tech'];
+    for (const vendor of vendorsToCheck) {
+      const config = FORUM_SOURCES[vendor];
+      if (config && !matchedVendors.has(vendor)) {
+        detectedProducts.push({
+          vendor,
+          product: 'category-based',
+          forums: config.forums,
+          rateLimit: config.rateLimit || { perMinute: 30, perHour: 200 }
+        });
+      }
+    }
+  }
+  
+  // Always include general tech as fallback
+  if (detectedProducts.length === 0) {
+    const generalConfig = FORUM_SOURCES.general_tech;
+    if (generalConfig) {
+      detectedProducts.push({
+        vendor: 'general_tech',
+        product: 'fallback',
+        forums: generalConfig.forums,
+        rateLimit: generalConfig.rateLimit
+      });
+    }
+  }
+  
+  console.log(`🔎 Detected ${detectedProducts.length} product categories: ${detectedProducts.map(p => p.vendor).join(', ')}`);
+  
   return detectedProducts;
 }
 
 /**
  * Search product-specific forums
+ * Handles Reddit, StackExchange, manufacturer forums, and community sites
  */
 async function searchProductForums(errorMessage, productInfo) {
   const results = [];
   
   for (const forum of productInfo.forums) {
     // Check rate limit
-    if (!forumRateLimiter.checkLimit(forum)) {
-      console.log(`⏳ Rate limited for forum: ${forum}`);
+    if (!forumRateLimiter.canMakeRequest()) {
+      console.log(`⏳ Rate limited, skipping forum: ${forum}`);
       continue;
     }
     
     try {
       const searchTerms = extractSearchTerms(errorMessage);
-      const searchQuery = encodeURIComponent(`site:${forum} ${searchTerms}`);
-      
-      // Use a search API or direct forum API based on the forum
       let forumResults = [];
       
-      // Special handling for specific forums
-      if (forum.includes('stackoverflow.com')) {
-        forumResults = await searchStackOverflow(errorMessage);
+      // Route to appropriate search handler based on forum type
+      if (forum.includes('reddit.com')) {
+        forumResults = await searchReddit(searchTerms, forum);
+      } else if (forum.includes('stackoverflow.com') || forum.includes('stackexchange.com') || forum.includes('superuser.com')) {
+        forumResults = await searchStackExchange(searchTerms, forum);
       } else if (forum.includes('github.com')) {
         forumResults = await searchGitHubIssues(errorMessage, productInfo.product);
-      } else if (forum.includes('community.adobe.com')) {
-        forumResults = await searchAdobeCommunity(errorMessage, productInfo.product);
-      } else if (forum.includes('answers.microsoft.com')) {
-        forumResults = await searchMicrosoftAnswers(errorMessage, productInfo.product);
-      } else if (forum.includes('discussions.apple.com')) {
-        forumResults = await searchAppleDiscussions(errorMessage, productInfo.product);
+      } else if (forum.includes('community.') || forum.includes('forums.') || forum.includes('support.')) {
+        forumResults = await searchCommunityForum(searchTerms, forum, productInfo.vendor);
+      } else if (forum.includes('ifixit.com')) {
+        forumResults = await searchIFixit(searchTerms);
       } else {
-        // Generic forum search via Google Custom Search or fallback
+        // Generic search link for other forums
         forumResults = await searchGenericForum(forum, searchTerms);
       }
+      
+      forumRateLimiter.recordRequest();
       
       if (forumResults.length > 0) {
         results.push({
@@ -595,12 +1168,152 @@ async function searchProductForums(errorMessage, productInfo) {
         });
       }
       
+      // Small delay between forum searches
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
     } catch (error) {
       console.warn(`Forum search failed for ${forum}:`, error.message);
     }
   }
   
   return results;
+}
+
+/**
+ * Search Reddit for solutions
+ */
+async function searchReddit(searchTerms, subredditUrl) {
+  try {
+    // Extract subreddit from URL
+    const subredditMatch = subredditUrl.match(/reddit\.com\/r\/(\w+)/);
+    const subreddit = subredditMatch ? subredditMatch[1] : '';
+    
+    // Reddit search via JSON API (no auth needed for public)
+    const query = encodeURIComponent(searchTerms);
+    const url = subreddit 
+      ? `https://www.reddit.com/r/${subreddit}/search.json?q=${query}&restrict_sr=1&limit=5&sort=relevance`
+      : `https://www.reddit.com/search.json?q=${query}&limit=5&sort=relevance`;
+    
+    const response = await axios.get(url, {
+      timeout: 5000,
+      headers: { 'User-Agent': 'ErrorWise/1.0 (Learning Service)' }
+    });
+    
+    if (response.data?.data?.children) {
+      return response.data.data.children.slice(0, 5).map(post => ({
+        title: post.data.title,
+        link: `https://reddit.com${post.data.permalink}`,
+        source: `r/${post.data.subreddit}`,
+        score: post.data.score,
+        comments: post.data.num_comments,
+        isSearchLink: false
+      }));
+    }
+  } catch (error) {
+    console.warn('Reddit search failed:', error.message);
+  }
+  
+  // Fallback to search link
+  return [{
+    title: `Search Reddit for: ${searchTerms.substring(0, 50)}`,
+    link: `https://www.reddit.com/search/?q=${encodeURIComponent(searchTerms)}`,
+    source: 'reddit',
+    isSearchLink: true
+  }];
+}
+
+/**
+ * Search StackExchange network (StackOverflow, SuperUser, etc.)
+ */
+async function searchStackExchange(searchTerms, siteUrl) {
+  try {
+    // Determine which StackExchange site
+    let site = 'stackoverflow';
+    if (siteUrl.includes('superuser')) site = 'superuser';
+    else if (siteUrl.includes('askubuntu')) site = 'askubuntu';
+    else if (siteUrl.includes('serverfault')) site = 'serverfault';
+    else if (siteUrl.includes('dba.stackexchange')) site = 'dba';
+    
+    const query = encodeURIComponent(searchTerms);
+    const response = await axios.get(
+      `https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=relevance&q=${query}&site=${site}&filter=withbody&pagesize=5`,
+      { timeout: 5000 }
+    );
+    
+    if (response.data?.items) {
+      return response.data.items.slice(0, 5).map(item => ({
+        title: item.title,
+        link: item.link,
+        source: site,
+        score: item.score,
+        isAnswered: item.is_answered,
+        answerCount: item.answer_count,
+        isSearchLink: false
+      }));
+    }
+  } catch (error) {
+    console.warn('StackExchange search failed:', error.message);
+  }
+  
+  return [];
+}
+
+/**
+ * Search iFixit for repair guides
+ */
+async function searchIFixit(searchTerms) {
+  try {
+    const query = encodeURIComponent(searchTerms);
+    
+    // iFixit doesn't have a public API, return search link
+    return [{
+      title: `Search iFixit Repair Guides: ${searchTerms.substring(0, 40)}`,
+      link: `https://www.ifixit.com/Search?query=${query}`,
+      source: 'ifixit',
+      isSearchLink: true,
+      description: 'Free repair guides and troubleshooting'
+    }];
+  } catch (error) {
+    console.warn('iFixit search failed:', error.message);
+    return [];
+  }
+}
+
+/**
+ * Search community/manufacturer forums
+ */
+async function searchCommunityForum(searchTerms, forumUrl, vendor) {
+  try {
+    const query = encodeURIComponent(searchTerms);
+    const baseUrl = forumUrl.startsWith('http') ? forumUrl : `https://${forumUrl}`;
+    
+    // Generate search URL based on common forum patterns
+    let searchUrl = '';
+    
+    if (forumUrl.includes('community.samsung')) {
+      searchUrl = `https://us.community.samsung.com/t5/forums/searchpage/tab/message?q=${query}`;
+    } else if (forumUrl.includes('discussions.apple')) {
+      searchUrl = `https://discussions.apple.com/search?q=${query}`;
+    } else if (forumUrl.includes('answers.microsoft')) {
+      searchUrl = `https://answers.microsoft.com/en-us/search/search?SearchTerm=${query}`;
+    } else if (forumUrl.includes('community.adobe')) {
+      searchUrl = `https://community.adobe.com/t5/forums/searchpage/tab/message?q=${query}`;
+    } else {
+      // Try common search URL patterns
+      searchUrl = `https://www.google.com/search?q=site:${forumUrl}+${query}`;
+    }
+    
+    return [{
+      title: `Search ${vendor} Community: ${searchTerms.substring(0, 40)}`,
+      link: searchUrl,
+      source: forumUrl,
+      vendor: vendor,
+      isSearchLink: true
+    }];
+  } catch (error) {
+    console.warn('Community forum search failed:', error.message);
+    return [];
+  }
 }
 
 /**
