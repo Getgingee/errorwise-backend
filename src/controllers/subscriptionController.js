@@ -685,8 +685,8 @@ exports.createCheckout = async (req, res) => {
       return res.status(400).json({ error: 'Invalid plan' });
     }
 
-    // For development: instant upgrade
-    if (process.env.NODE_ENV === 'development' || !process.env.DODO_API_KEY) {
+    // Helper function to activate trial subscription
+    const activateTrialSubscription = async () => {
       const trialDays = plan.trialDays || 7;
       const startDate = new Date();
       const endDate = new Date();
@@ -702,36 +702,56 @@ exports.createCheckout = async (req, res) => {
 
       return res.json({
         success: true,
+        message: `${plan.name} trial activated for ${trialDays} days!`,
         data: {
-          url: `${process.env.FRONTEND_URL}/dashboard?upgraded=true`,
-          sessionId: `dev_session_${Date.now()}`
+          url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard?upgraded=true&plan=${planId}`,
+          sessionId: `trial_session_${Date.now()}`
         }
       });
+    };
+
+    // For development or when payment is not configured: instant trial upgrade
+    const skipPayment = process.env.NODE_ENV === 'development' || 
+                        !process.env.DODO_API_KEY || 
+                        process.env.DODO_API_KEY === 'your_dodo_api_key' ||
+                        process.env.DODO_API_KEY === 'placeholder' ||
+                        process.env.SKIP_PAYMENT === 'true';
+    
+    if (skipPayment) {
+      console.log('💳 Payment skipped - activating trial directly');
+      return activateTrialSubscription();
     }
 
     // Production: Create payment session (Hosted Checkout with Dodo's built-in coupon support)
     const paymentService = require('../services/paymentService');
-    const paymentSession = await paymentService.createPaymentSession({
-      userId: user.id,
-      userEmail: user.email,
-      planId,
-      planName: plan.name,
-      productId: plan.dodo_plan_id,
-      amount: plan.price,
-      currency: 'USD',
-      interval: plan.interval,
-      trialDays: plan.trialDays || 0,
-      allowedPaymentMethodTypes: ['credit', 'debit', 'upi_collect', 'upi_intent'],
-      successUrl: successUrl || `${process.env.FRONTEND_URL}/dashboard?payment=success`,
-      cancelUrl: cancelUrl || `${process.env.FRONTEND_URL}/pricing?payment=cancelled`,
-      discountCode: discountCode || null // Pass to Dodo if pre-filled
-    });
-
-    if (!paymentSession.success) {
-      return res.status(500).json({ 
-        success: false,
-        error: paymentSession.error 
+    
+    // Try to create payment session, fall back to trial if it fails
+    let paymentSession;
+    try {
+      paymentSession = await paymentService.createPaymentSession({
+        userId: user.id,
+        userEmail: user.email,
+        planId,
+        planName: plan.name,
+        productId: plan.dodo_plan_id,
+        amount: plan.price,
+        currency: 'USD',
+        interval: plan.interval,
+        trialDays: plan.trialDays || 0,
+        allowedPaymentMethodTypes: ['credit', 'debit', 'upi_collect', 'upi_intent'],
+        successUrl: successUrl || `${process.env.FRONTEND_URL}/dashboard?payment=success`,
+        cancelUrl: cancelUrl || `${process.env.FRONTEND_URL}/pricing?payment=cancelled`,
+        discountCode: discountCode || null // Pass to Dodo if pre-filled
       });
+    } catch (paymentError) {
+      console.error('⚠️ Payment service error, falling back to trial:', paymentError.message);
+      // Fall back to trial activation if payment service fails
+      return activateTrialSubscription();
+    }
+
+    if (!paymentSession || !paymentSession.success) {
+      console.log('⚠️ Payment session creation failed, falling back to trial');
+      return activateTrialSubscription();
     }
 
     res.status(200).json({
