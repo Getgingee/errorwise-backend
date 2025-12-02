@@ -56,8 +56,19 @@ const sanitizeInput = (req, res, next) => {
 
 /**
  * Detect and block spam content
+ * Only applies to POST/PUT/PATCH requests with body content
  */
 const detectSpam = (req, res, next) => {
+  // Skip GET, DELETE, OPTIONS, HEAD requests - they don't have meaningful body content
+  if (['GET', 'DELETE', 'OPTIONS', 'HEAD'].includes(req.method)) {
+    return next();
+  }
+  
+  // Skip if no body or empty body
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return next();
+  }
+  
   const spamPatterns = [
     /\b(viagra|cialis|casino|lottery|winner|prize)\b/gi,
     /\b(click here|buy now|limited time|act now)\b/gi,
@@ -67,6 +78,7 @@ const detectSpam = (req, res, next) => {
 
   const checkSpam = (text) => {
     if (typeof text !== 'string') return false;
+    if (text.length < 20) return false; // Skip very short content
     
     for (const pattern of spamPatterns) {
       if (pattern.test(text)) return true;
@@ -76,16 +88,21 @@ const detectSpam = (req, res, next) => {
     const urlCount = (text.match(/https?:\/\//g) || []).length;
     if (urlCount > 5) return true;
     
-    // Check special char ratio
-    const specialChars = (text.match(/[^a-zA-Z0-9\s]/g) || []).length;
-    if (specialChars > text.length * 0.4) return true;
+    // Check special char ratio - only for longer content
+    if (text.length > 50) {
+      const specialChars = (text.match(/[^a-zA-Z0-9\s.,!?'":\-()]/g) || []).length;
+      if (specialChars > text.length * 0.4) return true;
+    }
     
     return false;
   };
 
-  const content = JSON.stringify(req.body);
+  // Check actual string values in body, not the JSON structure
+  const bodyValues = Object.values(req.body)
+    .filter(v => typeof v === 'string')
+    .join(' ');
   
-  if (checkSpam(content)) {
+  if (checkSpam(bodyValues)) {
     logger.warn('⚠️ Spam detected:', { ip: req.ip, path: req.path });
     return res.status(400).json({ success: false, message: 'Spam content detected' });
   }
