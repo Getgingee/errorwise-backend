@@ -419,71 +419,83 @@ async function getReferralDashboard(req, res) {
     }
     
     const referralCode = generateReferralCode(user.username, userId);
+    const frontendUrl = process.env.FRONTEND_URL || 'https://errorwise.tech';
     
-    // Get referral stats
-    const [clicks, signups, rewardsEarned, proRewards] = await Promise.all([
-      Event.count({
-        where: {
-          user_id: userId,
-          event_name: REFERRAL_EVENTS.REFERRAL_LINK_CLICKED
-        }
-      }),
-      Event.count({
+    // Get referral stats - with fallback to 0 if Event table fails
+    let clicks = 0, signups = 0, rewardsEarned = 0, proRewards = 0;
+    let recentReferrals = [];
+    
+    try {
+      [clicks, signups, rewardsEarned, proRewards] = await Promise.all([
+        Event.count({
+          where: {
+            user_id: userId,
+            event_name: REFERRAL_EVENTS.REFERRAL_LINK_CLICKED
+          }
+        }),
+        Event.count({
+          where: {
+            user_id: userId,
+            event_name: REFERRAL_EVENTS.REFERRAL_SIGNUP
+          }
+        }),
+        Event.count({
+          where: {
+            user_id: userId,
+            event_name: REFERRAL_EVENTS.REFERRAL_REWARD_EARNED
+          }
+        }),
+        Event.count({
+          where: {
+            user_id: userId,
+            event_name: REFERRAL_EVENTS.REFERRAL_PRO_REWARD
+          }
+        })
+      ]);
+      
+      // Get recent referrals
+      recentReferrals = await Event.findAll({
         where: {
           user_id: userId,
           event_name: REFERRAL_EVENTS.REFERRAL_SIGNUP
-        }
-      }),
-      Event.count({
-        where: {
-          user_id: userId,
-          event_name: REFERRAL_EVENTS.REFERRAL_REWARD_EARNED
-        }
-      }),
-      Event.count({
-        where: {
-          user_id: userId,
-          event_name: REFERRAL_EVENTS.REFERRAL_PRO_REWARD
-        }
-      })
-    ]);
-    
-    // Get recent referrals
-    const recentReferrals = await Event.findAll({
-      where: {
-        user_id: userId,
-        event_name: REFERRAL_EVENTS.REFERRAL_SIGNUP
-      },
-      order: [['timestamp', 'DESC']],
-      limit: 10,
-      attributes: ['properties', 'timestamp'],
-      raw: true
-    });
+        },
+        order: [['timestamp', 'DESC']],
+        limit: 10,
+        attributes: ['properties', 'timestamp'],
+        raw: true
+      });
+    } catch (eventError) {
+      console.warn('Event table query failed, using defaults:', eventError.message);
+      // Continue with default values
+    }
     
     // Pending rewards (signed up but not yet active)
     const pending = signups - rewardsEarned;
     
+    // Format referrals for frontend (matches ReferralStats interface)
+    const formattedReferrals = recentReferrals.map(r => ({
+      email: r.properties?.refereeEmail ? 
+        r.properties.refereeEmail.replace(/(.{2}).*(@.*)/, '$1***$2') : 
+        '***@***.com',
+      status: r.properties?.rewarded ? 'completed' : 'pending',
+      reward: `+${REFERRAL_CONFIG.FREE_QUERIES_BONUS} queries`,
+      date: r.timestamp
+    }));
+    
+    // Response format matching frontend ReferralStats interface
     res.json({
-      success: true,
       referralCode,
-      referralLink: `https://errorwise.tech/refer/${referralCode}`,
-      stats: {
-        totalClicks: clicks,
-        totalSignups: signups,
-        rewardsEarned,
-        proRewardsEarned: proRewards,
-        pendingRewards: pending > 0 ? pending : 0,
-        totalQueriesEarned: rewardsEarned * REFERRAL_CONFIG.FREE_QUERIES_BONUS,
-        totalProMonthsEarned: proRewards * REFERRAL_CONFIG.PRO_MONTHS_BONUS
-      },
-      conversionRate: clicks > 0 ? ((signups / clicks) * 100).toFixed(1) + '%' : '0%',
-      recentReferrals: recentReferrals.map(r => ({
-        maskedEmail: r.properties?.refereeEmail || '***@***',
-        timestamp: r.timestamp
-      })),
+      referralLink: `${frontendUrl}/refer/${referralCode}`,
+      totalReferred: signups,
+      successfulReferrals: rewardsEarned,
+      pendingReferrals: pending > 0 ? pending : 0,
+      totalQueriesEarned: rewardsEarned * REFERRAL_CONFIG.FREE_QUERIES_BONUS,
+      proMonthsEarned: proRewards * REFERRAL_CONFIG.PRO_MONTHS_BONUS,
+      referrals: formattedReferrals,
       rewards: {
-        perSignup: `+${REFERRAL_CONFIG.FREE_QUERIES_BONUS} queries`,
-        perPaidUpgrade: `+${REFERRAL_CONFIG.PRO_MONTHS_BONUS} month Pro`
+        perFreeReferral: REFERRAL_CONFIG.FREE_QUERIES_BONUS,
+        perPaidReferral: `+${REFERRAL_CONFIG.PRO_MONTHS_BONUS} month Pro`,
+        maxMonthlyReferrals: 50
       }
     });
     
