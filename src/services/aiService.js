@@ -1815,61 +1815,82 @@ async function callAnthropic(prompt, systemMessage, model, maxTokens, detectedLa
   
   console.log(`✅ Anthropic response received (${content.length} chars)`);
   
-  // Parse JSON response (handle markdown wrapping)
-  let cleanText = content
-    .replace(/```json\n?/g, '')
-    .replace(/```\n?/g, '')
-    .trim();
+  // Try TOON format first (Token Object-Oriented Notation for cost savings)
+  let parsed = null;
   
-  let parsed;
-  try {
-    parsed = JSON.parse(cleanText);
-  } catch (parseError) {
-    console.error('❌ Failed to parse Anthropic JSON response:', parseError.message);
-    console.error('❌ Raw response (first 500 chars):', cleanText.substring(0, 500));
-    console.error('❌ Raw response (last 200 chars):', cleanText.substring(cleanText.length - 200));
-    
-    // Try multiple extraction strategies
-    let jsonMatch = null;
-    
-    // Strategy 1: Find JSON object
-    jsonMatch = cleanText.match(/\{[\s\S]*\}/);
-    
-    // Strategy 2: Try to find JSON after markdown code block
-    if (!jsonMatch) {
-      const afterCodeBlock = cleanText.split('```json')[1] || cleanText.split('```')[1];
-      if (afterCodeBlock) {
-        jsonMatch = afterCodeBlock.match(/\{[\s\S]*\}/);
+  // Check if response is in TOON format
+  if (content.includes('EXPLANATION::') || content.includes('SOLUTION::') || content.includes('METADATA::')) {
+    console.log('📝 Parsing TOON format response...');
+    try {
+      parsed = parseToonResponse(content, detectedLanguage, detectedErrorType);
+      if (parsed && parsed.explanation) {
+        console.log('✅ TOON format parsed successfully');
+      } else {
+        parsed = null; // Reset if parsing failed
       }
+    } catch (toonError) {
+      console.warn('⚠️ TOON parsing failed, trying JSON:', toonError.message);
+      parsed = null;
     }
-    
-    // Strategy 3: Find first { and last }
-    if (!jsonMatch) {
-      const firstBrace = cleanText.indexOf('{');
-      const lastBrace = cleanText.lastIndexOf('}');
-      if (firstBrace !== -1 && lastBrace > firstBrace) {
-        const extracted = cleanText.substring(firstBrace, lastBrace + 1);
-        try {
-          parsed = JSON.parse(extracted);
-          console.log('✅ JSON extracted using brace-finding strategy');
-        } catch (e) {
-          console.error('❌ Brace-finding strategy also failed');
+  }
+  
+  // Fallback to JSON parsing if TOON failed or response is JSON
+  if (!parsed) {
+    // Parse JSON response (handle markdown wrapping)
+    let cleanText = content
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim();
+  
+    try {
+      parsed = JSON.parse(cleanText);
+    } catch (parseError) {
+      console.error('❌ Failed to parse Anthropic JSON response:', parseError.message);
+      console.error('❌ Raw response (first 500 chars):', cleanText.substring(0, 500));
+      console.error('❌ Raw response (last 200 chars):', cleanText.substring(cleanText.length - 200));
+      
+      // Try multiple extraction strategies
+      let jsonMatch = null;
+      
+      // Strategy 1: Find JSON object
+      jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+      
+      // Strategy 2: Try to find JSON after markdown code block
+      if (!jsonMatch) {
+        const afterCodeBlock = cleanText.split('```json')[1] || cleanText.split('```')[1];
+        if (afterCodeBlock) {
+          jsonMatch = afterCodeBlock.match(/\{[\s\S]*\}/);
         }
       }
-    }
-    
-    if (jsonMatch && !parsed) {
-      try {
-        parsed = JSON.parse(jsonMatch[0]);
-        console.log('✅ JSON extracted using regex strategy');
-      } catch (e) {
-        console.error('❌ Regex extraction failed:', e.message);
-        throw new Error('Invalid JSON response from Anthropic');
+      
+      // Strategy 3: Find first { and last }
+      if (!jsonMatch) {
+        const firstBrace = cleanText.indexOf('{');
+        const lastBrace = cleanText.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace > firstBrace) {
+          const extracted = cleanText.substring(firstBrace, lastBrace + 1);
+          try {
+            parsed = JSON.parse(extracted);
+            console.log('✅ JSON extracted using brace-finding strategy');
+          } catch (e) {
+            console.error('❌ Brace-finding strategy also failed');
+          }
+        }
       }
-    }
-    
-    if (!parsed) {
-      throw new Error('Invalid JSON response from Anthropic - no valid JSON found');
+      
+      if (jsonMatch && !parsed) {
+        try {
+          parsed = JSON.parse(jsonMatch[0]);
+          console.log('✅ JSON extracted using regex strategy');
+        } catch (e) {
+          console.error('❌ Regex extraction failed:', e.message);
+          throw new Error('Invalid JSON response from Anthropic');
+        }
+      }
+      
+      if (!parsed) {
+        throw new Error('Invalid JSON response from Anthropic - no valid JSON found');
+      }
     }
   }
   
@@ -2237,7 +2258,12 @@ async function analyzeError({
       urlContext
     };
     
-    const prompt = createPrompt(sanitizedMessage, detectedLanguage, detectedErrorType, validTier, codeContext);
+    // TOON FORMAT ENABLED - Saves ~30-40% tokens on AI calls
+    // Uses Token Object-Oriented Notation for cost efficiency
+    const useToonFormat = true; // Enable TOON for all tiers
+    const prompt = createPrompt(sanitizedMessage, detectedLanguage, detectedErrorType, validTier, codeContext, useToonFormat);
+    
+    console.log(`📝 Using ${useToonFormat ? 'TOON' : 'JSON'} format for AI request (tier: ${validTier})`);
 
     // Enhanced system message with natural, clear English and Indian cultural context
     const systemMessage = `You are an expert AI assistant who helps developers and learners understand and solve programming issues. You also have deep knowledge of Indian languages, culture, cuisine, and global updates relevant to India.
