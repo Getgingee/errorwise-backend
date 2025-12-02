@@ -364,14 +364,14 @@ try {
 const TIER_CONFIG = {
   free: {
     primary: { 
-      provider: 'anthropic',  // FREE tier uses Claude 3.5 Haiku
-      model: 'claude-3-5-haiku-20241022',  // Confirmed working model ID
+      provider: 'gemini',  // FREE tier uses Google Gemini (100% FREE)
+      model: 'gemini-2.0-flash-exp',  // Latest Gemini Flash model
       maxTokens: 1000,
       temperature: 0.5,
     },
     fallback: { 
-      provider: 'anthropic',
-      model: 'claude-3-haiku-20240307',  // Older Haiku as fallback
+      provider: 'gemini',
+      model: 'gemini-1.5-flash',  // Stable Gemini Flash as fallback
       maxTokens: 1000,
       temperature: 0.5,
     },
@@ -389,8 +389,8 @@ const TIER_CONFIG = {
       temperature: 0.4,
     },
     fallback: { 
-      provider: 'anthropic',
-      model: 'claude-3-haiku-20240307',  // Fallback to older Haiku
+      provider: 'gemini',  // Fallback to Gemini if Claude fails
+      model: 'gemini-2.0-flash-exp',
       maxTokens: 2000,
       temperature: 0.4,
     },
