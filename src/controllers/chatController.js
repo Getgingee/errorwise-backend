@@ -126,8 +126,11 @@ exports.startConversation = async (req, res) => {
     // Create conversation ID
     const conversationId = uuidv4();
     
-    // Check if conversational mode is enabled
-    const isConversational = hasFeature(effectiveTier, 'conversationalMode');
+    // Check if follow-ups are enabled for this tier
+    const canFollowUp = hasFeature(effectiveTier, 'followUpQuestions');
+    const maxFollowUps = getLimit(effectiveTier, 'maxFollowUps');
+    
+    console.log(`[Chat] User ${userId} tier: ${effectiveTier}, canFollowUp: ${canFollowUp}, maxFollowUps: ${maxFollowUps}`);
     
     // Get AI analysis
     const startTime = Date.now();
@@ -138,7 +141,7 @@ exports.startConversation = async (req, res) => {
       additionalContext,
       userId,
       subscriptionTier: effectiveTier,
-      conversationMode: isConversational
+      conversationMode: canFollowUp
     });
     const responseTime = Date.now() - startTime;
     
@@ -153,12 +156,12 @@ exports.startConversation = async (req, res) => {
       aiModel: analysis.model,
       responseTime,
       userSubscriptionTier: effectiveTier,
-      isConversation: isConversational,
+      isConversation: canFollowUp,
       conversationTurn: 1
     });
     
-    // Initialize conversation context
-    if (isConversational) {
+    // Initialize conversation context for follow-ups
+    if (canFollowUp) {
       saveContext(conversationId, [
         { role: 'user', content: errorMessage },
         { role: 'assistant', content: analysis.response }
@@ -170,6 +173,12 @@ exports.startConversation = async (req, res) => {
       });
     }
     
+    // Generate suggested follow-up questions
+    const suggestedQuestions = generateConversationalChips(
+      [{ role: 'user', content: errorMessage }],
+      analysis.response
+    );
+    
     res.json({
       success: true,
       conversationId,
@@ -179,10 +188,12 @@ exports.startConversation = async (req, res) => {
         cached: analysis.cached || false
       },
       conversation: {
-        isConversational,
-        canFollowUp: isConversational,
-        maxFollowUps: isConversational ? getLimit(effectiveTier, 'maxFollowUps') : 0,
-        followUpsUsed: 0
+        id: conversationId,
+        canFollowUp,
+        maxFollowUps,
+        followUpsRemaining: maxFollowUps,
+        followUpsUsed: 0,
+        suggestedQuestions
       },
       meta: {
         responseTime,
@@ -209,6 +220,8 @@ exports.sendFollowUp = async (req, res) => {
     const userId = req.user.id;
     const effectiveTier = req.userTier || 'free';
     
+    console.log(`[Chat Follow-up] User ${userId}, Tier: ${effectiveTier}, ConvId: ${conversationId}`);
+    
     if (!conversationId || !message) {
       return res.status(400).json({
         success: false,
@@ -216,11 +229,14 @@ exports.sendFollowUp = async (req, res) => {
       });
     }
     
-    // Check feature access (middleware should have done this, but double-check)
-    if (!hasFeature(effectiveTier, 'followUpQuestions')) {
+    // Check feature access
+    const canFollowUp = hasFeature(effectiveTier, 'followUpQuestions');
+    console.log(`[Chat Follow-up] canFollowUp: ${canFollowUp}`);
+    
+    if (!canFollowUp) {
       return res.status(403).json({
         success: false,
-        error: 'Follow-up questions require Pro or Team',
+        error: 'Follow-up questions require Pro or Team subscription',
         code: 'FOLLOWUP_BLOCKED'
       });
     }
