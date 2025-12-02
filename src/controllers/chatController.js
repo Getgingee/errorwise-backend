@@ -17,10 +17,14 @@ const User = require('../models/User');
 const aiService = require('../services/aiService');
 const { hasFeature, getLimit } = require('../config/tierConfig');
 const { Op } = require('sequelize');
+const sequelize = require('../config/database');
 
 // In-memory conversation context (could be Redis for production scale)
 const conversationContexts = new Map();
 const CONTEXT_TTL = 30 * 60 * 1000; // 30 minutes
+
+// Track follow-up counts per conversation (since we don't have parentId in DB)
+const followUpCounts = new Map();
 
 /**
  * Generate engaging, conversational follow-up chips based on AI response
@@ -261,11 +265,16 @@ exports.sendFollowUp = async (req, res) => {
     
     // If no context in memory, try to rebuild from database
     if (!context) {
+      console.log(`[Chat Follow-up] No context in memory, checking database for: ${conversationId}`);
+      
       const previousMessages = await ErrorQuery.findAll({
         where: {
           [Op.or]: [
             { id: conversationId },
-            { parentId: conversationId }
+            sequelize.where(
+              sequelize.cast(sequelize.col('id'), 'text'),
+              conversationId
+            )
           ],
           userId
         },
@@ -273,34 +282,41 @@ exports.sendFollowUp = async (req, res) => {
         limit: 20
       });
       
+      console.log(`[Chat Follow-up] Found ${previousMessages.length} messages in database`);
+      
       if (previousMessages.length === 0) {
         return res.status(404).json({
           success: false,
-          error: 'Conversation not found'
+          error: 'Conversation not found. Please start a new query.',
+          code: 'CONVERSATION_NOT_FOUND'
         });
       }
       
-      // Rebuild context
+      // Rebuild context from ErrorQuery records
+      // ErrorQuery uses 'explanation' and 'solution' instead of 'aiResponse'
       const messages = [];
       for (const msg of previousMessages) {
         messages.push({ role: 'user', content: msg.errorMessage });
-        if (msg.aiResponse) {
-          messages.push({ role: 'assistant', content: msg.aiResponse });
+        // Combine explanation + solution as the AI response
+        const aiContent = [msg.explanation, msg.solution].filter(Boolean).join('\n\n');
+        if (aiContent) {
+          messages.push({ role: 'assistant', content: aiContent });
         }
       }
       
-      context = { messages, metadata: { tier: effectiveTier, userId } };
+      context = { messages, metadata: { tier: effectiveTier, userId }, lastUpdated: Date.now() };
+      // Save rebuilt context
+      saveContext(conversationId, context.messages, context.metadata);
+      console.log(`[Chat Follow-up] Rebuilt context with ${messages.length} messages`);
     }
     
-    // Check follow-up limit
-    const followUpCount = await ErrorQuery.count({
-      where: {
-        parentId: conversationId,
-        userId
-      }
-    });
+    // Check follow-up limit using in-memory counter (since DB doesn't have parentId)
+    // Count is based on messages in context minus the original question
+    const followUpCount = followUpCounts.get(conversationId) || 0;
     
     const maxFollowUps = getLimit(effectiveTier, 'maxFollowUps');
+    console.log(`[Chat Follow-up] Follow-up count: ${followUpCount}/${maxFollowUps}`);
+    
     if (maxFollowUps !== -1 && followUpCount >= maxFollowUps) {
       return res.status(403).json({
         success: false,
@@ -328,17 +344,20 @@ exports.sendFollowUp = async (req, res) => {
     context.messages.push({ role: 'assistant', content: analysis.response });
     saveContext(conversationId, context.messages, context.metadata);
     
-    // Save follow-up to database
+    // Increment follow-up count
+    followUpCounts.set(conversationId, followUpCount + 1);
+    
+    // Save follow-up to database (use explanation + solution fields since ErrorQuery doesn't have aiResponse)
     const followUp = await ErrorQuery.create({
       userId,
       errorMessage: message.substring(0, 10000),
-      aiResponse: analysis.response,
-      aiModel: analysis.model,
+      explanation: analysis.response,
+      solution: '', // Follow-ups combine into explanation
+      errorCategory: 'follow-up',
+      aiProvider: analysis.model || 'anthropic',
       responseTime,
       userSubscriptionTier: effectiveTier,
-      parentId: conversationId,
-      isConversation: true,
-      conversationTurn: followUpCount + 2
+      tags: ['follow-up', conversationId] // Store conversationId in tags for reference
     });
     
     // Generate contextual follow-up chips
@@ -385,42 +404,59 @@ exports.getConversation = async (req, res) => {
     const { conversationId } = req.params;
     const userId = req.user.id;
     
-    // Get all messages in this conversation
-    const messages = await ErrorQuery.findAll({
+    // Get the original message
+    const originalMessage = await ErrorQuery.findOne({
       where: {
-        [Op.or]: [
-          { id: conversationId },
-          { parentId: conversationId }
-        ],
+        id: conversationId,
         userId
       },
-      order: [['createdAt', 'ASC']],
-      attributes: ['id', 'errorMessage', 'aiResponse', 'aiModel', 'createdAt', 'conversationTurn', 'feedback']
+      attributes: ['id', 'errorMessage', 'explanation', 'solution', 'aiProvider', 'createdAt', 'feedback']
     });
     
-    if (messages.length === 0) {
+    if (!originalMessage) {
       return res.status(404).json({
         success: false,
         error: 'Conversation not found'
       });
     }
     
-    // Format for frontend
-    const conversation = messages.map(msg => ({
-      id: msg.id,
-      userMessage: msg.errorMessage,
-      aiResponse: msg.aiResponse,
-      model: msg.aiModel,
-      turn: msg.conversationTurn,
-      feedback: msg.feedback,
-      timestamp: msg.createdAt
-    }));
+    // Get follow-up messages (stored with conversationId in tags)
+    const followUps = await ErrorQuery.findAll({
+      where: {
+        userId,
+        tags: { [Op.contains]: [conversationId] }
+      },
+      order: [['createdAt', 'ASC']],
+      attributes: ['id', 'errorMessage', 'explanation', 'aiProvider', 'createdAt', 'feedback']
+    });
+    
+    // Format for frontend - combine original + follow-ups
+    const messages = [
+      {
+        id: originalMessage.id,
+        userMessage: originalMessage.errorMessage,
+        aiResponse: [originalMessage.explanation, originalMessage.solution].filter(Boolean).join('\n\n'),
+        model: originalMessage.aiProvider,
+        turn: 1,
+        feedback: originalMessage.feedback,
+        timestamp: originalMessage.createdAt
+      },
+      ...followUps.map((msg, idx) => ({
+        id: msg.id,
+        userMessage: msg.errorMessage,
+        aiResponse: msg.explanation,
+        model: msg.aiProvider,
+        turn: idx + 2,
+        feedback: msg.feedback,
+        timestamp: msg.createdAt
+      }))
+    ];
     
     res.json({
       success: true,
       conversationId,
       messageCount: messages.length,
-      messages: conversation
+      messages
     });
     
   } catch (error) {
