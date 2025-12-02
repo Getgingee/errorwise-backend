@@ -9,11 +9,11 @@
 
 const express = require('express');
 const router = express.Router();
-const { authenticateToken } = require('../middleware/auth');
+const { authMiddleware } = require('../middleware/auth');
 const feedbackController = require('../controllers/feedbackController');
 
-// All routes require authentication
-router.use(authenticateToken);
+// All routes require authentication (use authMiddleware for proper tier info)
+router.use(authMiddleware);
 
 /**
  * POST /api/feedback
