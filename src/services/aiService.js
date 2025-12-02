@@ -27,6 +27,171 @@ const CONFIG = {
   CONCURRENT_REQUESTS_LIMIT: 10,  // Limit concurrent AI requests
 };
 
+// ============================================================================
+// TOON FORMAT - Structured Text for AI Communications
+// (API & DB use JSON, AI requests/responses use TOON)
+// ============================================================================
+
+/**
+ * TOON Format Specification:
+ * - Human-readable structured text for AI model communication
+ * - Uses :: as key-value separator
+ * - Uses >> for nested sections
+ * - Uses | for arrays/lists
+ * - Reduces token usage vs JSON
+ * 
+ * Example:
+ * SECTION::explanation
+ * >>content::This is the explanation text
+ * >>confidence::0.85
+ * SECTION::solution
+ * >>steps|Step 1|Step 2|Step 3
+ */
+
+const TOON = {
+  // Convert object to TOON format for AI request
+  encode: (obj, indent = 0) => {
+    const prefix = '  '.repeat(indent);
+    let result = '';
+    
+    for (const [key, value] of Object.entries(obj)) {
+      if (value === null || value === undefined) continue;
+      
+      if (Array.isArray(value)) {
+        // Arrays use | separator
+        if (value.length > 0 && typeof value[0] === 'object') {
+          result += `${prefix}${key.toUpperCase()}::\n`;
+          value.forEach((item, idx) => {
+            result += `${prefix}  [${idx + 1}]\n`;
+            result += TOON.encode(item, indent + 2);
+          });
+        } else {
+          result += `${prefix}${key}|${value.join('|')}\n`;
+        }
+      } else if (typeof value === 'object') {
+        // Nested objects use >> prefix
+        result += `${prefix}${key.toUpperCase()}::\n`;
+        result += TOON.encode(value, indent + 1);
+      } else {
+        // Simple key::value
+        result += `${prefix}${key}::${value}\n`;
+      }
+    }
+    return result;
+  },
+
+  // Parse TOON format from AI response
+  decode: (toonString) => {
+    const result = {};
+    const lines = toonString.split('\n').filter(l => l.trim());
+    let currentSection = null;
+    let currentArray = null;
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      
+      // Section header (UPPERCASE::)
+      if (/^[A-Z_]+::$/.test(trimmed)) {
+        currentSection = trimmed.replace('::', '').toLowerCase();
+        result[currentSection] = {};
+        continue;
+      }
+      
+      // Array with | separator
+      if (trimmed.includes('|') && !trimmed.includes('::')) {
+        const parts = trimmed.split('|');
+        const key = parts[0];
+        result[key] = parts.slice(1);
+        continue;
+      }
+      
+      // Key::value pair
+      if (trimmed.includes('::')) {
+        const [key, ...valueParts] = trimmed.split('::');
+        const value = valueParts.join('::'); // Handle :: in values
+        const cleanKey = key.replace('>>', '').trim();
+        
+        // Parse value type
+        let parsedValue = value;
+        if (value === 'true') parsedValue = true;
+        else if (value === 'false') parsedValue = false;
+        else if (/^\d+\.\d+$/.test(value)) parsedValue = parseFloat(value);
+        else if (/^\d+$/.test(value)) parsedValue = parseInt(value);
+        
+        if (currentSection) {
+          result[currentSection][cleanKey] = parsedValue;
+        } else {
+          result[cleanKey] = parsedValue;
+        }
+      }
+    }
+    
+    return result;
+  },
+
+  // Create TOON format prompt template
+  createRequestTemplate: (errorData) => {
+    return `
+[REQUEST FORMAT: TOON]
+[RESPONSE FORMAT: TOON]
+
+QUERY::
+>>error::${errorData.errorMessage}
+>>language::${errorData.language || 'auto-detect'}
+>>type::${errorData.errorType || 'auto-detect'}
+>>tier::${errorData.tier}
+${errorData.codeSnippet ? `>>code::\n${errorData.codeSnippet}\n` : ''}
+${errorData.framework ? `>>framework::${errorData.framework}\n` : ''}
+
+RESPOND IN TOON FORMAT:
+EXPLANATION::
+>>content::[detailed explanation here]
+>>rootCause::[root cause]
+
+SOLUTION::
+>>steps|[step1]|[step2]|[step3]
+>>code::[code example if applicable]
+
+METADATA::
+>>category::[error category]
+>>tags|[tag1]|[tag2]|[tag3]
+>>confidence::[0.0-1.0]
+>>severity::[low|medium|high|critical]
+`;
+  },
+
+  // Convert TOON AI response to JSON for API/DB
+  toJSON: (toonResponse) => {
+    try {
+      const parsed = TOON.decode(toonResponse);
+      
+      // Normalize to expected JSON structure
+      return {
+        explanation: parsed.explanation?.content || parsed.explanation || '',
+        solution: Array.isArray(parsed.solution?.steps) 
+          ? parsed.solution.steps.join('\n') 
+          : parsed.solution?.content || parsed.solution || '',
+        codeExample: parsed.solution?.code || parsed.codeExample || '',
+        category: parsed.metadata?.category || parsed.category || 'general',
+        tags: parsed.metadata?.tags || parsed.tags || [],
+        confidence: parsed.metadata?.confidence || parsed.confidence || 0.7,
+        severity: parsed.metadata?.severity || parsed.severity || 'medium',
+        rootCause: parsed.explanation?.rootCause || '',
+        domainKnowledge: parsed.domainKnowledge || '',
+        preventionTips: parsed.preventionTips || [],
+      };
+    } catch (e) {
+      console.warn('⚠️ TOON parse failed, trying JSON fallback');
+      return null;
+    }
+  },
+
+  // Convert JSON to TOON for logging/display
+  fromJSON: (jsonData) => {
+    return TOON.encode(jsonData);
+  }
+};
+
 // A2: Fallback tracking statistics (in-memory, also logged to DB)
 const fallbackStats = {
   totalRequests: 0,
@@ -792,7 +957,12 @@ const mockResponses = {
   }
 };
 
-function createPrompt(errorMessage, language, errorType, subscriptionTier, codeContext = {}) {
+function createPrompt(errorMessage, language, errorType, subscriptionTier, codeContext = {}, useToonFormat = false) {
+  // TOON Format option for more efficient AI communication
+  if (useToonFormat) {
+    return createToonPrompt(errorMessage, language, errorType, subscriptionTier, codeContext);
+  }
+  
   // Universal AI assistant for ANY problem - not just code
   let prompt = `You are ErrorWise AI, an intelligent assistant that helps ANYONE solve ANY problem in the real world.
 
@@ -996,6 +1166,177 @@ ${errorType ? `Type: ${errorType}` : ''}
   return prompt;
 }
 
+/**
+ * Create TOON format prompt for AI - more token-efficient than JSON
+ * TOON = Text Object-Oriented Notation
+ * Uses :: for key-value, | for arrays, >> for nesting
+ */
+function createToonPrompt(errorMessage, language, errorType, subscriptionTier, codeContext = {}) {
+  let toonPrompt = `[SYSTEM: ErrorWise AI - Universal Problem Solver]
+[FORMAT: TOON - Respond in TOON format, NOT JSON]
+
+═══════════════════════════════════════════════════════════════
+REQUEST::
+═══════════════════════════════════════════════════════════════
+error::${errorMessage}
+language::${language || 'auto-detect'}
+errorType::${errorType || 'auto-detect'}
+tier::${subscriptionTier}
+`;
+
+  // Add code context in TOON format
+  if (codeContext.codeSnippet) {
+    toonPrompt += `\nCODE_CONTEXT::\n`;
+    if (codeContext.fileName) toonPrompt += `>>file::${codeContext.fileName}\n`;
+    if (codeContext.lineNumber) toonPrompt += `>>line::${codeContext.lineNumber}\n`;
+    toonPrompt += `>>snippet::\n\`\`\`${language}\n${codeContext.codeSnippet}\n\`\`\`\n`;
+  }
+
+  if (codeContext.framework) {
+    toonPrompt += `>>framework::${codeContext.framework}\n`;
+  }
+
+  if (codeContext.dependencies?.length > 0) {
+    toonPrompt += `dependencies|${codeContext.dependencies.join('|')}\n`;
+  }
+
+  if (codeContext.stackTrace?.length > 0) {
+    toonPrompt += `\nSTACK_TRACE::\n`;
+    codeContext.stackTrace.slice(0, 3).forEach((frame, idx) => {
+      toonPrompt += `>>[${idx + 1}]::${frame.function} at ${frame.file}:${frame.line}:${frame.column}\n`;
+    });
+  }
+
+  // Response format instruction based on tier
+  toonPrompt += `
+═══════════════════════════════════════════════════════════════
+RESPOND IN TOON FORMAT (NOT JSON):
+═══════════════════════════════════════════════════════════════
+
+EXPLANATION::
+>>content::[Write clear explanation of what the error is and why it occurred]
+>>rootCause::[The fundamental reason this error happens]
+`;
+
+  if (subscriptionTier === 'team') {
+    toonPrompt += `>>technicalDetails::[Deep technical analysis]
+>>theoreticalBasis::[Computer science/algorithmic theory if applicable]
+`;
+  }
+
+  toonPrompt += `
+SOLUTION::
+>>summary::[One-line summary of the fix]
+steps|[Step 1: Do this]|[Step 2: Then this]|[Step 3: Finally this]
+>>code::[Working code example with comments]
+`;
+
+  if (subscriptionTier !== 'free') {
+    toonPrompt += `>>alternatives::[Alternative approaches if any]
+`;
+  }
+
+  if (subscriptionTier === 'team') {
+    toonPrompt += `>>bestPractices::[Industry best practices related to this]
+>>prevention::[How to prevent this in future]
+`;
+  }
+
+  toonPrompt += `
+METADATA::
+>>category::[runtime|syntax|logic|network|database|authentication|etc]
+tags|[tag1]|[tag2]|[tag3]|[tag4]
+>>confidence::[0.0 to 1.0]
+>>severity::[low|medium|high|critical]
+>>complexity::[simple|moderate|complex]
+`;
+
+  if (subscriptionTier === 'team') {
+    toonPrompt += `
+ADVANCED::
+relatedErrors|[Similar error 1]|[Similar error 2]
+debuggingSteps|[Debug step 1]|[Debug step 2]|[Debug step 3]
+resources|[Resource URL 1]|[Resource URL 2]
+`;
+  }
+
+  toonPrompt += `
+═══════════════════════════════════════════════════════════════
+RULES:
+═══════════════════════════════════════════════════════════════
+• Use :: for key-value pairs
+• Use | to separate array items (steps|step1|step2|step3)
+• Use >> for nested properties
+• Use SECTION:: for section headers
+• Do NOT use JSON syntax - use TOON format only
+• Keep responses structured and scannable
+• Code blocks use standard markdown \`\`\` syntax
+═══════════════════════════════════════════════════════════════
+`;
+
+  return toonPrompt;
+}
+
+/**
+ * Parse TOON format response from AI and convert to JSON for API/DB
+ */
+function parseToonResponse(toonResponse, detectedLanguage, detectedErrorType) {
+  try {
+    // Try to use the TOON decoder
+    const parsed = TOON.toJSON(toonResponse);
+    
+    if (parsed && parsed.explanation) {
+      return {
+        ...parsed,
+        language: detectedLanguage,
+        errorType: detectedErrorType,
+        format: 'toon',
+        timestamp: new Date().toISOString()
+      };
+    }
+  } catch (e) {
+    console.warn('⚠️ TOON parsing failed:', e.message);
+  }
+  
+  // Fallback: Extract key sections using regex
+  const extractSection = (text, sectionName) => {
+    const regex = new RegExp(`${sectionName}::\\n([\\s\\S]*?)(?=\\n[A-Z_]+::|$)`, 'i');
+    const match = text.match(regex);
+    return match ? match[1].trim() : '';
+  };
+  
+  const extractValue = (text, key) => {
+    const regex = new RegExp(`>>${key}::(.+?)(?=\\n|$)`, 'i');
+    const match = text.match(regex);
+    return match ? match[1].trim() : '';
+  };
+  
+  const extractArray = (text, key) => {
+    const regex = new RegExp(`${key}\\|(.+?)(?=\\n|$)`, 'i');
+    const match = text.match(regex);
+    return match ? match[1].split('|').map(s => s.trim()).filter(s => s) : [];
+  };
+  
+  return {
+    explanation: extractValue(toonResponse, 'content') || extractSection(toonResponse, 'EXPLANATION'),
+    solution: extractArray(toonResponse, 'steps').join('\n') || extractValue(toonResponse, 'summary'),
+    codeExample: extractValue(toonResponse, 'code') || '',
+    category: extractValue(toonResponse, 'category') || 'general',
+    tags: extractArray(toonResponse, 'tags'),
+    confidence: parseFloat(extractValue(toonResponse, 'confidence')) || 0.7,
+    severity: extractValue(toonResponse, 'severity') || 'medium',
+    rootCause: extractValue(toonResponse, 'rootCause') || '',
+    preventionTips: extractArray(toonResponse, 'prevention'),
+    relatedErrors: extractArray(toonResponse, 'relatedErrors'),
+    debugging: extractArray(toonResponse, 'debuggingSteps'),
+    resources: extractArray(toonResponse, 'resources'),
+    language: detectedLanguage,
+    errorType: detectedErrorType,
+    format: 'toon-fallback',
+    timestamp: new Date().toISOString()
+  };
+}
+
 function detectErrorType(errorMessage) {
   const msg = errorMessage ? errorMessage.toLowerCase() : '';
   
@@ -1087,6 +1428,11 @@ function detectLanguage(errorMessage, codeSnippet = '') {
     return 'hindi'; // Default Devanagari to Hindi
   }
   
+  // Assamese script
+  if (/[\u0980-\u098F]/.test(text)) return 'assamese';  
+  // Gujarati script
+  if (/[\u0A80-\u0AFF]/.test(text)) return 'gujarati';
+
   // Bengali script
   if (/[\u0980-\u09FF]/.test(text)) return 'bengali';
   
@@ -1744,7 +2090,7 @@ async function processURLs(errorMessage, codeSnippet) {
         // Summarize the content
         const summary = await summarizeURLContent(url, scraped.content, errorMessage);
         results.push(summary);
-      } else {
+       } else {
         results.push({
           url,
           summary: `Referenced URL: ${url} (could not access)`,
@@ -2509,6 +2855,11 @@ module.exports = {
   detectErrorType,
   parseStackTrace,
   createUserFriendlyError,  // A2: User-friendly error messages
+  
+  // TOON Format utilities (AI communication format)
+  TOON,                 // TOON encoder/decoder
+  createToonPrompt,     // Create TOON format prompt
+  parseToonResponse,    // Parse TOON response to JSON
   
   // Backward compatibility
   explainError,
