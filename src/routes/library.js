@@ -46,6 +46,22 @@ router.get('/user/my-templates', authMiddleware, libraryController.getMyTemplate
 router.delete('/:id', authMiddleware, libraryController.deleteTemplate);
 
 // ============================================================================
+// USER SOLUTIONS ROUTES - User-specific saved solutions
+// ============================================================================
+
+// Save user's own solution (separate from system library)
+router.post('/user/solutions', authMiddleware, libraryController.saveUserSolution);
+
+// Get user's saved solutions with filters
+router.get('/user/solutions', authMiddleware, libraryController.getUserSolutions);
+
+// Get combined library (user + system) for search
+router.get('/user/combined-search', authMiddleware, libraryController.getCombinedLibrary);
+
+// Delete user's solution
+router.delete('/user/solutions/:id', authMiddleware, libraryController.deleteUserSolution);
+
+// ============================================================================
 // ADMIN ROUTES - Bulk add entries
 // ============================================================================
 

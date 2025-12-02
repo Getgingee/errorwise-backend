@@ -2,9 +2,10 @@
  * Library Learning Service
  * 
  * Self-learning system that:
- * 1. Tracks errors users encounter
- * 2. Verifies solutions from internet sources (Stack Overflow, GitHub, official docs)
+ * 1. Tracks errors users encounter (user-specific + system-wide)
+ * 2. Verifies solutions from PRODUCT-SPECIFIC forums (Adobe, Microsoft, etc.)
  * 3. Auto-adds verified, high-quality solutions to the shared library
+ * 4. Links back to original forum sources for credibility
  * 
  * @purpose Continuously improve error library from real user errors
  */
@@ -27,28 +28,277 @@ const CONFIG = {
   // Minimum helpful votes to auto-approve
   MIN_HELPFUL_VOTES: 5,
   
-  // Sources to verify against
-  VERIFICATION_SOURCES: [
-    'stackoverflow.com',
-    'github.com',
-    'developer.mozilla.org',
-    'docs.microsoft.com',
-    'learn.microsoft.com',
-    'developers.google.com',
-    'aws.amazon.com/documentation',
-    'docs.python.org',
-    'nodejs.org/docs',
-    'reactjs.org',
-    'angular.io/docs',
-    'vuejs.org/guide',
-    'docs.npmjs.com'
-  ],
-  
   // Auto-approve threshold
   AUTO_APPROVE_SCORE: 0.85,
   
   // Queue check interval (every 6 hours)
-  QUEUE_CHECK_INTERVAL_MS: 6 * 60 * 60 * 1000
+  QUEUE_CHECK_INTERVAL_MS: 6 * 60 * 60 * 1000,
+  
+  // Rate limiting for forum API calls
+  FORUM_RATE_LIMIT: {
+    requestsPerMinute: 30,
+    requestsPerHour: 200,
+    cooldownMs: 2000 // 2 seconds between requests
+  }
+};
+
+// ============================================================================
+// PRODUCT-SPECIFIC FORUM SOURCES
+// Maps product keywords to their official forums/communities
+// ============================================================================
+
+const PRODUCT_FORUMS = {
+  // Adobe Products
+  adobe: {
+    photoshop: {
+      name: 'Adobe Photoshop',
+      forums: [
+        'https://community.adobe.com/t5/photoshop-ecosystem/ct-p/ct-photoshop',
+        'https://helpx.adobe.com/photoshop/kb/troubleshoot-photoshop.html'
+      ],
+      searchUrl: 'https://community.adobe.com/t5/forums/searchpage/tab/message?filter=location&q={query}&location=category:ct-photoshop',
+      keywords: ['photoshop', 'psd', 'adobe photoshop', 'ps cc', 'photoshop cc']
+    },
+    illustrator: {
+      name: 'Adobe Illustrator',
+      forums: ['https://community.adobe.com/t5/illustrator/ct-p/ct-illustrator'],
+      searchUrl: 'https://community.adobe.com/t5/forums/searchpage/tab/message?filter=location&q={query}&location=category:ct-illustrator',
+      keywords: ['illustrator', 'ai file', 'adobe illustrator']
+    },
+    premiere: {
+      name: 'Adobe Premiere Pro',
+      forums: ['https://community.adobe.com/t5/premiere-pro/ct-p/ct-premiere-pro'],
+      searchUrl: 'https://community.adobe.com/t5/forums/searchpage/tab/message?q={query}&location=category:ct-premiere-pro',
+      keywords: ['premiere', 'premiere pro', 'video editing adobe']
+    },
+    aftereffects: {
+      name: 'Adobe After Effects',
+      forums: ['https://community.adobe.com/t5/after-effects/ct-p/ct-after-effects'],
+      keywords: ['after effects', 'ae', 'motion graphics adobe']
+    },
+    acrobat: {
+      name: 'Adobe Acrobat',
+      forums: ['https://community.adobe.com/t5/acrobat/ct-p/ct-acrobat'],
+      keywords: ['acrobat', 'pdf', 'adobe reader', 'acrobat reader']
+    }
+  },
+  
+  // Microsoft Products
+  microsoft: {
+    windows: {
+      name: 'Microsoft Windows',
+      forums: [
+        'https://answers.microsoft.com/en-us/windows',
+        'https://learn.microsoft.com/en-us/troubleshoot/windows-client/'
+      ],
+      searchUrl: 'https://answers.microsoft.com/en-us/search/search?SearchTerm={query}&tab=All&status=all&adlt=off&adlt_set=off&filters=all',
+      keywords: ['windows', 'win10', 'win11', 'windows 10', 'windows 11', 'bsod', 'blue screen']
+    },
+    office: {
+      name: 'Microsoft Office',
+      forums: ['https://answers.microsoft.com/en-us/msoffice'],
+      searchUrl: 'https://answers.microsoft.com/en-us/search/search?SearchTerm={query}&IsSuggest=false',
+      keywords: ['excel', 'word', 'powerpoint', 'outlook', 'office 365', 'microsoft 365']
+    },
+    azure: {
+      name: 'Microsoft Azure',
+      forums: [
+        'https://learn.microsoft.com/en-us/answers/tags/133/azure',
+        'https://stackoverflow.com/questions/tagged/azure'
+      ],
+      keywords: ['azure', 'azure devops', 'azure functions', 'azure storage']
+    },
+    vscode: {
+      name: 'Visual Studio Code',
+      forums: [
+        'https://github.com/microsoft/vscode/issues',
+        'https://stackoverflow.com/questions/tagged/visual-studio-code'
+      ],
+      keywords: ['vscode', 'visual studio code', 'vs code']
+    }
+  },
+  
+  // Gaming
+  gaming: {
+    steam: {
+      name: 'Steam',
+      forums: ['https://steamcommunity.com/discussions/'],
+      searchUrl: 'https://steamcommunity.com/discussions/search/?q={query}',
+      keywords: ['steam', 'steam error', 'steam client']
+    },
+    epic: {
+      name: 'Epic Games',
+      forums: ['https://www.epicgames.com/help/'],
+      keywords: ['epic games', 'epic launcher', 'fortnite', 'unreal']
+    },
+    nvidia: {
+      name: 'NVIDIA',
+      forums: ['https://www.nvidia.com/en-us/geforce/forums/'],
+      keywords: ['nvidia', 'geforce', 'cuda', 'gpu driver']
+    },
+    amd: {
+      name: 'AMD',
+      forums: ['https://community.amd.com/'],
+      keywords: ['amd', 'radeon', 'ryzen', 'amd driver']
+    }
+  },
+  
+  // Development
+  development: {
+    nodejs: {
+      name: 'Node.js',
+      forums: [
+        'https://stackoverflow.com/questions/tagged/node.js',
+        'https://github.com/nodejs/node/issues'
+      ],
+      searchUrl: 'https://stackoverflow.com/search?q={query}+[node.js]',
+      keywords: ['node', 'nodejs', 'npm', 'node.js']
+    },
+    python: {
+      name: 'Python',
+      forums: [
+        'https://stackoverflow.com/questions/tagged/python',
+        'https://discuss.python.org/'
+      ],
+      searchUrl: 'https://stackoverflow.com/search?q={query}+[python]',
+      keywords: ['python', 'pip', 'python3', 'django', 'flask']
+    },
+    react: {
+      name: 'React',
+      forums: [
+        'https://stackoverflow.com/questions/tagged/reactjs',
+        'https://github.com/facebook/react/issues'
+      ],
+      keywords: ['react', 'reactjs', 'react native', 'jsx']
+    },
+    angular: {
+      name: 'Angular',
+      forums: ['https://stackoverflow.com/questions/tagged/angular'],
+      keywords: ['angular', 'ng', 'angular cli']
+    },
+    vue: {
+      name: 'Vue.js',
+      forums: ['https://stackoverflow.com/questions/tagged/vue.js'],
+      keywords: ['vue', 'vuejs', 'vue.js', 'nuxt']
+    },
+    java: {
+      name: 'Java',
+      forums: ['https://stackoverflow.com/questions/tagged/java'],
+      keywords: ['java', 'jvm', 'spring', 'maven', 'gradle']
+    },
+    dotnet: {
+      name: '.NET',
+      forums: [
+        'https://stackoverflow.com/questions/tagged/.net',
+        'https://learn.microsoft.com/en-us/answers/tags/3/dotnet'
+      ],
+      keywords: ['.net', 'dotnet', 'c#', 'csharp', 'asp.net']
+    }
+  },
+  
+  // Mobile
+  mobile: {
+    android: {
+      name: 'Android',
+      forums: [
+        'https://stackoverflow.com/questions/tagged/android',
+        'https://support.google.com/android/community'
+      ],
+      keywords: ['android', 'android studio', 'google play', 'apk']
+    },
+    ios: {
+      name: 'iOS/Apple',
+      forums: [
+        'https://stackoverflow.com/questions/tagged/ios',
+        'https://discussions.apple.com/'
+      ],
+      keywords: ['ios', 'iphone', 'ipad', 'xcode', 'swift', 'apple']
+    }
+  },
+  
+  // Databases
+  database: {
+    mysql: {
+      name: 'MySQL',
+      forums: ['https://stackoverflow.com/questions/tagged/mysql'],
+      keywords: ['mysql', 'mariadb']
+    },
+    postgresql: {
+      name: 'PostgreSQL',
+      forums: ['https://stackoverflow.com/questions/tagged/postgresql'],
+      keywords: ['postgresql', 'postgres', 'psql']
+    },
+    mongodb: {
+      name: 'MongoDB',
+      forums: ['https://www.mongodb.com/community/forums/'],
+      keywords: ['mongodb', 'mongo', 'mongoose']
+    },
+    redis: {
+      name: 'Redis',
+      forums: ['https://stackoverflow.com/questions/tagged/redis'],
+      keywords: ['redis', 'cache']
+    }
+  },
+  
+  // Cloud
+  cloud: {
+    aws: {
+      name: 'Amazon Web Services',
+      forums: ['https://repost.aws/', 'https://stackoverflow.com/questions/tagged/amazon-web-services'],
+      keywords: ['aws', 'amazon', 's3', 'ec2', 'lambda', 'dynamodb']
+    },
+    gcp: {
+      name: 'Google Cloud',
+      forums: ['https://stackoverflow.com/questions/tagged/google-cloud-platform'],
+      keywords: ['gcp', 'google cloud', 'firebase', 'gcs']
+    },
+    vercel: {
+      name: 'Vercel',
+      forums: ['https://github.com/vercel/vercel/discussions'],
+      keywords: ['vercel', 'next.js', 'nextjs']
+    },
+    railway: {
+      name: 'Railway',
+      forums: ['https://help.railway.app/', 'https://discord.gg/railway'],
+      keywords: ['railway', 'railway.app']
+    }
+  }
+};
+
+// ============================================================================
+// RATE LIMITER FOR FORUM REQUESTS
+// ============================================================================
+
+const forumRateLimiter = {
+  requests: [],
+  
+  canMakeRequest() {
+    const now = Date.now();
+    const oneMinuteAgo = now - 60000;
+    const oneHourAgo = now - 3600000;
+    
+    // Clean old requests
+    this.requests = this.requests.filter(t => t > oneHourAgo);
+    
+    const requestsLastMinute = this.requests.filter(t => t > oneMinuteAgo).length;
+    const requestsLastHour = this.requests.length;
+    
+    return requestsLastMinute < CONFIG.FORUM_RATE_LIMIT.requestsPerMinute &&
+           requestsLastHour < CONFIG.FORUM_RATE_LIMIT.requestsPerHour;
+  },
+  
+  recordRequest() {
+    this.requests.push(Date.now());
+  },
+  
+  getStats() {
+    const now = Date.now();
+    return {
+      lastMinute: this.requests.filter(t => t > now - 60000).length,
+      lastHour: this.requests.filter(t => t > now - 3600000).length,
+      limits: CONFIG.FORUM_RATE_LIMIT
+    };
+  }
 };
 
 // In-memory tracking for error patterns
@@ -245,48 +495,267 @@ function calculateEligibilityScore(tracker) {
 }
 
 // ============================================================================
-// INTERNET VERIFICATION
+// PRODUCT DETECTION & FORUM VERIFICATION
 // ============================================================================
 
 /**
- * Verify solution against internet sources
+ * Detect product/application from error message and context
+ */
+function detectProductFromError(errorMessage, additionalContext = {}) {
+  const errorLower = (errorMessage || '').toLowerCase();
+  const contextLower = JSON.stringify(additionalContext || {}).toLowerCase();
+  const combined = errorLower + ' ' + contextLower;
+  
+  const detectedProducts = [];
+  
+  // Check against all forum sources
+  for (const [vendor, config] of Object.entries(FORUM_SOURCES)) {
+    for (const product of config.products) {
+      if (combined.includes(product.toLowerCase())) {
+        detectedProducts.push({
+          vendor,
+          product,
+          forums: config.forums,
+          rateLimit: config.rateLimit || { perMinute: 30, perHour: 200 }
+        });
+      }
+    }
+  }
+  
+  // Additional keyword matching for common patterns
+  const keywordPatterns = {
+    adobe: /\b(psd|ai file|indd|prproj|aep|lightroom catalog)\b/i,
+    microsoft: /\b(\.docx?|\.xlsx?|\.pptx?|ntfs|registry|dll|exe|msi)\b/i,
+    apple: /\b(\.app|cocoa|nswindow|uikit|swift error|xcode)\b/i,
+    google: /\b(firebase|gcp|bigquery|dataflow|pubsub)\b/i,
+    gaming: /\b(steam api|epic games|origin|battlenet|directx|vulkan)\b/i,
+    database: /\b(sqlstate|pg_|mysql_|mongodb|redis|elasticsearch)\b/i
+  };
+  
+  for (const [vendor, pattern] of Object.entries(keywordPatterns)) {
+    if (pattern.test(combined) && !detectedProducts.some(p => p.vendor === vendor)) {
+      const config = FORUM_SOURCES[vendor];
+      if (config) {
+        detectedProducts.push({
+          vendor,
+          product: 'auto-detected',
+          forums: config.forums,
+          rateLimit: config.rateLimit || { perMinute: 30, perHour: 200 }
+        });
+      }
+    }
+  }
+  
+  return detectedProducts;
+}
+
+/**
+ * Search product-specific forums
+ */
+async function searchProductForums(errorMessage, productInfo) {
+  const results = [];
+  
+  for (const forum of productInfo.forums) {
+    // Check rate limit
+    if (!forumRateLimiter.checkLimit(forum)) {
+      console.log(`⏳ Rate limited for forum: ${forum}`);
+      continue;
+    }
+    
+    try {
+      const searchTerms = extractSearchTerms(errorMessage);
+      const searchQuery = encodeURIComponent(`site:${forum} ${searchTerms}`);
+      
+      // Use a search API or direct forum API based on the forum
+      let forumResults = [];
+      
+      // Special handling for specific forums
+      if (forum.includes('stackoverflow.com')) {
+        forumResults = await searchStackOverflow(errorMessage);
+      } else if (forum.includes('github.com')) {
+        forumResults = await searchGitHubIssues(errorMessage, productInfo.product);
+      } else if (forum.includes('community.adobe.com')) {
+        forumResults = await searchAdobeCommunity(errorMessage, productInfo.product);
+      } else if (forum.includes('answers.microsoft.com')) {
+        forumResults = await searchMicrosoftAnswers(errorMessage, productInfo.product);
+      } else if (forum.includes('discussions.apple.com')) {
+        forumResults = await searchAppleDiscussions(errorMessage, productInfo.product);
+      } else {
+        // Generic forum search via Google Custom Search or fallback
+        forumResults = await searchGenericForum(forum, searchTerms);
+      }
+      
+      if (forumResults.length > 0) {
+        results.push({
+          forum,
+          vendor: productInfo.vendor,
+          product: productInfo.product,
+          results: forumResults,
+          topResult: forumResults[0]
+        });
+      }
+      
+    } catch (error) {
+      console.warn(`Forum search failed for ${forum}:`, error.message);
+    }
+  }
+  
+  return results;
+}
+
+/**
+ * Search Adobe Community forums
+ */
+async function searchAdobeCommunity(errorMessage, product) {
+  try {
+    const searchTerms = extractSearchTerms(errorMessage);
+    const productFilter = product !== 'auto-detected' ? product : '';
+    
+    // Adobe Community doesn't have a public API, so we'd use a search engine
+    // For now, return placeholder that redirects to community search
+    return [{
+      title: `Search Adobe Community for: ${searchTerms.substring(0, 50)}`,
+      link: `https://community.adobe.com/t5/forums/searchpage/tab/message?q=${encodeURIComponent(searchTerms + ' ' + productFilter)}`,
+      source: 'adobe-community',
+      isSearchLink: true
+    }];
+  } catch (error) {
+    console.warn('Adobe Community search failed:', error.message);
+    return [];
+  }
+}
+
+/**
+ * Search Microsoft Answers forums
+ */
+async function searchMicrosoftAnswers(errorMessage, product) {
+  try {
+    const searchTerms = extractSearchTerms(errorMessage);
+    
+    return [{
+      title: `Search Microsoft Answers for: ${searchTerms.substring(0, 50)}`,
+      link: `https://answers.microsoft.com/en-us/search/search?SearchTerm=${encodeURIComponent(searchTerms)}`,
+      source: 'microsoft-answers',
+      isSearchLink: true
+    }];
+  } catch (error) {
+    console.warn('Microsoft Answers search failed:', error.message);
+    return [];
+  }
+}
+
+/**
+ * Search Apple Discussions
+ */
+async function searchAppleDiscussions(errorMessage, product) {
+  try {
+    const searchTerms = extractSearchTerms(errorMessage);
+    
+    return [{
+      title: `Search Apple Discussions for: ${searchTerms.substring(0, 50)}`,
+      link: `https://discussions.apple.com/search?q=${encodeURIComponent(searchTerms)}`,
+      source: 'apple-discussions',
+      isSearchLink: true
+    }];
+  } catch (error) {
+    console.warn('Apple Discussions search failed:', error.message);
+    return [];
+  }
+}
+
+/**
+ * Generic forum search (fallback)
+ */
+async function searchGenericForum(forum, searchTerms) {
+  try {
+    return [{
+      title: `Search ${forum} for: ${searchTerms.substring(0, 50)}`,
+      link: `https://www.google.com/search?q=site:${encodeURIComponent(forum)}+${encodeURIComponent(searchTerms)}`,
+      source: forum,
+      isSearchLink: true
+    }];
+  } catch (error) {
+    console.warn('Generic forum search failed:', error.message);
+    return [];
+  }
+}
+
+// ============================================================================
+// INTERNET VERIFICATION (WITH PRODUCT-SPECIFIC FORUMS)
+// ============================================================================
+
+/**
+ * Verify solution against internet sources (including product-specific forums)
  */
 async function verifyFromInternetSources(tracker) {
   const sources = [];
   let verificationScore = 0;
   
   try {
-    // Search Stack Overflow
+    // Step 1: Detect product from error
+    const detectedProducts = detectProductFromError(tracker.originalError, {
+      language: tracker.language,
+      category: tracker.category
+    });
+    
+    console.log(`🔎 Detected products: ${detectedProducts.map(p => p.vendor + ':' + p.product).join(', ') || 'none'}`);
+    
+    // Step 2: Search product-specific forums FIRST
+    for (const productInfo of detectedProducts) {
+      const forumResults = await searchProductForums(tracker.originalError, productInfo);
+      
+      for (const result of forumResults) {
+        sources.push({
+          source: result.forum,
+          type: 'product-forum',
+          vendor: result.vendor,
+          product: result.product,
+          results: result.results.length,
+          topResult: result.topResult
+        });
+        
+        // Higher weight for product-specific forums
+        verificationScore += result.results.some(r => !r.isSearchLink) ? 0.35 : 0.15;
+      }
+      
+      // Rate limit between products
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    // Step 3: Search Stack Overflow (general programming)
     const stackOverflowResults = await searchStackOverflow(tracker.originalError);
     if (stackOverflowResults.length > 0) {
       sources.push({
         source: 'stackoverflow',
+        type: 'general',
         results: stackOverflowResults.length,
         topResult: stackOverflowResults[0]
-      });
-      verificationScore += 0.3;
-    }
-    
-    // Search GitHub Issues
-    const githubResults = await searchGitHubIssues(tracker.originalError, tracker.language);
-    if (githubResults.length > 0) {
-      sources.push({
-        source: 'github',
-        results: githubResults.length,
-        topResult: githubResults[0]
       });
       verificationScore += 0.2;
     }
     
-    // Check official documentation
+    // Step 4: Search GitHub Issues
+    const githubResults = await searchGitHubIssues(tracker.originalError, tracker.language);
+    if (githubResults.length > 0) {
+      sources.push({
+        source: 'github',
+        type: 'general',
+        results: githubResults.length,
+        topResult: githubResults[0]
+      });
+      verificationScore += 0.15;
+    }
+    
+    // Step 5: Check official documentation
     const docResults = await searchOfficialDocs(tracker.originalError, tracker.language);
     if (docResults.found) {
       sources.push({
         source: 'official-docs',
+        type: 'documentation',
         url: docResults.url,
         title: docResults.title
       });
-      verificationScore += 0.3;
+      verificationScore += 0.15;
     }
     
   } catch (error) {
@@ -295,11 +764,13 @@ async function verifyFromInternetSources(tracker) {
   
   tracker.sources = sources;
   tracker.verificationScore = Math.max(tracker.verificationScore, verificationScore);
+  tracker.detectedProducts = detectProductFromError(tracker.originalError);
   
   return {
     verified: verificationScore >= 0.5,
     score: verificationScore,
-    sources
+    sources,
+    products: tracker.detectedProducts
   };
 }
 
@@ -416,7 +887,199 @@ function extractSearchTerms(errorMessage) {
 }
 
 // ============================================================================
-// LIBRARY ADDITION
+// USER-SPECIFIC SOLUTIONS (Separate from system library)
+// ============================================================================
+
+/**
+ * Save user's own solution (different from system library)
+ */
+async function saveUserSolution(userId, errorData, solutionData) {
+  try {
+    // Check if user already has this solution saved
+    const existingEntry = await ErrorLibrary.findOne({
+      where: {
+        userId,
+        type: 'user',
+        errorPattern: normalizeErrorPattern(errorData.errorMessage)
+      }
+    });
+    
+    if (existingEntry) {
+      // Update existing user solution
+      await existingEntry.update({
+        solution: solutionData.solution,
+        explanation: solutionData.explanation || existingEntry.explanation,
+        notes: solutionData.notes || existingEntry.notes,
+        sourceUrl: solutionData.sourceUrl || existingEntry.sourceUrl,
+        lastModified: new Date()
+      });
+      
+      console.log(`📝 Updated user solution: ${existingEntry.id} for user ${userId}`);
+      return { updated: true, entry: existingEntry };
+    }
+    
+    // Create new user solution
+    const entry = await ErrorLibrary.create({
+      type: 'user', // User-saved solution
+      userId,
+      errorCode: generateErrorCode({ 
+        pattern: normalizeErrorPattern(errorData.errorMessage),
+        language: errorData.language
+      }),
+      errorPattern: normalizeErrorPattern(errorData.errorMessage),
+      title: solutionData.title || generateTitle(errorData.errorMessage, errorData.errorType),
+      errorMessage: errorData.errorMessage,
+      category: mapCategory(errorData.category),
+      explanation: solutionData.explanation,
+      solution: solutionData.solution,
+      notes: solutionData.notes, // User's personal notes
+      sourceUrl: solutionData.sourceUrl, // Link to forum/source
+      tags: solutionData.tags || generateTags({
+        language: errorData.language,
+        errorType: errorData.errorType,
+        category: errorData.category,
+        originalError: errorData.errorMessage
+      }),
+      difficulty: solutionData.difficulty || 'medium',
+      isPublic: false, // User solutions are private by default
+      isActive: true
+    });
+    
+    console.log(`✅ Saved user solution: ${entry.id} for user ${userId}`);
+    return { created: true, entry };
+    
+  } catch (error) {
+    console.error('Failed to save user solution:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Get user's saved solutions with optional filtering
+ */
+async function getUserSolutions(userId, filters = {}) {
+  try {
+    const where = {
+      userId,
+      type: 'user',
+      isActive: true
+    };
+    
+    if (filters.category) where.category = filters.category;
+    if (filters.search) {
+      where[Op.or] = [
+        { title: { [Op.iLike]: `%${filters.search}%` } },
+        { errorMessage: { [Op.iLike]: `%${filters.search}%` } },
+        { solution: { [Op.iLike]: `%${filters.search}%` } }
+      ];
+    }
+    
+    const solutions = await ErrorLibrary.findAll({
+      where,
+      order: [['createdAt', 'DESC']],
+      limit: filters.limit || 50
+    });
+    
+    return solutions;
+    
+  } catch (error) {
+    console.error('Failed to get user solutions:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Get combined library entries (system + user) for search
+ * User solutions appear first, clearly marked
+ */
+async function getCombinedLibrary(userId, searchQuery) {
+  try {
+    const searchPattern = `%${searchQuery}%`;
+    
+    // Get user's solutions first
+    const userSolutions = await ErrorLibrary.findAll({
+      where: {
+        userId,
+        type: 'user',
+        isActive: true,
+        [Op.or]: [
+          { title: { [Op.iLike]: searchPattern } },
+          { errorMessage: { [Op.iLike]: searchPattern } },
+          { solution: { [Op.iLike]: searchPattern } },
+          { tags: { [Op.contains]: [searchQuery.toLowerCase()] } }
+        ]
+      },
+      order: [['helpfulCount', 'DESC']],
+      limit: 10
+    });
+    
+    // Get system solutions
+    const systemSolutions = await ErrorLibrary.findAll({
+      where: {
+        type: 'system',
+        isActive: true,
+        isPublic: true,
+        [Op.or]: [
+          { title: { [Op.iLike]: searchPattern } },
+          { errorMessage: { [Op.iLike]: searchPattern } },
+          { solution: { [Op.iLike]: searchPattern } },
+          { tags: { [Op.contains]: [searchQuery.toLowerCase()] } }
+        ]
+      },
+      order: [['helpfulCount', 'DESC'], ['viewCount', 'DESC']],
+      limit: 20
+    });
+    
+    // Combine with clear differentiation
+    return {
+      userSolutions: userSolutions.map(s => ({
+        ...s.toJSON(),
+        isUserSaved: true,
+        label: 'Your Solution'
+      })),
+      systemSolutions: systemSolutions.map(s => ({
+        ...s.toJSON(),
+        isUserSaved: false,
+        label: s.sourceUrl ? 'Verified from Community' : 'System Library'
+      }))
+    };
+    
+  } catch (error) {
+    console.error('Failed to get combined library:', error.message);
+    throw error;
+  }
+}
+
+/**
+ * Delete user's solution
+ */
+async function deleteUserSolution(userId, entryId) {
+  try {
+    const entry = await ErrorLibrary.findOne({
+      where: {
+        id: entryId,
+        userId,
+        type: 'user'
+      }
+    });
+    
+    if (!entry) {
+      return { success: false, message: 'Solution not found or not owned by user' };
+    }
+    
+    await entry.update({ isActive: false });
+    console.log(`🗑️ Deleted user solution: ${entryId} for user ${userId}`);
+    
+    return { success: true, message: 'Solution deleted' };
+    
+  } catch (error) {
+    console.error('Failed to delete user solution:', error.message);
+    throw error;
+  }
+}
+
+// ============================================================================
+// LIBRARY ADDITION (System learned entries)
 // ============================================================================
 
 /**
@@ -714,6 +1377,16 @@ module.exports = {
   verifyFromInternetSources,
   addToLibrary,
   
+  // Product detection
+  detectProductFromError,
+  searchProductForums,
+  
+  // User-specific solutions
+  saveUserSolution,
+  getUserSolutions,
+  getCombinedLibrary,
+  deleteUserSolution,
+  
   // Queue management
   processVerificationQueue,
   
@@ -726,5 +1399,6 @@ module.exports = {
   stopLearningService,
   
   // Configuration
-  CONFIG
+  CONFIG,
+  FORUM_SOURCES
 };

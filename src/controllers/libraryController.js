@@ -1075,3 +1075,175 @@ exports.approveLearningEntry = async (req, res) => {
     });
   }
 };
+
+// ============================================================================
+// USER SOLUTIONS - Separate from system library
+// ============================================================================
+
+/**
+ * Save user's own solution
+ * POST /api/library/user/solutions
+ * Body: { errorData: { errorMessage, errorType, category, language }, solutionData: { solution, explanation, notes, sourceUrl, tags } }
+ */
+exports.saveUserSolution = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { errorData, solutionData } = req.body;
+
+    if (!errorData?.errorMessage || !solutionData?.solution) {
+      return res.status(400).json({
+        success: false,
+        error: 'Error message and solution are required'
+      });
+    }
+
+    if (!libraryLearning) {
+      return res.status(503).json({
+        success: false,
+        error: 'Learning service not available'
+      });
+    }
+
+    const result = await libraryLearning.saveUserSolution(userId, errorData, solutionData);
+
+    res.json({
+      success: true,
+      message: result.created ? 'Solution saved' : 'Solution updated',
+      entry: {
+        id: result.entry.id,
+        title: result.entry.title,
+        isUserSaved: true,
+        label: 'Your Solution'
+      }
+    });
+  } catch (error) {
+    console.error('Save user solution error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save solution'
+    });
+  }
+};
+
+/**
+ * Get user's saved solutions
+ * GET /api/library/user/solutions
+ * Query: { category, search, limit }
+ */
+exports.getUserSolutions = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { category, search, limit } = req.query;
+
+    if (!libraryLearning) {
+      return res.status(503).json({
+        success: false,
+        error: 'Learning service not available'
+      });
+    }
+
+    const solutions = await libraryLearning.getUserSolutions(userId, {
+      category,
+      search,
+      limit: parseInt(limit) || 50
+    });
+
+    res.json({
+      success: true,
+      data: solutions.map(s => ({
+        ...s.toJSON(),
+        isUserSaved: true,
+        label: 'Your Solution'
+      })),
+      count: solutions.length
+    });
+  } catch (error) {
+    console.error('Get user solutions error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get solutions'
+    });
+  }
+};
+
+/**
+ * Get combined library search (user + system)
+ * GET /api/library/user/combined-search
+ * Query: { q }
+ */
+exports.getCombinedLibrary = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { q } = req.query;
+
+    if (!q) {
+      return res.status(400).json({
+        success: false,
+        error: 'Search query (q) is required'
+      });
+    }
+
+    if (!libraryLearning) {
+      return res.status(503).json({
+        success: false,
+        error: 'Learning service not available'
+      });
+    }
+
+    const results = await libraryLearning.getCombinedLibrary(userId, q);
+
+    res.json({
+      success: true,
+      data: {
+        userSolutions: results.userSolutions,
+        systemSolutions: results.systemSolutions,
+        userCount: results.userSolutions.length,
+        systemCount: results.systemSolutions.length
+      }
+    });
+  } catch (error) {
+    console.error('Combined library search error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to search library'
+    });
+  }
+};
+
+/**
+ * Delete user's solution
+ * DELETE /api/library/user/solutions/:id
+ */
+exports.deleteUserSolution = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { id } = req.params;
+
+    if (!libraryLearning) {
+      return res.status(503).json({
+        success: false,
+        error: 'Learning service not available'
+      });
+    }
+
+    const result = await libraryLearning.deleteUserSolution(userId, id);
+
+    if (!result.success) {
+      return res.status(404).json({
+        success: false,
+        error: result.message
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Solution deleted'
+    });
+  } catch (error) {
+    console.error('Delete user solution error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete solution'
+    });
+  }
+};
