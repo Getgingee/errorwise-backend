@@ -240,30 +240,42 @@ setInterval(() => {
  * Express middleware for demo rate limiting
  */
 function demoRateLimiter(req, res, next) {
-  const limitCheck = checkDemoLimit(req);
+  try {
+    const limitCheck = checkDemoLimit(req);
 
-  if (!limitCheck.allowed) {
-    if (limitCheck.reason === 'rate_limit_too_fast') {
+    if (!limitCheck.allowed) {
+      if (limitCheck.reason === 'rate_limit_too_fast') {
+        return res.status(429).json({
+          error: 'Too many requests',
+          message: `Please wait ${limitCheck.cooldown} seconds between requests`,
+          remaining: limitCheck.remaining,
+          resetTime: limitCheck.resetTime
+        });
+      }
+
       return res.status(429).json({
-        error: 'Too many requests',
-        message: `Please wait ${limitCheck.cooldown} seconds between requests`,
-        remaining: limitCheck.remaining,
-        resetTime: limitCheck.resetTime
+        error: 'Demo limit reached',
+        message: `You've used all ${DEMO_LIMIT} free demos for today. Sign up for unlimited access!`,
+        resetTime: limitCheck.resetTime,
+        blocked: true,
+        upgradeUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/register`
       });
     }
 
-    return res.status(429).json({
-      error: 'Demo limit reached',
-      message: `You've used all ${DEMO_LIMIT} free demos for today. Sign up for unlimited access!`,
-      resetTime: limitCheck.resetTime,
-      blocked: true,
-      upgradeUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/register`
-    });
+    // Attach usage info to request for use in route handlers
+    req.demoUsage = limitCheck;
+    next();
+  } catch (error) {
+    console.error('❌ demoRateLimiter error:', error.message);
+    // Don't block on rate limiter errors - let request through
+    req.demoUsage = {
+      allowed: true,
+      remaining: DEMO_LIMIT,
+      fingerprint: 'error-fallback',
+      resetTime: new Date(Date.now() + BLOCK_DURATION).toISOString()
+    };
+    next();
   }
-
-  // Attach usage info to request for use in route handlers
-  req.demoUsage = limitCheck;
-  next();
 }
 
 // Export stats for monitoring
