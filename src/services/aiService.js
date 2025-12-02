@@ -316,8 +316,8 @@ async function cacheResponseFast(cacheKey, response) {
 }
 
 // Log API key status on startup
-console.log('\n🔑 AI Service Configuration:');
-console.log(`   FREE tier: Google Gemini ${process.env.GEMINI_API_KEY ? '✅' : '❌ MISSING!'}`);
+console.log('\n🔑 AI Service Configuration (Claude-Only):');
+console.log(`   FREE tier: Claude Haiku ${process.env.ANTHROPIC_API_KEY ? '✅' : '❌ MISSING!'}`);
 console.log(`   PRO tier: Claude Haiku ${process.env.ANTHROPIC_API_KEY ? '✅' : '❌ MISSING!'}`);
 console.log(`   TEAM tier: Claude Sonnet ${process.env.ANTHROPIC_API_KEY ? '✅' : '❌ MISSING!'}`);
 console.log(`   URL Scraping: ✅ Enabled (Pro/Team)`);
@@ -326,7 +326,7 @@ console.log(`   Max Retries: ${CONFIG.MAX_RETRIES}`);
 console.log(`   Request Timeout: ${CONFIG.REQUEST_TIMEOUT_MS / 1000}s\n`);
 
 // Initialize AI clients
-let genAI; // Google Gemini (for FREE tier)
+let genAI; // Google Gemini (optional fallback)
 let anthropic; // Anthropic Claude (for PRO/TEAM tiers)
 
 // Initialize Gemini
@@ -364,15 +364,15 @@ try {
 const TIER_CONFIG = {
   free: {
     primary: { 
-      provider: 'gemini',  // FREE tier uses Google Gemini (100% FREE)
-      model: 'gemini-2.0-flash-exp',  // Latest Gemini Flash model
-      maxTokens: 1000,
+      provider: 'anthropic',  // FREE tier uses Claude 3.5 Haiku (fast & affordable)
+      model: 'claude-3-5-haiku-20241022',
+      maxTokens: 800,
       temperature: 0.5,
     },
     fallback: { 
-      provider: 'gemini',
-      model: 'gemini-1.5-flash',  // Stable Gemini Flash as fallback
-      maxTokens: 1000,
+      provider: 'anthropic',
+      model: 'claude-3-haiku-20240307',  // Older Haiku as fallback
+      maxTokens: 800,
       temperature: 0.5,
     },
     features: {
@@ -383,15 +383,15 @@ const TIER_CONFIG = {
   },
   pro: {
     primary: { 
-      provider: 'anthropic',  // PRO tier uses Claude 3.5 Haiku
-      model: 'claude-3-5-haiku-20241022',  // Confirmed working model ID
-      maxTokens: 2000,
+      provider: 'anthropic',  // PRO tier uses Claude 3.5 Haiku (more tokens)
+      model: 'claude-3-5-haiku-20241022',
+      maxTokens: 1500,
       temperature: 0.4,
     },
     fallback: { 
-      provider: 'gemini',  // Fallback to Gemini if Claude fails
-      model: 'gemini-2.0-flash-exp',
-      maxTokens: 2000,
+      provider: 'anthropic',
+      model: 'claude-3-haiku-20240307',
+      maxTokens: 1500,
       temperature: 0.4,
     },
     features: {
@@ -403,14 +403,14 @@ const TIER_CONFIG = {
   team: {
     primary: { 
       provider: 'anthropic',  // TEAM tier uses Claude 3.5 Sonnet (BEST quality)
-      model: 'claude-3-5-sonnet-20241022',  // Confirmed working model ID
-      maxTokens: 4000,
+      model: 'claude-3-5-sonnet-20241022',
+      maxTokens: 2500,
       temperature: 0.3,
     },
     fallback: { 
       provider: 'anthropic',
-      model: 'claude-3-5-haiku-20241022',  // Fallback to Haiku 3.5
-      maxTokens: 4000,
+      model: 'claude-3-5-haiku-20241022',  // Fallback to Haiku
+      maxTokens: 2500,
       temperature: 0.3,
     },
     features: {
