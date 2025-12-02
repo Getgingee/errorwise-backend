@@ -260,54 +260,24 @@ exports.sendFollowUp = async (req, res) => {
       });
     }
     
-    // Get conversation context
+    // Get conversation context from memory
     let context = getContext(conversationId);
     
-    // If no context in memory, try to rebuild from database
+    // If no context in memory, the conversation has expired or doesn't exist
+    // Note: We use in-memory context for follow-ups because:
+    // 1. ErrorQuery.id is UUID format, but conversationId is eq_... format
+    // 2. The original query saves context in memory when created
+    // 3. Database stores individual queries, not conversation threads
     if (!context) {
-      console.log(`[Chat Follow-up] No context in memory, checking database for: ${conversationId}`);
+      console.log(`[Chat Follow-up] No context in memory for: ${conversationId}`);
+      console.log(`[Chat Follow-up] Context expires after 30 mins or server restart`);
       
-      const previousMessages = await ErrorQuery.findAll({
-        where: {
-          [Op.or]: [
-            { id: conversationId },
-            sequelize.where(
-              sequelize.cast(sequelize.col('id'), 'text'),
-              conversationId
-            )
-          ],
-          userId
-        },
-        order: [['createdAt', 'ASC']],
-        limit: 20
+      return res.status(404).json({
+        success: false,
+        error: 'Conversation session expired. Please submit a new query to start fresh.',
+        code: 'CONVERSATION_EXPIRED',
+        hint: 'Conversation context is stored temporarily. Submit your original query again to continue.'
       });
-      
-      console.log(`[Chat Follow-up] Found ${previousMessages.length} messages in database`);
-      
-      if (previousMessages.length === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Conversation not found. Please start a new query.',
-          code: 'CONVERSATION_NOT_FOUND'
-        });
-      }
-      
-      // Rebuild context from ErrorQuery records
-      // ErrorQuery uses 'explanation' and 'solution' instead of 'aiResponse'
-      const messages = [];
-      for (const msg of previousMessages) {
-        messages.push({ role: 'user', content: msg.errorMessage });
-        // Combine explanation + solution as the AI response
-        const aiContent = [msg.explanation, msg.solution].filter(Boolean).join('\n\n');
-        if (aiContent) {
-          messages.push({ role: 'assistant', content: aiContent });
-        }
-      }
-      
-      context = { messages, metadata: { tier: effectiveTier, userId }, lastUpdated: Date.now() };
-      // Save rebuilt context
-      saveContext(conversationId, context.messages, context.metadata);
-      console.log(`[Chat Follow-up] Rebuilt context with ${messages.length} messages`);
     }
     
     // Check follow-up limit using in-memory counter (since DB doesn't have parentId)
@@ -562,4 +532,20 @@ exports.endConversation = async (req, res) => {
       error: 'Failed to end conversation'
     });
   }
+};
+
+/**
+ * Export saveContext for use by other controllers (e.g., errorController)
+ * This allows the error analysis to save context for follow-up questions
+ */
+exports.saveConversationContext = function(conversationId, errorMessage, aiResponse, metadata = {}) {
+  conversationContexts.set(conversationId, {
+    messages: [
+      { role: 'user', content: errorMessage },
+      { role: 'assistant', content: aiResponse }
+    ],
+    metadata,
+    lastUpdated: Date.now()
+  });
+  console.log(`[Context] Saved conversation context for: ${conversationId}`);
 };

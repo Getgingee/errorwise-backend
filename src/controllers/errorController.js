@@ -13,6 +13,7 @@ const {
 const queryLogger = require('../services/queryLogger');
 const { getLimit, hasFeature } = require('../config/tierConfig');
 const { v4: uuidv4 } = require('uuid');
+const { saveConversationContext } = require('./chatController');
 
 // ============================================================================
 // PERFORMANCE OPTIMIZATIONS
@@ -564,10 +565,21 @@ exports.analyzeError = async (req, res) => {
       // ============================================================================
       const effectiveTier = req.userTier || subscriptionTier;
       const maxFollowUps = getLimit(effectiveTier, 'maxFollowUps');
+      const canFollowUp = hasFeature(effectiveTier, 'followUpQuestions');
+      
+      // Save conversation context for follow-ups if enabled
+      if (canFollowUp) {
+        const aiResponse = [filteredAnalysis.explanation, filteredAnalysis.solution].filter(Boolean).join('\n\n');
+        saveConversationContext(queryId, errorMessage, aiResponse, {
+          tier: effectiveTier,
+          userId,
+          category: filteredAnalysis.category
+        });
+      }
       
       response.conversation = {
         id: queryId, // Use as conversation ID for follow-ups
-        canFollowUp: hasFeature(effectiveTier, 'followUpQuestions'),
+        canFollowUp: canFollowUp,
         maxFollowUps: maxFollowUps,
         followUpsRemaining: maxFollowUps,
         contextMemory: hasFeature(effectiveTier, 'contextMemory'),
