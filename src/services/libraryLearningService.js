@@ -2475,12 +2475,21 @@ async function learnAndStoreImmediately(params) {
     
     console.log(`📚 [LibraryLearning] Found ${results.sources.length} sources, ${results.scrapedSolutions.length} solutions`);
     
-    // Step 3: Store in library if we have good AI response
-    // Don't require web sources - AI solution alone is valuable
+    // Step 3: Store in library ONLY if we have web sources for verification
+    // Web sources are REQUIRED - AI solution alone is not enough
     const hasWebSources = results.scrapedSolutions.length > 0;
-    const topWebSolution = hasWebSources ? results.scrapedSolutions[0] : null;
     
-    if (aiResponse && aiResponse.confidence >= 0.5) {
+    if (!hasWebSources) {
+      console.log(`⏭️ [LibraryLearning] Skipped - No web sources found to verify solution`);
+      results.success = true;
+      results.skippedReason = 'no_web_sources';
+      results.processingTimeMs = Date.now() - startTime;
+      return results;
+    }
+    
+    const topWebSolution = results.scrapedSolutions[0];
+    
+    if (aiResponse && aiResponse.confidence >= 0.6) {
       // Check if this error pattern already exists
       const pattern = normalizeErrorPattern(errorMessage, errorType, language);
       const existingEntry = await ErrorLibrary.findOne({
@@ -2510,6 +2519,7 @@ async function learnAndStoreImmediately(params) {
         console.log(`📋 [LibraryLearning] Input type: ${smartCat.inputType} (${smartCat.isError ? 'ERROR' : 'QUERY'}) - confidence: ${(smartCat.inputTypeConfidence * 100).toFixed(0)}%`);
         
         // Create new library entry with smart categorization and input type
+        // Web sources are guaranteed to exist at this point
         const entry = await ErrorLibrary.create({
           type: 'system',
           errorCode: generateErrorCode({ pattern, language }),
@@ -2525,8 +2535,8 @@ async function learnAndStoreImmediately(params) {
           codeExample: aiResponse.codeExample || null,
           tags: generateTags({ language, errorType, category: smartCat.category, originalError: errorMessage }),
           difficulty: 'medium',
-          sourceUrl: topWebSolution ? topWebSolution.url : null,
-          webSources: hasWebSources ? JSON.stringify(results.scrapedSolutions.slice(0, 5)) : null,
+          sourceUrl: topWebSolution.url,
+          webSources: JSON.stringify(results.scrapedSolutions.slice(0, 5)),
           lastVerified: new Date(),
           isPublic: true,
           isActive: true,
@@ -2534,8 +2544,8 @@ async function learnAndStoreImmediately(params) {
           helpfulCount: 0
         });
         
-        results.libraryEntry = { created: true, id: entry.id, title: entry.title, category: smartCat.category, hasWebSources };
-        console.log(`✅ [LibraryLearning] Created new entry: ${entry.id} - ${entry.title} (${smartCat.category})${hasWebSources ? ' with web sources' : ''}`);
+        results.libraryEntry = { created: true, id: entry.id, title: entry.title, category: smartCat.category, webSourcesCount: results.scrapedSolutions.length };
+        console.log(`✅ [LibraryLearning] Created new entry: ${entry.id} - ${entry.title} (${smartCat.category}) with ${results.scrapedSolutions.length} web sources`);
       }
     } else {
       console.log(`⏭️ [LibraryLearning] Skipped - AI confidence too low: ${aiResponse?.confidence || 0}`);

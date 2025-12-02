@@ -78,15 +78,91 @@ function logQueryAsync(data) {
  * Generate engaging suggested follow-up questions
  * These appear as clickable chips for easy follow-up
  * Made friendly for non-tech users!
+ * Now generates contextually relevant questions based on the specific error/query
  */
 function generateSuggestedQuestions(errorMessage, analysis, turn = 1) {
   const suggestions = [];
   const errorLower = errorMessage.toLowerCase();
   const solutionLower = (analysis.solution || '').toLowerCase();
+  const explanationLower = (analysis.explanation || '').toLowerCase();
+  const category = (analysis.category || '').toLowerCase();
+  
+  // Extract key terms from the error for context-aware suggestions
+  const keyTerms = extractKeyTerms(errorMessage);
+  const hasCode = /```|function|const |let |var |import |require\(|class |def |public |private /.test(errorMessage);
+  const isQuestion = /^(how|what|why|when|where|which|can|could|should|is|are|does|do)\b/i.test(errorMessage.trim());
+  const hasStackTrace = /at\s+[\w.]+\s*\(|line\s+\d+|:\d+:\d+/i.test(errorMessage);
 
-  // First turn - based on error type
+  // First turn - based on error type and context
   if (turn === 1) {
-    // Payment/Banking errors
+    
+    // PROGRAMMING ERRORS - Context-aware follow-ups
+    if (hasStackTrace || hasCode || category.includes('code') || category.includes('syntax') || category.includes('runtime')) {
+      // Extract specific error type for targeted questions
+      if (/undefined|null|NaN|not defined/i.test(errorLower)) {
+        suggestions.push(`🔍 Why is ${keyTerms.variable || 'this'} undefined?`);
+        suggestions.push("🛠️ How do I add a null check?");
+      }
+      if (/cannot read|property/i.test(errorLower)) {
+        suggestions.push("🐛 How do I debug this property error?");
+        suggestions.push("✅ Show safe property access pattern");
+      }
+      if (/import|require|module|export/i.test(errorLower)) {
+        suggestions.push("📦 Is my import path correct?");
+        suggestions.push("🔧 How do I fix module resolution?");
+      }
+      if (/async|await|promise|then|catch/i.test(errorLower)) {
+        suggestions.push("⏳ How do I handle this async properly?");
+        suggestions.push("🔄 Show try-catch pattern for this");
+      }
+      if (/type|string|number|boolean|array|object/i.test(errorLower)) {
+        suggestions.push(`🔤 What type should ${keyTerms.variable || 'this'} be?`);
+        suggestions.push("📋 How do I validate types?");
+      }
+      // Generic code follow-ups if none matched
+      if (suggestions.length === 0) {
+        suggestions.push("📝 Show me the correct code");
+        suggestions.push("🐛 How do I debug this?");
+      }
+    }
+    
+    // DATABASE ERRORS
+    if (/database|sql|query|postgres|mysql|mongo|connection refused|sequelize|prisma/i.test(errorLower)) {
+      suggestions.push("🔌 Is my database connection correct?");
+      suggestions.push("📊 Show me the correct query");
+      if (/connection/i.test(errorLower)) {
+        suggestions.push("🔐 Are my DB credentials right?");
+      }
+    }
+    
+    // API/HTTP ERRORS
+    if (/api|http|fetch|axios|request|response|status|cors|401|403|404|500/i.test(errorLower)) {
+      if (/401|unauthorized|auth/i.test(errorLower)) {
+        suggestions.push("🔑 How do I fix authentication?");
+        suggestions.push("🔐 Is my token valid?");
+      }
+      if (/404|not found/i.test(errorLower)) {
+        suggestions.push("🔍 Is my endpoint URL correct?");
+        suggestions.push("📍 Show me the right API path");
+      }
+      if (/cors/i.test(errorLower)) {
+        suggestions.push("🌐 How do I fix CORS?");
+        suggestions.push("⚙️ Show server-side CORS config");
+      }
+      if (/500|server error|internal/i.test(errorLower)) {
+        suggestions.push("🔧 How do I check server logs?");
+        suggestions.push("🐛 What's causing the server error?");
+      }
+    }
+    
+    // PACKAGE/DEPENDENCY ERRORS
+    if (/npm|yarn|pnpm|package|dependency|version|install|node_modules/i.test(errorLower)) {
+      suggestions.push("📦 How do I install the right version?");
+      suggestions.push("🧹 Should I delete node_modules?");
+      suggestions.push("📋 Are there peer dependency issues?");
+    }
+    
+    // Payment/Banking errors (non-tech)
     if (errorLower.includes('payment') || errorLower.includes('card') || errorLower.includes('declined') || errorLower.includes('transaction')) {
       suggestions.push("💳 Why was my payment declined?");
       suggestions.push("🔒 Is my card info safe?");
@@ -120,91 +196,195 @@ function generateSuggestedQuestions(errorMessage, analysis, turn = 1) {
       suggestions.push("☁️ How do I use cloud storage?");
       suggestions.push("📊 What's using all my space?");
     }
-
-    // Update/Version issues
-    if (errorLower.includes('update') || errorLower.includes('version') || errorLower.includes('upgrade') || errorLower.includes('outdated')) {
-      suggestions.push("⬆️ How do I update?");
-      suggestions.push("⚠️ Is it safe to update?");
-      suggestions.push("🕐 How long will it take?");
+    
+    // QUESTION/QUERY specific suggestions (not errors)
+    if (isQuestion && !hasStackTrace) {
+      if (/how to|how do i/i.test(errorLower)) {
+        suggestions.push("📝 Show me step by step");
+        suggestions.push("💻 Give me a code example");
+      }
+      if (/what is|what are|explain/i.test(errorLower)) {
+        suggestions.push("🎯 Give me a simple example");
+        suggestions.push("🔗 What are related concepts?");
+      }
+      if (/why|reason/i.test(errorLower)) {
+        suggestions.push("📚 Explain in more detail");
+        suggestions.push("🆚 What are the alternatives?");
+      }
+      if (/best practice|recommend|should i/i.test(errorLower)) {
+        suggestions.push("⚖️ What are the tradeoffs?");
+        suggestions.push("🏆 Show industry best practice");
+      }
     }
 
-    // Error codes
-    if (errorLower.includes('error') || errorLower.includes('code') || /\d{3,}/.test(errorLower)) {
-      suggestions.push("🔍 What does this error mean?");
-      suggestions.push("🛠️ How do I fix it?");
+    // Solution-based context follow-ups
+    if (solutionLower.includes('npm install') || solutionLower.includes('yarn add')) {
+      suggestions.push("📦 What version should I install?");
+    }
+    if (solutionLower.includes('restart') || solutionLower.includes('reboot')) {
+      suggestions.push("🔄 Do I need to restart anything else?");
+    }
+    if (solutionLower.includes('environment') || solutionLower.includes('env')) {
+      suggestions.push("⚙️ How do I set environment variables?");
     }
 
-    // Generic helpful suggestions
+    // Generic helpful suggestions if nothing specific matched
     if (suggestions.length < 2) {
-      suggestions.push("🤔 Explain this simply please");
-      suggestions.push("📝 Show me step by step");
+      if (hasCode || hasStackTrace) {
+        suggestions.push("📝 Show me the correct code");
+        suggestions.push("🐛 Help me debug step by step");
+      } else {
+        suggestions.push("🤔 Explain this simply please");
+        suggestions.push("📝 Show me step by step");
+      }
     }
   }
 
-  // Later turns - conversation continuers
+  // Later turns - conversation continuers based on context
   else {
+    if (solutionLower.includes('```') || explanationLower.includes('```')) {
+      suggestions.push("🔍 Explain this code line by line");
+      suggestions.push("✏️ How do I modify this for my case?");
+    }
     if (solutionLower.includes('click') || solutionLower.includes('tap') || solutionLower.includes('go to')) {
       suggestions.push("📍 Where exactly do I click?");
     }
     if (solutionLower.includes('download') || solutionLower.includes('install')) {
       suggestions.push("✅ Is this download safe?");
     }
+    if (solutionLower.includes('try') || solutionLower.includes('should work')) {
+      suggestions.push("🔄 What if that doesn't work?");
+    }
+    if (solutionLower.includes('error') || solutionLower.includes('exception')) {
+      suggestions.push("🛡️ How do I prevent this error?");
+    }
     
-    suggestions.push("😕 I'm still confused");
-    suggestions.push("🔄 What if that doesn't work?");
-    suggestions.push("💡 Any other solutions?");
+    // Always add these for follow-ups
+    if (suggestions.length < 2) {
+      suggestions.push("😕 I'm still confused");
+      suggestions.push("💡 Any other solutions?");
+    }
   }
 
   // Always add success option
-  suggestions.push("✅ That fixed it!");
+  suggestions.push("✅ That fixed it, thanks!");
 
   // Dedupe and limit to 4
   const unique = [...new Set(suggestions)];
   return unique.slice(0, 4);
-}/**
- * Generate contextual follow-up chips after a follow-up response
- * More dynamic based on the ongoing conversation
+}
+
+/**
+ * Extract key terms from error message for contextual suggestions
  */
-function generateConversationalChips(previousMessages, latestResponse) {
+function extractKeyTerms(errorMessage) {
+  const terms = {};
+  
+  // Extract variable names
+  const varMatch = errorMessage.match(/'([a-zA-Z_$][a-zA-Z0-9_$]*)'/);
+  if (varMatch) terms.variable = varMatch[1];
+  
+  // Extract function names
+  const funcMatch = errorMessage.match(/function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)|([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(/);
+  if (funcMatch) terms.function = funcMatch[1] || funcMatch[2];
+  
+  // Extract file names
+  const fileMatch = errorMessage.match(/([a-zA-Z0-9_-]+\.(js|ts|py|java|cpp|go|rs|rb|php))/i);
+  if (fileMatch) terms.file = fileMatch[1];
+  
+  // Extract module/package names
+  const moduleMatch = errorMessage.match(/(?:from|import|require)\s*['"(]([^'")\s]+)/i);
+  if (moduleMatch) terms.module = moduleMatch[1];
+  
+  return terms;
+}
+
+/**
+ * Generate contextual follow-up chips after a follow-up response
+ * More dynamic based on the ongoing conversation and original error context
+ */
+function generateConversationalChips(previousMessages, latestResponse, originalError = '') {
   const chips = [];
   const responseLower = latestResponse.toLowerCase();
+  const originalLower = originalError.toLowerCase();
   
-  // If response contains code
+  // Get context from the original error/query
+  const hasStackTrace = /at\s+[\w.]+\s*\(|line\s+\d+|:\d+:\d+/i.test(originalError);
+  const isCodeRelated = /```|function|const |let |var |import |class |def /.test(originalError + latestResponse);
+  
+  // If response contains code - provide code-specific follow-ups
   if (responseLower.includes('```') || responseLower.includes('function') || responseLower.includes('const ')) {
-    chips.push("Explain this code step by step");
-    chips.push("What does this line do?");
+    chips.push("🔍 Explain this code line by line");
+    chips.push("✏️ How do I adapt this for my case?");
+    if (hasStackTrace) {
+      chips.push("🐛 Where exactly do I put this fix?");
+    }
+  }
+  
+  // Context-aware based on original error type
+  if (/undefined|null|NaN/i.test(originalLower)) {
+    chips.push("🛡️ How do I prevent null errors?");
+  }
+  if (/import|require|module/i.test(originalLower)) {
+    chips.push("📦 Check my import syntax");
+  }
+  if (/async|await|promise/i.test(originalLower)) {
+    chips.push("⏳ Explain async/await flow");
+  }
+  if (/api|fetch|request|http/i.test(originalLower)) {
+    chips.push("🌐 Show API error handling");
+  }
+  if (/database|sql|query/i.test(originalLower)) {
+    chips.push("📊 Optimize this query");
   }
   
   // If response mentions trying something
-  if (responseLower.includes('try') || responseLower.includes('should work')) {
-    chips.push("What if it still doesn't work?");
-    chips.push("Are there alternatives?");
+  if (responseLower.includes('try') || responseLower.includes('should work') || responseLower.includes('this will')) {
+    chips.push("🔄 What if it still doesn't work?");
+    chips.push("🆚 Are there alternatives?");
   }
   
   // If response mentions error handling
   if (responseLower.includes('error') || responseLower.includes('catch') || responseLower.includes('exception')) {
-    chips.push("How do I handle this error properly?");
+    chips.push("🛡️ Best error handling pattern?");
   }
   
   // If response is about debugging
   if (responseLower.includes('debug') || responseLower.includes('console.log') || responseLower.includes('breakpoint')) {
-    chips.push("Show me how to debug this");
+    chips.push("🐛 Show debugging steps");
   }
   
-  // If response mentions dependencies
-  if (responseLower.includes('install') || responseLower.includes('package') || responseLower.includes('dependency')) {
-    chips.push("How do I install this?");
-    chips.push("What version do I need?");
+  // If response mentions dependencies or installation
+  if (responseLower.includes('install') || responseLower.includes('package') || responseLower.includes('npm') || responseLower.includes('yarn')) {
+    chips.push("📦 What version do I need?");
+    chips.push("⚠️ Any peer dependencies?");
   }
   
-  // Generic helpful chips
+  // If response mentions configuration
+  if (responseLower.includes('config') || responseLower.includes('setting') || responseLower.includes('environment')) {
+    chips.push("⚙️ Show example config");
+  }
+  
+  // If response is explaining a concept
+  if (responseLower.includes('because') || responseLower.includes('this means') || responseLower.includes('the reason')) {
+    chips.push("📚 Tell me more about this");
+    chips.push("🎯 Give me a practical example");
+  }
+  
+  // Generic helpful chips if none matched
   if (chips.length < 2) {
-    chips.push("Can you simplify that?");
-    chips.push("Show me an example");
+    if (isCodeRelated) {
+      chips.push("📝 Show complete working code");
+      chips.push("🐛 Help me debug further");
+    } else {
+      chips.push("🤔 Can you simplify that?");
+      chips.push("📋 Show me step by step");
+    }
   }
   
-  chips.push("Thanks, that helped! 👍");
-  chips.push("I need more help");
+  // Always add closure options
+  chips.push("✅ That fixed it! 👍");
+  chips.push("❓ Still need help");
   
   return [...new Set(chips)].slice(0, 4);
 }
