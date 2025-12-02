@@ -2475,10 +2475,12 @@ async function learnAndStoreImmediately(params) {
     
     console.log(`📚 [LibraryLearning] Found ${results.sources.length} sources, ${results.scrapedSolutions.length} solutions`);
     
-    // Step 3: Store in library if we have good AI response + web verification
-    if (aiResponse && aiResponse.confidence >= 0.7 && results.scrapedSolutions.length > 0) {
-      const topWebSolution = results.scrapedSolutions[0];
-      
+    // Step 3: Store in library if we have good AI response
+    // Don't require web sources - AI solution alone is valuable
+    const hasWebSources = results.scrapedSolutions.length > 0;
+    const topWebSolution = hasWebSources ? results.scrapedSolutions[0] : null;
+    
+    if (aiResponse && aiResponse.confidence >= 0.5) {
       // Check if this error pattern already exists
       const pattern = normalizeErrorPattern(errorMessage, errorType, language);
       const existingEntry = await ErrorLibrary.findOne({
@@ -2491,11 +2493,14 @@ async function learnAndStoreImmediately(params) {
       
       if (existingEntry) {
         // Update existing entry with new source
-        await existingEntry.update({
+        const updateData = {
           viewCount: existingEntry.viewCount + 1,
-          lastVerified: new Date(),
-          sourceUrl: existingEntry.sourceUrl || topWebSolution.url
-        });
+          lastVerified: new Date()
+        };
+        if (topWebSolution && !existingEntry.sourceUrl) {
+          updateData.sourceUrl = topWebSolution.url;
+        }
+        await existingEntry.update(updateData);
         results.libraryEntry = { updated: true, id: existingEntry.id };
         console.log(`📖 [LibraryLearning] Updated existing entry: ${existingEntry.id}`);
       } else {
@@ -2520,8 +2525,8 @@ async function learnAndStoreImmediately(params) {
           codeExample: aiResponse.codeExample || null,
           tags: generateTags({ language, errorType, category: smartCat.category, originalError: errorMessage }),
           difficulty: 'medium',
-          sourceUrl: topWebSolution.url,
-          webSources: JSON.stringify(results.scrapedSolutions.slice(0, 5)),
+          sourceUrl: topWebSolution ? topWebSolution.url : null,
+          webSources: hasWebSources ? JSON.stringify(results.scrapedSolutions.slice(0, 5)) : null,
           lastVerified: new Date(),
           isPublic: true,
           isActive: true,
@@ -2529,9 +2534,11 @@ async function learnAndStoreImmediately(params) {
           helpfulCount: 0
         });
         
-        results.libraryEntry = { created: true, id: entry.id, title: entry.title, category: smartCat.category };
-        console.log(`✅ [LibraryLearning] Created new entry: ${entry.id} - ${entry.title} (${smartCat.category})`);
+        results.libraryEntry = { created: true, id: entry.id, title: entry.title, category: smartCat.category, hasWebSources };
+        console.log(`✅ [LibraryLearning] Created new entry: ${entry.id} - ${entry.title} (${smartCat.category})${hasWebSources ? ' with web sources' : ''}`);
       }
+    } else {
+      console.log(`⏭️ [LibraryLearning] Skipped - AI confidence too low: ${aiResponse?.confidence || 0}`);
     }
     
     results.success = true;
