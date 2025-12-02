@@ -16,14 +16,18 @@ const SUBSCRIPTION_TIERS = {
     description: 'Perfect for trying out ErrorWise. Get 50 error explanations per month with 7-day history.',
     dodo_plan_id: null,
     // Display-ready feature list for frontend (single source of truth)
+    // Matches original pricing page design exactly
     displayFeatures: [
-      { text: '50 queries per month', available: true },
-      { text: 'Basic error explanations', available: true },
-      { text: `Claude Haiku AI (${modelConfig.getMaxTokensForTier('free')} tokens)`, available: true },
-      { text: '7-day error history', available: true },
+      { text: '50 error solutions/month', available: true },
+      { text: '10 queries per day', available: true },
+      { text: 'Plain English explanations', available: true },
+      { text: 'Basic step-by-step fixes', available: true },
+      { text: '7-day history', available: true },
+      { text: 'Works with any error type', available: true },
       { text: 'Community support', available: true },
-      { text: 'Code examples & fixes', available: false },
       { text: 'Unlimited queries', available: false },
+      { text: 'Web search for solutions', available: false },
+      { text: 'Follow-up questions', available: false },
       { text: 'Export history', available: false }
     ],
     features: {
@@ -72,16 +76,23 @@ const SUBSCRIPTION_TIERS = {
     dodo_plan_id: 'pdt_OKdKW76gtO6vBWltBBV5d',
     mostPopular: true,
     // Display-ready feature list for frontend (single source of truth)
+    // Matches original pricing page design exactly
     displayFeatures: [
-      { text: 'Unlimited queries', available: true },
-      { text: 'Full error explanations + fixes', available: true },
-      { text: 'Code examples & prevention tips', available: true },
-      { text: `Claude Haiku AI (${modelConfig.getMaxTokensForTier('pro')} tokens)`, available: true },
-      { text: 'Unlimited error history', available: true },
+      { text: 'UNLIMITED error solutions', available: true, highlight: true, badge: 'NEW' },
+      { text: 'Ask anything about tech', available: true, highlight: true, badge: 'NEW' },
+      { text: 'Web search for latest solutions', available: true, highlight: true, badge: 'Live' },
+      { text: '5 follow-up questions per query', available: true, highlight: true, badge: 'NEW' },
+      { text: 'Visual guides & screenshots', available: true },
+      { text: 'How-to tutorials', available: true },
+      { text: 'Prevention tips', available: true },
+      { text: 'Detailed explanations', available: true },
+      { text: 'Multi-language support (10+)', available: true, badge: 'NEW' },
+      { text: 'Unlimited history storage', available: true },
       { text: 'Export to JSON/CSV', available: true },
-      { text: 'URL scraping context', available: true },
-      { text: 'Multi-language support', available: true },
-      { text: 'Email support', available: true }
+      { text: 'Save solutions to library', available: true, badge: 'NEW' },
+      { text: 'Faster AI responses', available: true },
+      { text: 'Email support', available: true },
+      { text: 'India-specific solutions', available: true }
     ],
     features: {
       // Query limits
@@ -134,14 +145,17 @@ const SUBSCRIPTION_TIERS = {
     trialDays: 14,
     dodo_plan_id: 'pdt_Zbn5YM2pCgkKcdQyV0ouY',
     // Display-ready feature list for frontend (single source of truth)
+    // Matches original pricing page design exactly
     displayFeatures: [
-      { text: 'Everything in Pro', available: true },
-      { text: 'Team features (10 members)', available: true },
-      { text: 'Shared error history', available: true },
-      { text: 'Team dashboard & analytics', available: true },
-      { text: `Claude Sonnet AI (${modelConfig.getMaxTokensForTier('team')} tokens)`, available: true },
-      { text: 'Advanced debugging tools', available: true },
-      { text: 'Priority support', available: true },
+      { text: 'Everything in Pro', available: true, highlight: true, badge: 'NEW' },
+      { text: 'Up to 10 team members', available: true, highlight: true, badge: 'NEW' },
+      { text: 'Team dashboard & analytics', available: true, highlight: true, badge: 'NEW' },
+      { text: 'Shared solution library', available: true, highlight: true, badge: 'NEW' },
+      { text: 'Help teammates with errors', available: true },
+      { text: 'Member usage reports', available: true },
+      { text: 'Best AI model (Claude Sonnet)', available: true },
+      { text: '10 follow-up questions per query', available: true },
+      { text: 'Priority support queue', available: true },
       { text: 'API access', available: true },
       { text: 'Custom integrations', available: true }
     ],
