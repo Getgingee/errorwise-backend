@@ -333,12 +333,22 @@ const errorHandler = (err, req, res, next) => {
   
   // Unknown/Unexpected errors
   logger.error('Unexpected error:', err);
+  console.error('🚨 GLOBAL ERROR HANDLER:', {
+    message: err.message,
+    name: err.name,
+    stack: err.stack?.substring(0, 500)
+  });
   
   return res.status(500).json({
     error: process.env.NODE_ENV === 'production' 
       ? 'Internal server error' 
       : err.message,
     code: 'INTERNAL_ERROR',
+    // Temporarily include debug info
+    debugInfo: {
+      name: err.name,
+      hint: err.message?.substring(0, 100)
+    },
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 };
