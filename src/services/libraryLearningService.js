@@ -1881,16 +1881,213 @@ function generateTitle(errorMessage, errorType) {
   return errorMessage.substring(0, 60) + (errorMessage.length > 60 ? '...' : '');
 }
 
+// ============================================================================
+// SMART CATEGORIZATION SYSTEM
+// Comprehensive categories covering all domains
+// ============================================================================
+
+const SMART_CATEGORIES = {
+  // === TECHNOLOGY & PROGRAMMING ===
+  programming: {
+    name: 'Programming',
+    subcategories: ['javascript', 'python', 'java', 'csharp', 'cpp', 'go', 'rust', 'php', 'ruby', 'swift', 'kotlin', 'typescript'],
+    keywords: ['code', 'function', 'variable', 'error', 'exception', 'bug', 'debug', 'compile', 'runtime', 'syntax']
+  },
+  web_development: {
+    name: 'Web Development',
+    subcategories: ['frontend', 'backend', 'fullstack', 'html', 'css', 'react', 'angular', 'vue', 'node', 'express', 'django', 'flask'],
+    keywords: ['website', 'webpage', 'browser', 'http', 'https', 'api', 'rest', 'graphql', 'cors', 'dom']
+  },
+  mobile_development: {
+    name: 'Mobile Development',
+    subcategories: ['ios', 'android', 'react-native', 'flutter', 'swift', 'kotlin'],
+    keywords: ['app', 'mobile', 'phone', 'tablet', 'notification', 'push']
+  },
+  database: {
+    name: 'Database',
+    subcategories: ['sql', 'nosql', 'postgresql', 'mysql', 'mongodb', 'redis', 'sqlite', 'oracle'],
+    keywords: ['query', 'table', 'column', 'index', 'transaction', 'connection', 'migration']
+  },
+  devops: {
+    name: 'DevOps & Cloud',
+    subcategories: ['docker', 'kubernetes', 'aws', 'azure', 'gcp', 'ci-cd', 'jenkins', 'github-actions'],
+    keywords: ['deploy', 'container', 'server', 'cloud', 'pipeline', 'build', 'infrastructure']
+  },
+  network: {
+    name: 'Network & Security',
+    subcategories: ['wifi', 'ethernet', 'vpn', 'firewall', 'ssl', 'dns', 'routing'],
+    keywords: ['connection', 'timeout', 'refused', 'network', 'ip', 'port', 'socket', 'certificate']
+  },
+  
+  // === DEVICES & HARDWARE ===
+  computer: {
+    name: 'Computer & Laptop',
+    subcategories: ['windows', 'macos', 'linux', 'bios', 'drivers', 'hardware'],
+    keywords: ['pc', 'laptop', 'desktop', 'boot', 'startup', 'shutdown', 'freeze', 'crash', 'bsod']
+  },
+  smartphone: {
+    name: 'Smartphone & Tablet',
+    subcategories: ['iphone', 'android', 'samsung', 'pixel', 'ipad'],
+    keywords: ['phone', 'mobile', 'screen', 'battery', 'charging', 'sim', 'update']
+  },
+  printer: {
+    name: 'Printer & Scanner',
+    subcategories: ['hp', 'canon', 'epson', 'brother', 'inkjet', 'laser'],
+    keywords: ['print', 'scan', 'paper', 'ink', 'toner', 'jam', 'offline', 'driver']
+  },
+  smart_home: {
+    name: 'Smart Home & IoT',
+    subcategories: ['alexa', 'google-home', 'smart-tv', 'thermostat', 'camera', 'doorbell'],
+    keywords: ['smart', 'iot', 'connected', 'voice', 'automation', 'hub']
+  },
+  
+  // === VEHICLES & AUTOMOTIVE ===
+  automotive: {
+    name: 'Automotive & Vehicles',
+    subcategories: ['car', 'motorcycle', 'truck', 'electric-vehicle', 'maintenance'],
+    keywords: ['engine', 'brake', 'oil', 'tire', 'battery', 'warning', 'check', 'diagnostic']
+  },
+  
+  // === HOME & APPLIANCES ===
+  appliances: {
+    name: 'Home Appliances',
+    subcategories: ['washer', 'dryer', 'refrigerator', 'dishwasher', 'oven', 'microwave', 'ac', 'heater'],
+    keywords: ['appliance', 'not working', 'error code', 'beeping', 'leaking', 'not heating', 'not cooling']
+  },
+  plumbing: {
+    name: 'Plumbing',
+    subcategories: ['toilet', 'sink', 'shower', 'water-heater', 'pipes', 'drain'],
+    keywords: ['leak', 'clog', 'drain', 'water', 'pressure', 'pipe', 'faucet']
+  },
+  electrical: {
+    name: 'Electrical',
+    subcategories: ['wiring', 'outlet', 'circuit-breaker', 'lighting', 'switch'],
+    keywords: ['power', 'electric', 'outlet', 'circuit', 'breaker', 'tripped', 'voltage']
+  },
+  
+  // === FINANCE & BANKING ===
+  banking: {
+    name: 'Banking & Finance',
+    subcategories: ['credit-card', 'debit-card', 'online-banking', 'mobile-banking', 'loans', 'mortgage'],
+    keywords: ['bank', 'account', 'transaction', 'payment', 'transfer', 'declined', 'blocked']
+  },
+  payment: {
+    name: 'Payments & Checkout',
+    subcategories: ['paypal', 'stripe', 'razorpay', 'upi', 'wallet', 'crypto'],
+    keywords: ['payment', 'checkout', 'pay', 'card', 'declined', 'failed', 'refund']
+  },
+  
+  // === GAMING & ENTERTAINMENT ===
+  gaming: {
+    name: 'Gaming',
+    subcategories: ['pc-gaming', 'console', 'playstation', 'xbox', 'nintendo', 'mobile-gaming', 'steam'],
+    keywords: ['game', 'gaming', 'fps', 'lag', 'crash', 'controller', 'graphics']
+  },
+  streaming: {
+    name: 'Streaming & Media',
+    subcategories: ['netflix', 'youtube', 'spotify', 'disney-plus', 'amazon-prime', 'twitch'],
+    keywords: ['stream', 'video', 'audio', 'buffer', 'playback', 'quality', 'subtitle']
+  },
+  
+  // === SOFTWARE & APPS ===
+  software: {
+    name: 'Software & Applications',
+    subcategories: ['microsoft-office', 'adobe', 'antivirus', 'browser', 'email-client'],
+    keywords: ['software', 'app', 'application', 'install', 'update', 'license', 'crash']
+  },
+  authentication: {
+    name: 'Authentication & Login',
+    subcategories: ['password', 'two-factor', 'oauth', 'sso', 'mfa'],
+    keywords: ['login', 'password', 'authentication', 'token', 'session', 'locked', 'reset']
+  },
+  
+  // === SOCIAL & COMMUNICATION ===
+  social_media: {
+    name: 'Social Media',
+    subcategories: ['facebook', 'instagram', 'twitter', 'linkedin', 'tiktok', 'whatsapp'],
+    keywords: ['social', 'account', 'post', 'message', 'blocked', 'suspended', 'verification']
+  },
+  email: {
+    name: 'Email',
+    subcategories: ['gmail', 'outlook', 'yahoo', 'smtp', 'imap'],
+    keywords: ['email', 'mail', 'inbox', 'spam', 'send', 'receive', 'attachment']
+  },
+  
+  // === GENERAL CATEGORIES ===
+  general: {
+    name: 'General',
+    subcategories: ['troubleshooting', 'how-to', 'tips', 'best-practices'],
+    keywords: []
+  },
+  other: {
+    name: 'Other',
+    subcategories: [],
+    keywords: []
+  }
+};
+
 /**
- * Map detected category to valid enum
+ * Smart category detection from error message and context
+ */
+function detectSmartCategory(errorMessage, context = {}) {
+  const text = (errorMessage + ' ' + JSON.stringify(context)).toLowerCase();
+  
+  let bestMatch = { category: 'general', subcategory: null, score: 0 };
+  
+  for (const [categoryKey, categoryData] of Object.entries(SMART_CATEGORIES)) {
+    let score = 0;
+    let matchedSubcategory = null;
+    
+    // Check keywords
+    for (const keyword of categoryData.keywords) {
+      if (text.includes(keyword.toLowerCase())) {
+        score += 1;
+      }
+    }
+    
+    // Check subcategories (higher weight)
+    for (const sub of categoryData.subcategories) {
+      if (text.includes(sub.toLowerCase())) {
+        score += 3;
+        matchedSubcategory = sub;
+      }
+    }
+    
+    if (score > bestMatch.score) {
+      bestMatch = {
+        category: categoryKey,
+        subcategory: matchedSubcategory,
+        score
+      };
+    }
+  }
+  
+  return bestMatch;
+}
+
+/**
+ * Map detected category to valid category
  */
 function mapCategory(category) {
-  const validCategories = [
-    'payment', 'website', 'gaming', 'mobile', 'software',
-    'network', 'database', 'authentication', 'api', 'general'
-  ];
+  // If it's already a valid smart category, return it
+  if (SMART_CATEGORIES[category]) {
+    return category;
+  }
   
-  return validCategories.includes(category) ? category : 'general';
+  // Legacy mapping
+  const legacyMapping = {
+    'payment': 'payment',
+    'website': 'web_development',
+    'gaming': 'gaming',
+    'mobile': 'smartphone',
+    'software': 'software',
+    'network': 'network',
+    'database': 'database',
+    'authentication': 'authentication',
+    'api': 'web_development'
+  };
+  
+  return legacyMapping[category] || 'general';
 }
 
 /**
@@ -2179,18 +2376,23 @@ async function learnAndStoreImmediately(params) {
         results.libraryEntry = { updated: true, id: existingEntry.id };
         console.log(`📖 [LibraryLearning] Updated existing entry: ${existingEntry.id}`);
       } else {
-        // Create new library entry
+        // Smart category detection
+        const smartCat = detectSmartCategory(errorMessage, { language, errorType, category });
+        console.log(`🏷️ [LibraryLearning] Detected category: ${smartCat.category} / ${smartCat.subcategory}`);
+        
+        // Create new library entry with smart categorization
         const entry = await ErrorLibrary.create({
           type: 'system',
           errorCode: generateErrorCode({ pattern, language }),
           errorPattern: pattern,
           title: generateTitle(errorMessage, errorType),
           errorMessage: errorMessage.substring(0, 500),
-          category: mapCategory(category),
+          category: smartCat.category,
+          subcategory: smartCat.subcategory || language || null,
           explanation: aiResponse.explanation,
           solution: aiResponse.solution,
           codeExample: aiResponse.codeExample || null,
-          tags: generateTags({ language, errorType, category, originalError: errorMessage }),
+          tags: generateTags({ language, errorType, category: smartCat.category, originalError: errorMessage }),
           difficulty: 'medium',
           sourceUrl: topWebSolution.url,
           webSources: JSON.stringify(results.scrapedSolutions.slice(0, 5)),
@@ -2201,8 +2403,8 @@ async function learnAndStoreImmediately(params) {
           helpfulCount: 0
         });
         
-        results.libraryEntry = { created: true, id: entry.id, title: entry.title };
-        console.log(`✅ [LibraryLearning] Created new entry: ${entry.id} - ${entry.title}`);
+        results.libraryEntry = { created: true, id: entry.id, title: entry.title, category: smartCat.category };
+        console.log(`✅ [LibraryLearning] Created new entry: ${entry.id} - ${entry.title} (${smartCat.category})`);
       }
     }
     
@@ -2263,6 +2465,10 @@ module.exports = {
   
   // Immediate learning - scrape and store on every query
   learnAndStoreImmediately,
+  
+  // Smart categorization
+  detectSmartCategory,
+  SMART_CATEGORIES,
   
   // Product detection
   detectProductFromError,

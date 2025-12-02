@@ -61,28 +61,19 @@ const ErrorLibrary = sequelize.define('ErrorLibrary', {
     allowNull: false
   },
   
-  // Category for filtering
+  // Category for filtering - Smart categorization covering all domains
   category: {
-    type: DataTypes.ENUM(
-      'payment',
-      'website', 
-      'gaming',
-      'mobile',
-      'software',
-      'network',
-      'database',
-      'authentication',
-      'api',
-      'general'
-    ),
+    type: DataTypes.STRING(50),
     allowNull: false,
-    defaultValue: 'general'
+    defaultValue: 'general',
+    comment: 'Main category for the error/solution'
   },
   
   // Subcategory for more granular filtering
   subcategory: {
     type: DataTypes.STRING(100),
-    allowNull: true
+    allowNull: true,
+    comment: 'Subcategory within main category'
   },
   
   // Plain English explanation
