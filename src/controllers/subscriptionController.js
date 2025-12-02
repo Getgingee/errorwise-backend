@@ -448,6 +448,24 @@ exports.createSubscription = async (req, res) => {
 
     // Create payment session with Dodo Payments (Hosted Checkout)
     const paymentService = require('../services/paymentService');
+    
+    console.log('📦 Creating payment session for:', {
+      userId: user.id,
+      planId,
+      productId: plan.dodo_plan_id,
+      amount: plan.price
+    });
+    
+    // Check if payment service is properly configured
+    if (!process.env.DODO_SECRET_KEY && !process.env.DODO_API_KEY) {
+      console.error('❌ No Dodo payment API key configured');
+      return res.status(503).json({
+        error: 'Payment service not configured',
+        message: 'Please contact support to set up payments',
+        code: 'PAYMENT_NOT_CONFIGURED'
+      });
+    }
+    
     const paymentSession = await paymentService.createPaymentSession({
       userId: user.id,
       userEmail: user.email,
@@ -463,10 +481,19 @@ exports.createSubscription = async (req, res) => {
       cancelUrl: cancelUrl || `${process.env.FRONTEND_URL}/pricing?payment=cancelled`
     });
 
+    console.log('💳 Payment session result:', {
+      success: paymentSession.success,
+      sessionId: paymentSession.sessionId,
+      hasUrl: !!paymentSession.sessionUrl,
+      error: paymentSession.error
+    });
+
     if (!paymentSession.success) {
+      console.error('❌ Payment session creation failed:', paymentSession.error);
       return res.status(500).json({ 
         error: 'Payment session creation failed',
-        details: paymentSession.error 
+        message: paymentSession.error || 'Unable to create checkout session',
+        code: 'PAYMENT_SESSION_FAILED'
       });
     }
 
@@ -561,17 +588,42 @@ exports.getUsage = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const subscription = await Subscription.findOne({
-      where: { userId }
+    // Get user's subscription tier from User model (primary source of truth)
+    const user = await User.findByPk(userId, {
+      attributes: ['subscriptionTier', 'subscriptionStatus', 'subscriptionEndDate', 'trialEndsAt']
     });
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-    const tier = subscription ? subscription.tier : 'free';
-    const limits = await getUsageLimits(userId, tier);
+    // Use user's subscription tier (not Subscription model) as primary source
+    const tier = user.subscriptionTier || 'free';
+    const status = user.subscriptionStatus || 'active';
+    
+    // Check if subscription is still valid
+    const now = new Date();
+    let effectiveTier = tier;
+    
+    if (status === 'trial' && user.trialEndsAt && new Date(user.trialEndsAt) < now) {
+      effectiveTier = 'free'; // Trial expired
+    } else if (user.subscriptionEndDate && new Date(user.subscriptionEndDate) < now && tier !== 'free') {
+      effectiveTier = 'free'; // Subscription expired
+    }
+    
+    const limits = await getUsageLimits(userId, effectiveTier);
 
     res.json({
-      tier,
+      tier: effectiveTier,
+      status,
       usage: limits,
-      features: getFeaturesByTier(tier)
+      features: getFeaturesByTier(effectiveTier),
+      subscription: {
+        tier: effectiveTier,
+        status,
+        endDate: user.subscriptionEndDate,
+        trialEndsAt: user.trialEndsAt
+      }
     });
 
   } catch (error) {

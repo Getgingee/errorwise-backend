@@ -168,11 +168,34 @@ exports.getProfile = async (req, res) => {
     const userId = req.user.id;
     
     const user = await User.findByPk(userId, {
-      attributes: ['id', 'username', 'email', 'createdAt']
+      attributes: [
+        'id', 'username', 'email', 'createdAt', 
+        'subscriptionTier', 'subscriptionStatus', 
+        'subscriptionStartDate', 'subscriptionEndDate', 
+        'trialEndsAt'
+      ]
     });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Determine effective subscription status
+    const now = new Date();
+    let effectiveTier = user.subscriptionTier || 'free';
+    let effectiveStatus = user.subscriptionStatus || 'active';
+    
+    // Check if subscription/trial has expired
+    if (user.subscriptionEndDate && new Date(user.subscriptionEndDate) < now) {
+      if (effectiveTier !== 'free') {
+        // Subscription expired - should downgrade
+        effectiveStatus = 'expired';
+      }
+    }
+    
+    // Check trial expiry
+    if (user.trialEndsAt && new Date(user.trialEndsAt) < now && effectiveStatus === 'trial') {
+      effectiveStatus = 'expired';
     }
 
     // Get user statistics
@@ -186,6 +209,14 @@ exports.getProfile = async (req, res) => {
       }
     });
 
+    // Calculate days remaining (for trial or subscription)
+    let daysRemaining = null;
+    if (effectiveStatus === 'trial' && user.trialEndsAt) {
+      daysRemaining = Math.max(0, Math.ceil((new Date(user.trialEndsAt) - now) / (1000 * 60 * 60 * 24)));
+    } else if (effectiveStatus === 'active' && user.subscriptionEndDate) {
+      daysRemaining = Math.max(0, Math.ceil((new Date(user.subscriptionEndDate) - now) / (1000 * 60 * 60 * 24)));
+    }
+
     res.json({
       user: {
         id: user.id,
@@ -195,8 +226,17 @@ exports.getProfile = async (req, res) => {
       },
       stats: {
         totalQueries,
-        thisMonthQueries,
-        subscriptionTier: 'free' // TODO: Implement subscription system
+        thisMonthQueries
+      },
+      subscription: {
+        tier: effectiveTier,
+        status: effectiveStatus,
+        startDate: user.subscriptionStartDate,
+        endDate: user.subscriptionEndDate,
+        trialEndsAt: user.trialEndsAt,
+        daysRemaining,
+        isActive: effectiveStatus === 'active' || effectiveStatus === 'trial',
+        isTrial: effectiveStatus === 'trial'
       }
     });
 
