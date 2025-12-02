@@ -676,21 +676,44 @@ exports.createCheckout = async (req, res) => {
     const { planId, successUrl, cancelUrl, discountCode } = req.body;
 
     if (!planId || !['pro', 'team'].includes(planId)) {
-      return res.status(400).json({ error: 'Invalid plan ID. Must be "pro" or "team"' });
+      return res.status(400).json({ success: false, error: 'Invalid plan ID. Must be "pro" or "team"' });
     }
 
     const user = await User.findByPk(userId);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ success: false, error: 'User not found' });
     }
 
     const plan = SUBSCRIPTION_TIERS[planId];
     if (!plan) {
-      return res.status(400).json({ error: 'Invalid plan' });
+      return res.status(400).json({ success: false, error: 'Invalid plan' });
     }
 
-    // Helper function to activate trial subscription
+    // Check if user already has this tier or higher
+    const tierOrder = { free: 0, pro: 1, team: 2 };
+    if (tierOrder[user.subscriptionTier] >= tierOrder[planId] && user.subscriptionStatus === 'active') {
+      return res.status(400).json({ 
+        success: false, 
+        error: `You already have ${user.subscriptionTier} plan active`,
+        currentTier: user.subscriptionTier
+      });
+    }
+
+    // Check if user has already used their trial
+    const hasUsedTrial = user.trialEndsAt !== null || user.hasUsedTrial === true;
+    
+    // Helper function to activate trial subscription (ONLY for first-time users)
     const activateTrialSubscription = async () => {
+      // STRICT CHECK: Only allow trial if never used before
+      if (hasUsedTrial) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'You have already used your free trial. Payment is required to upgrade.',
+          requiresPayment: true,
+          hasUsedTrial: true
+        });
+      }
+
       const trialDays = plan.trialDays || 7;
       const startDate = new Date();
       const endDate = new Date();
@@ -701,14 +724,25 @@ exports.createCheckout = async (req, res) => {
         subscriptionStatus: 'trial',
         subscriptionStartDate: startDate,
         subscriptionEndDate: endDate,
-        trialEndsAt: endDate
+        trialEndsAt: endDate,
+        hasUsedTrial: true // Mark trial as used
       });
+
+      logger.info(`Trial activated for user ${userId}: ${planId} until ${endDate}`);
 
       return res.json({
         success: true,
+        trialActivated: true,
         message: `${plan.name} trial activated for ${trialDays} days!`,
+        subscription: {
+          tier: planId,
+          status: 'trial',
+          startDate,
+          endDate,
+          trialEndsAt: endDate
+        },
         data: {
-          url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard?upgraded=true&plan=${planId}`,
+          url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard?trial_activated=true&plan=${planId}`,
           sessionId: `trial_session_${Date.now()}`
         }
       });
@@ -722,22 +756,30 @@ exports.createCheckout = async (req, res) => {
                              dodoApiKey.includes('_here') ||
                              dodoApiKey.length < 20;
 
-    // For development or when payment is not configured: instant trial upgrade
-    const skipPayment = process.env.NODE_ENV === 'development' || 
-                        isPlaceholderKey ||
-                        process.env.SKIP_PAYMENT === 'true';
+    // For development: allow trial if not used before
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const skipPaymentEnv = process.env.SKIP_PAYMENT === 'true';
     
-    if (skipPayment) {
-      console.log('💳 Payment skipped - activating trial directly (reason: ' + 
-        (process.env.NODE_ENV === 'development' ? 'development mode' : 
-         isPlaceholderKey ? 'invalid/missing API key' : 'SKIP_PAYMENT=true') + ')');
+    // Only skip payment in development OR if explicitly set AND user hasn't used trial
+    if ((isDevelopment || skipPaymentEnv || isPlaceholderKey) && !hasUsedTrial) {
+      console.log('💳 Payment skipped - activating trial (reason: ' + 
+        (isDevelopment ? 'development mode' : 
+         isPlaceholderKey ? 'payment not configured' : 'SKIP_PAYMENT=true') + ')');
       return activateTrialSubscription();
     }
 
-    // Production: Create payment session (Hosted Checkout with Dodo's built-in coupon support)
+    // If payment not configured but user already used trial, return error
+    if (isPlaceholderKey && hasUsedTrial) {
+      return res.status(503).json({ 
+        success: false, 
+        error: 'Payment system is not configured. Please contact support.',
+        requiresPayment: true
+      });
+    }
+
+    // Production: Create payment session
     const paymentService = require('../services/paymentService');
     
-    // Try to create payment session, fall back to trial if it fails
     let paymentSession;
     try {
       paymentSession = await paymentService.createPaymentSession({
@@ -749,21 +791,38 @@ exports.createCheckout = async (req, res) => {
         amount: plan.price,
         currency: 'USD',
         interval: plan.interval,
-        trialDays: plan.trialDays || 0,
+        trialDays: hasUsedTrial ? 0 : (plan.trialDays || 0), // No trial period if already used
         allowedPaymentMethodTypes: ['credit', 'debit', 'upi_collect', 'upi_intent'],
         successUrl: successUrl || `${process.env.FRONTEND_URL}/dashboard?payment=success`,
         cancelUrl: cancelUrl || `${process.env.FRONTEND_URL}/pricing?payment=cancelled`,
-        discountCode: discountCode || null // Pass to Dodo if pre-filled
+        discountCode: discountCode || null
       });
     } catch (paymentError) {
-      console.error('⚠️ Payment service error, falling back to trial:', paymentError.message);
-      // Fall back to trial activation if payment service fails
-      return activateTrialSubscription();
+      console.error('⚠️ Payment service error:', paymentError.message);
+      // Only fallback to trial if user hasn't used it before
+      if (!hasUsedTrial) {
+        logger.info('Payment failed, offering trial instead');
+        return activateTrialSubscription();
+      }
+      // Otherwise return payment error
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Payment service unavailable. Please try again later.',
+        requiresPayment: true
+      });
     }
 
     if (!paymentSession || !paymentSession.success) {
-      console.log('⚠️ Payment session creation failed, falling back to trial');
-      return activateTrialSubscription();
+      console.log('⚠️ Payment session creation failed');
+      // Only fallback to trial if user hasn't used it before
+      if (!hasUsedTrial) {
+        return activateTrialSubscription();
+      }
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Failed to create payment session. Please try again.',
+        requiresPayment: true
+      });
     }
 
     res.status(200).json({

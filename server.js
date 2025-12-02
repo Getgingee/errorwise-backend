@@ -190,6 +190,7 @@ const digestRoutes = require('./src/routes/digest'); // F1 - Weekly email digest
 const feedbackRoutes = require('./src/routes/feedback'); // F2 - Success feedback
 const referralRoutes = require('./src/routes/referral'); // F3 - Referral program
 const modelsRoutes = require('./src/routes/models'); // AI Model selection
+const configRoutes = require('./src/routes/configRoutes'); // App configuration - single source of truth
 // const couponsRoutes = require('./src/routes/coupons'); // Discount coupons system - disabled, using Dodo Payments coupons
 
 // PERFORMANCE - Response time monitoring
@@ -317,6 +318,7 @@ app.use('/api/digest', digestRoutes); // F1 - Weekly email digest
 app.use('/api/feedback', feedbackRoutes); // F2 - Success feedback with sharing
 app.use('/api/referral', referralRoutes); // F3 - Referral program
 app.use('/api/models', modelsRoutes); // AI Model selection for conversational AI
+app.use('/api/config', configRoutes); // App configuration - SINGLE SOURCE OF TRUTH for frontend
 // app.use('/api/coupons', couponsRoutes); // Disabled - using Dodo Payments built-in coupons
 
 // Tier management and feature access

@@ -64,6 +64,11 @@ const User = sequelize.define('User', {
     allowNull: true,
     field: 'trial_ends_at'
   },
+  hasUsedTrial: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    field: 'has_used_trial'
+  },
   // Soft delete support
   deletedAt: {
     type: DataTypes.DATE,

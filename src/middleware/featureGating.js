@@ -36,9 +36,32 @@ const FEATURE_TIERS = {
 
 /**
  * Get user's subscription tier
+ * FIXED: Check User model first (where trial updates go), then Subscription model
  */
 async function getUserTier(userId) {
   try {
+    // First check User model (trial activation updates this)
+    const User = require('../models/User');
+    const user = await User.findByPk(userId, {
+      attributes: ['subscriptionTier', 'subscriptionStatus', 'trialEndsAt']
+    });
+    
+    if (user) {
+      const now = new Date();
+      const isInTrial = user.trialEndsAt && new Date(user.trialEndsAt) > now;
+      
+      // If user has a tier set (trial or paid), use it
+      if (user.subscriptionTier && user.subscriptionTier !== 'free') {
+        return user.subscriptionTier;
+      }
+      
+      // If in active trial, treat as pro
+      if (isInTrial) {
+        return 'pro';
+      }
+    }
+    
+    // Fallback: check Subscription model for legacy data
     const subscription = await Subscription.findOne({
       where: { 
         userId,
