@@ -18,9 +18,9 @@ const { demoRateLimiter, getUsageStats, DEMO_LIMIT } = require('../middleware/de
  * GET /api/public/demo/status
  * Check remaining demos for current device
  */
-router.get('/status', (req, res) => {
+router.get('/status', async (req, res) => {
   try {
-    const stats = getUsageStats(req);
+    const stats = await getUsageStats(req);
     res.json({
       success: true,
       ...stats

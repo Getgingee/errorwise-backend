@@ -472,6 +472,16 @@ const start = async () => {
           console.log('✅ Added: limit_warning_notified');
         }
         
+        // Add has_used_trial column if missing (for trial abuse prevention)
+        const [hasUsedTrialCheck] = await sequelize.query(`
+          SELECT column_name FROM information_schema.columns 
+          WHERE table_name = 'users' AND column_name = 'has_used_trial'
+        `);
+        if (hasUsedTrialCheck.length === 0) {
+          await sequelize.query(`ALTER TABLE users ADD COLUMN has_used_trial BOOLEAN DEFAULT false`);
+          console.log('✅ Added: has_used_trial');
+        }
+        
         // Initialize period_start_date for existing users
         await sequelize.query(`
           UPDATE users SET period_start_date = date_trunc('month', CURRENT_TIMESTAMP) 
