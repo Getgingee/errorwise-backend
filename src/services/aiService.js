@@ -2267,9 +2267,9 @@ async function analyzeError({
       urlContext
     };
     
-    // TOON FORMAT ENABLED - Saves ~30-40% tokens on AI calls
-    // Uses Token Object-Oriented Notation for cost efficiency
-    const useToonFormat = true; // Enable TOON for all tiers
+    // TOON FORMAT DISABLED - Reverting to JSON for stability
+    // TOON was causing parsing issues with AI responses
+    const useToonFormat = false; // DISABLED - Use JSON for reliability
     const prompt = createPrompt(sanitizedMessage, detectedLanguage, detectedErrorType, validTier, codeContext, useToonFormat);
     
     console.log(`📝 Using ${useToonFormat ? 'TOON' : 'JSON'} format for AI request (tier: ${validTier})`);
