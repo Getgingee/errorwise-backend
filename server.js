@@ -585,12 +585,12 @@ const start = async () => {
         // ============================================================================
         console.log('📝 Checking for missing columns in ErrorQueries and Subscriptions...');
         
-        // Check ErrorQueries for feedback columns
+        // Check ErrorQueries for feedback columns (using camelCase to match Sequelize model)
         const [errorQueryColumns] = await sequelize.query(`
           SELECT column_name 
           FROM information_schema.columns 
           WHERE table_name = 'ErrorQueries' 
-          AND column_name IN ('feedback', 'feedback_at', 'feedback_comment')
+          AND column_name IN ('feedback', 'feedbackAt', 'feedbackComment')
         `);
         
         const eqColumns = errorQueryColumns.map(r => r.column_name);
@@ -599,13 +599,13 @@ const start = async () => {
           await sequelize.query(`ALTER TABLE "ErrorQueries" ADD COLUMN IF NOT EXISTS feedback VARCHAR(20)`);
           console.log('✅ Added: ErrorQueries.feedback');
         }
-        if (!eqColumns.includes('feedback_at')) {
-          await sequelize.query(`ALTER TABLE "ErrorQueries" ADD COLUMN IF NOT EXISTS feedback_at TIMESTAMP WITH TIME ZONE`);
-          console.log('✅ Added: ErrorQueries.feedback_at');
+        if (!eqColumns.includes('feedbackAt')) {
+          await sequelize.query(`ALTER TABLE "ErrorQueries" ADD COLUMN IF NOT EXISTS "feedbackAt" TIMESTAMP WITH TIME ZONE`);
+          console.log('✅ Added: ErrorQueries.feedbackAt');
         }
-        if (!eqColumns.includes('feedback_comment')) {
-          await sequelize.query(`ALTER TABLE "ErrorQueries" ADD COLUMN IF NOT EXISTS feedback_comment TEXT`);
-          console.log('✅ Added: ErrorQueries.feedback_comment');
+        if (!eqColumns.includes('feedbackComment')) {
+          await sequelize.query(`ALTER TABLE "ErrorQueries" ADD COLUMN IF NOT EXISTS "feedbackComment" TEXT`);
+          console.log('✅ Added: ErrorQueries.feedbackComment');
         }
         
         // Check Subscriptions for payment columns

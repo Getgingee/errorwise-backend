@@ -499,17 +499,30 @@ function checkUserRateLimit(userId, tier) {
 
 /**
  * Validate AI response structure
+ * Relaxed validation - AI responses vary in length but should be meaningful
  */
 function validateAIResponse(response) {
   if (!response || typeof response !== 'object') {
     throw new Error('Invalid AI response format: not an object');
   }
   
-  const required = ['explanation', 'solution'];
-  for (const field of required) {
-    if (!response[field] || typeof response[field] !== 'string' || response[field].length < 50) {
-      throw new Error(`AI response invalid: ${field} is missing or too short (min 50 chars)`);
-    }
+  // Log the response structure for debugging
+  console.log('🔍 AI Response validation:', {
+    hasExplanation: !!response.explanation,
+    explanationLength: response.explanation?.length || 0,
+    hasSolution: !!response.solution,
+    solutionLength: response.solution?.length || 0,
+    keys: Object.keys(response).slice(0, 10)
+  });
+  
+  // Check explanation (required, min 20 chars)
+  if (!response.explanation || typeof response.explanation !== 'string' || response.explanation.length < 20) {
+    throw new Error(`AI response invalid: explanation is missing or too short (min 20 chars, got ${response.explanation?.length || 0})`);
+  }
+  
+  // Check solution (required, min 10 chars - some solutions can be brief)
+  if (!response.solution || typeof response.solution !== 'string' || response.solution.length < 10) {
+    throw new Error(`AI response invalid: solution is missing or too short (min 10 chars, got ${response.solution?.length || 0})`);
   }
   
   return true;
