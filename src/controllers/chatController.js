@@ -9,6 +9,8 @@
  * - Send follow-up messages
  * - Get conversation history
  * - Context memory (AI remembers previous messages)
+ * 
+ * Note: Context is stored in Redis for multi-worker support (cluster mode)
  */
 
 const { v4: uuidv4 } = require('uuid');
@@ -18,13 +20,14 @@ const aiService = require('../services/aiService');
 const { hasFeature, getLimit } = require('../config/tierConfig');
 const { Op } = require('sequelize');
 const sequelize = require('../config/database');
+const redisService = require('../services/redisService');
 
-// In-memory conversation context (could be Redis for production scale)
-const conversationContexts = new Map();
-const CONTEXT_TTL = 30 * 60 * 1000; // 30 minutes
+// Redis key prefix for conversation context
+const CONTEXT_PREFIX = 'conv_ctx:';
+const CONTEXT_TTL = 30 * 60; // 30 minutes in seconds
 
-// Track follow-up counts per conversation (since we don't have parentId in DB)
-const followUpCounts = new Map();
+// Redis key prefix for follow-up counts
+const FOLLOWUP_COUNT_PREFIX = 'conv_followups:';
 
 /**
  * Generate engaging, conversational follow-up chips based on AI response
@@ -94,34 +97,58 @@ function generateConversationalChips(previousMessages, latestResponse) {
 }
 
 /**
- * Get or create conversation context
+ * Get or create conversation context from Redis
  */
-function getContext(conversationId) {
-  const context = conversationContexts.get(conversationId);
-  if (context && Date.now() - context.lastUpdated < CONTEXT_TTL) {
+async function getContext(conversationId) {
+  try {
+    const context = await redisService.get(`${CONTEXT_PREFIX}${conversationId}`);
     return context;
+  } catch (error) {
+    console.error('[Context] Redis get error:', error.message);
+    return null;
   }
-  return null;
 }
 
 /**
- * Save conversation context
+ * Save conversation context to Redis (shared across all workers)
  */
-function saveContext(conversationId, messages, metadata = {}) {
-  conversationContexts.set(conversationId, {
-    messages,
-    metadata,
-    lastUpdated: Date.now()
-  });
-  
-  // Cleanup old contexts periodically
-  if (conversationContexts.size > 1000) {
-    const now = Date.now();
-    for (const [id, ctx] of conversationContexts) {
-      if (now - ctx.lastUpdated > CONTEXT_TTL) {
-        conversationContexts.delete(id);
-      }
-    }
+async function saveContext(conversationId, messages, metadata = {}) {
+  try {
+    const context = {
+      messages,
+      metadata,
+      lastUpdated: Date.now()
+    };
+    await redisService.set(`${CONTEXT_PREFIX}${conversationId}`, context, CONTEXT_TTL);
+    return true;
+  } catch (error) {
+    console.error('[Context] Redis save error:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Get follow-up count from Redis
+ */
+async function getFollowUpCount(conversationId) {
+  try {
+    const count = await redisService.get(`${FOLLOWUP_COUNT_PREFIX}${conversationId}`);
+    return count || 0;
+  } catch (error) {
+    return 0;
+  }
+}
+
+/**
+ * Increment follow-up count in Redis
+ */
+async function incrementFollowUpCount(conversationId) {
+  try {
+    const current = await getFollowUpCount(conversationId);
+    await redisService.set(`${FOLLOWUP_COUNT_PREFIX}${conversationId}`, current + 1, CONTEXT_TTL);
+    return current + 1;
+  } catch (error) {
+    return 1;
   }
 }
 
@@ -179,9 +206,9 @@ exports.startConversation = async (req, res) => {
       conversationTurn: 1
     });
     
-    // Initialize conversation context for follow-ups
+    // Initialize conversation context for follow-ups in Redis
     if (canFollowUp) {
-      saveContext(conversationId, [
+      await saveContext(conversationId, [
         { role: 'user', content: errorMessage },
         { role: 'assistant', content: analysis.response }
       ], {
@@ -260,17 +287,13 @@ exports.sendFollowUp = async (req, res) => {
       });
     }
     
-    // Get conversation context from memory
-    let context = getContext(conversationId);
+    // Get conversation context from Redis (shared across all workers)
+    let context = await getContext(conversationId);
     
-    // If no context in memory, the conversation has expired or doesn't exist
-    // Note: We use in-memory context for follow-ups because:
-    // 1. ErrorQuery.id is UUID format, but conversationId is eq_... format
-    // 2. The original query saves context in memory when created
-    // 3. Database stores individual queries, not conversation threads
+    // If no context in Redis, the conversation has expired
     if (!context) {
-      console.log(`[Chat Follow-up] No context in memory for: ${conversationId}`);
-      console.log(`[Chat Follow-up] Context expires after 30 mins or server restart`);
+      console.log(`[Chat Follow-up] No context in Redis for: ${conversationId}`);
+      console.log(`[Chat Follow-up] Context expires after 30 mins`);
       
       return res.status(404).json({
         success: false,
@@ -280,9 +303,8 @@ exports.sendFollowUp = async (req, res) => {
       });
     }
     
-    // Check follow-up limit using in-memory counter (since DB doesn't have parentId)
-    // Count is based on messages in context minus the original question
-    const followUpCount = followUpCounts.get(conversationId) || 0;
+    // Check follow-up limit using Redis counter (shared across workers)
+    const followUpCount = await getFollowUpCount(conversationId);
     
     const maxFollowUps = getLimit(effectiveTier, 'maxFollowUps');
     console.log(`[Chat Follow-up] Follow-up count: ${followUpCount}/${maxFollowUps}`);
@@ -312,10 +334,10 @@ exports.sendFollowUp = async (req, res) => {
     
     // Add assistant response to context
     context.messages.push({ role: 'assistant', content: analysis.response });
-    saveContext(conversationId, context.messages, context.metadata);
+    await saveContext(conversationId, context.messages, context.metadata);
     
-    // Increment follow-up count
-    followUpCounts.set(conversationId, followUpCount + 1);
+    // Increment follow-up count in Redis
+    const newFollowUpCount = await incrementFollowUpCount(conversationId);
     
     // Save follow-up to database (use explanation + solution fields since ErrorQuery doesn't have aiResponse)
     const followUp = await ErrorQuery.create({
@@ -331,7 +353,7 @@ exports.sendFollowUp = async (req, res) => {
     });
     
     // Generate contextual follow-up chips
-    const remainingFollowUps = maxFollowUps === -1 ? 999 : maxFollowUps - followUpCount - 1;
+    const remainingFollowUps = maxFollowUps === -1 ? 999 : maxFollowUps - newFollowUpCount;
     const suggestedChips = remainingFollowUps > 0 
       ? generateConversationalChips(context.messages, analysis.response)
       : ["Thanks for the help! 👍"];
@@ -343,8 +365,8 @@ exports.sendFollowUp = async (req, res) => {
       model: analysis.model,
       conversation: {
         id: conversationId,
-        turn: followUpCount + 2,
-        followUpsUsed: followUpCount + 1,
+        turn: newFollowUpCount + 1,
+        followUpsUsed: newFollowUpCount,
         followUpsRemaining: maxFollowUps === -1 ? 'unlimited' : remainingFollowUps,
         canContinue: remainingFollowUps > 0
       },
@@ -517,8 +539,9 @@ exports.endConversation = async (req, res) => {
   try {
     const { conversationId } = req.params;
     
-    // Clear from memory
-    conversationContexts.delete(conversationId);
+    // Clear from Redis
+    await redisService.del(`${CONTEXT_PREFIX}${conversationId}`);
+    await redisService.del(`${FOLLOWUP_COUNT_PREFIX}${conversationId}`);
     
     res.json({
       success: true,
@@ -537,15 +560,21 @@ exports.endConversation = async (req, res) => {
 /**
  * Export saveContext for use by other controllers (e.g., errorController)
  * This allows the error analysis to save context for follow-up questions
+ * Stores in Redis for multi-worker support
  */
-exports.saveConversationContext = function(conversationId, errorMessage, aiResponse, metadata = {}) {
-  conversationContexts.set(conversationId, {
-    messages: [
-      { role: 'user', content: errorMessage },
-      { role: 'assistant', content: aiResponse }
-    ],
-    metadata,
-    lastUpdated: Date.now()
-  });
-  console.log(`[Context] Saved conversation context for: ${conversationId}`);
+exports.saveConversationContext = async function(conversationId, errorMessage, aiResponse, metadata = {}) {
+  try {
+    const context = {
+      messages: [
+        { role: 'user', content: errorMessage },
+        { role: 'assistant', content: aiResponse }
+      ],
+      metadata,
+      lastUpdated: Date.now()
+    };
+    await redisService.set(`${CONTEXT_PREFIX}${conversationId}`, context, CONTEXT_TTL);
+    console.log(`[Context] Saved conversation context to Redis for: ${conversationId}`);
+  } catch (error) {
+    console.error(`[Context] Failed to save context to Redis:`, error.message);
+  }
 };

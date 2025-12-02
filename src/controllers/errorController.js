@@ -567,14 +567,15 @@ exports.analyzeError = async (req, res) => {
       const maxFollowUps = getLimit(effectiveTier, 'maxFollowUps');
       const canFollowUp = hasFeature(effectiveTier, 'followUpQuestions');
       
-      // Save conversation context for follow-ups if enabled
+      // Save conversation context for follow-ups if enabled (async, uses Redis)
       if (canFollowUp) {
         const aiResponse = [filteredAnalysis.explanation, filteredAnalysis.solution].filter(Boolean).join('\n\n');
+        // Don't await - let it run in background to not slow down response
         saveConversationContext(queryId, errorMessage, aiResponse, {
           tier: effectiveTier,
           userId,
           category: filteredAnalysis.category
-        });
+        }).catch(err => console.error('[Context] Background save failed:', err.message));
       }
       
       response.conversation = {
