@@ -710,15 +710,23 @@ exports.createCheckout = async (req, res) => {
       });
     };
 
+    // Check if payment is properly configured
+    const dodoApiKey = process.env.DODO_API_KEY || process.env.DODO_PAYMENTS_API_KEY;
+    const isPlaceholderKey = !dodoApiKey || 
+                             dodoApiKey.includes('your_') || 
+                             dodoApiKey.includes('placeholder') ||
+                             dodoApiKey.includes('_here') ||
+                             dodoApiKey.length < 20;
+
     // For development or when payment is not configured: instant trial upgrade
     const skipPayment = process.env.NODE_ENV === 'development' || 
-                        !process.env.DODO_API_KEY || 
-                        process.env.DODO_API_KEY === 'your_dodo_api_key' ||
-                        process.env.DODO_API_KEY === 'placeholder' ||
+                        isPlaceholderKey ||
                         process.env.SKIP_PAYMENT === 'true';
     
     if (skipPayment) {
-      console.log('💳 Payment skipped - activating trial directly');
+      console.log('💳 Payment skipped - activating trial directly (reason: ' + 
+        (process.env.NODE_ENV === 'development' ? 'development mode' : 
+         isPlaceholderKey ? 'invalid/missing API key' : 'SKIP_PAYMENT=true') + ')');
       return activateTrialSubscription();
     }
 

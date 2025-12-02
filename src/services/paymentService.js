@@ -3,17 +3,23 @@ const crypto = require('crypto');
 
 class DodoPaymentService {
   constructor() {
-    this.apiKey = process.env.DODO_API_KEY;
-    this.secretKey = process.env.DODO_SECRET_KEY;
+    // Support both DODO_API_KEY and DODO_PAYMENTS_API_KEY for flexibility
+    this.apiKey = process.env.DODO_API_KEY || process.env.DODO_PAYMENTS_API_KEY;
+    this.secretKey = process.env.DODO_SECRET_KEY || process.env.DODO_PAYMENTS_SECRET;
     this.baseURL = process.env.DODO_BASE_URL || process.env.DODO_API_URL || 'https://api.dodopayments.com/v1';
     this.webhookSecret = process.env.DODO_WEBHOOK_SECRET;
-    
-    if (!this.apiKey) {
-      console.warn('Dodo payment API key not configured. Payment functionality will be limited.');
-    }
-  }
 
-  // Generate signature for API requests
+    // Check if API key is a placeholder
+    const isPlaceholder = !this.apiKey || 
+                          this.apiKey.includes('your_') || 
+                          this.apiKey.includes('placeholder') ||
+                          this.apiKey.includes('_here');
+
+    if (isPlaceholder) {
+      console.warn('⚠️ Dodo payment API key not configured or is placeholder. Payment functionality will be limited.');
+      this.apiKey = null; // Force mock mode
+    }
+  }  // Generate signature for API requests
   generateSignature(timestamp, method, path, body = '') {
     const message = timestamp + method.toUpperCase() + path + body;
     return crypto.createHmac('sha256', this.secretKey).update(message).digest('hex');
