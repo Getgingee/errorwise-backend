@@ -7,6 +7,15 @@ const axios = require('axios');
 // Central query logger (A1 - Error Logging & Monitoring)
 const queryLogger = require('./queryLogger');
 
+// Library Learning Service - Self-learning error library
+let libraryLearning = null;
+try {
+  libraryLearning = require('./libraryLearningService');
+  console.log('✅ Library Learning Service loaded');
+} catch (e) {
+  console.warn('⚠️ Library Learning Service not available:', e.message);
+}
+
 // ============================================================================
 // CONFIGURATION & CONSTANTS
 // ============================================================================
@@ -2470,6 +2479,28 @@ Remember: Your goal is to help users understand their issues and learn from them
             queryLogger.logLowConfidence(logData).catch(err => console.error('Logging error:', err.message));
           } else {
             queryLogger.logSuccess(logData).catch(err => console.error('Logging error:', err.message));
+          }
+          
+          // 🎓 LIBRARY LEARNING: Track error for self-learning library
+          if (libraryLearning) {
+            try {
+              libraryLearning.trackError({
+                errorMessage: sanitizedMessage,
+                errorType: detectedErrorType,
+                language: detectedLanguage,
+                category: result.category,
+                aiResponse: {
+                  explanation: result.explanation,
+                  solution: result.solution,
+                  codeExample: result.codeExample,
+                  confidence: result.confidence
+                },
+                userId,
+                wasHelpful: null // Will be updated when user provides feedback
+              });
+            } catch (learningErr) {
+              console.warn('Library learning tracking failed:', learningErr.message);
+            }
           }
           
           // A2: Add fallback info to result

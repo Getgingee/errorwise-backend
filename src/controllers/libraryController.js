@@ -908,3 +908,170 @@ exports.bulkAddEntries = async (req, res) => {
     });
   }
 };
+
+// ============================================================================
+// LEARNING LIBRARY FUNCTIONS
+// ============================================================================
+
+// Load learning service
+let libraryLearning = null;
+try {
+  libraryLearning = require('../services/libraryLearningService');
+} catch (e) {
+  console.warn('Library learning service not available');
+}
+
+/**
+ * Get learning statistics
+ * GET /api/library/admin/learning/stats
+ */
+exports.getLearningStats = async (req, res) => {
+  try {
+    const userRole = req.user?.role;
+    if (userRole !== 'admin' && userRole !== 'super_admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required'
+      });
+    }
+
+    if (!libraryLearning) {
+      return res.status(503).json({
+        success: false,
+        error: 'Learning service not available'
+      });
+    }
+
+    const stats = libraryLearning.getLearningStats();
+    
+    // Get library totals
+    const libraryStats = await ErrorLibrary.findAll({
+      attributes: [
+        [sequelize.fn('COUNT', sequelize.col('id')), 'total'],
+        [sequelize.fn('SUM', sequelize.literal('CASE WHEN type = \'system\' THEN 1 ELSE 0 END')), 'system'],
+        [sequelize.fn('SUM', sequelize.literal('CASE WHEN type = \'user\' THEN 1 ELSE 0 END')), 'user']
+      ],
+      raw: true
+    });
+
+    res.json({
+      success: true,
+      learning: stats,
+      library: libraryStats[0] || { total: 0, system: 0, user: 0 },
+      config: libraryLearning.CONFIG
+    });
+  } catch (error) {
+    console.error('Get learning stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get learning stats'
+    });
+  }
+};
+
+/**
+ * Process verification queue manually
+ * POST /api/library/admin/learning/process-queue
+ */
+exports.processLearningQueue = async (req, res) => {
+  try {
+    const userRole = req.user?.role;
+    if (userRole !== 'admin' && userRole !== 'super_admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required'
+      });
+    }
+
+    if (!libraryLearning) {
+      return res.status(503).json({
+        success: false,
+        error: 'Learning service not available'
+      });
+    }
+
+    const result = await libraryLearning.processVerificationQueue();
+
+    res.json({
+      success: true,
+      message: 'Queue processed successfully',
+      result
+    });
+  } catch (error) {
+    console.error('Process queue error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process queue'
+    });
+  }
+};
+
+/**
+ * Manually approve a learning entry
+ * POST /api/library/admin/learning/approve
+ * Body: { pattern: "...", approve: true/false }
+ */
+exports.approveLearningEntry = async (req, res) => {
+  try {
+    const userRole = req.user?.role;
+    if (userRole !== 'admin' && userRole !== 'super_admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Admin access required'
+      });
+    }
+
+    if (!libraryLearning) {
+      return res.status(503).json({
+        success: false,
+        error: 'Learning service not available'
+      });
+    }
+
+    const { errorData, approve } = req.body;
+
+    if (!errorData) {
+      return res.status(400).json({
+        success: false,
+        error: 'Error data is required'
+      });
+    }
+
+    if (approve) {
+      // Manually add to library
+      const entry = await libraryLearning.addToLibrary({
+        originalError: errorData.errorMessage,
+        errorType: errorData.errorType,
+        language: errorData.language,
+        category: errorData.category,
+        pattern: errorData.pattern,
+        aiResponses: [{
+          explanation: errorData.explanation,
+          solution: errorData.solution,
+          codeExample: errorData.codeExample || '',
+          confidence: errorData.confidence || 0.8
+        }],
+        sources: errorData.sources || [],
+        helpfulVotes: 0,
+        occurrences: 1
+      }, 'manual-admin');
+
+      res.json({
+        success: true,
+        message: 'Entry approved and added to library',
+        entry: entry ? { id: entry.id, title: entry.title } : null
+      });
+    } else {
+      res.json({
+        success: true,
+        message: 'Entry rejected'
+      });
+    }
+  } catch (error) {
+    console.error('Approve entry error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to approve entry'
+    });
+  }
+};

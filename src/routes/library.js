@@ -55,4 +55,17 @@ router.post('/admin/seed', authMiddleware, libraryController.seedLibrary);
 // Bulk add entries from JSON
 router.post('/admin/bulk-add', authMiddleware, libraryController.bulkAddEntries);
 
+// ============================================================================
+// LEARNING ROUTES - Self-learning library management
+// ============================================================================
+
+// Get learning statistics
+router.get('/admin/learning/stats', authMiddleware, libraryController.getLearningStats);
+
+// Process verification queue manually
+router.post('/admin/learning/process-queue', authMiddleware, libraryController.processLearningQueue);
+
+// Manually approve a pending pattern
+router.post('/admin/learning/approve', authMiddleware, libraryController.approveLearningEntry);
+
 module.exports = router;
