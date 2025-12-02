@@ -213,10 +213,20 @@ function isModelAllowedForTier(modelId, tier = 'free') {
 
 /**
  * Get default model for tier
+ * NOTE: For Auto mode, resolves to actual model (haiku) to ensure valid apiId
  */
 function getDefaultModelForTier(tier = 'free') {
   const tierConfig = TIER_MODEL_DEFAULTS[tier] || TIER_MODEL_DEFAULTS.free;
-  return CLAUDE_MODELS[tierConfig.default];
+  const defaultModelId = tierConfig.default;
+  
+  // CRITICAL FIX: Auto mode has apiId: null - resolve to actual model
+  if (defaultModelId === 'auto') {
+    // Auto mode defaults to haiku for initial requests
+    // Actual model selection happens later via resolveModelForRequest with error context
+    return CLAUDE_MODELS['haiku'];
+  }
+  
+  return CLAUDE_MODELS[defaultModelId];
 }
 
 /**

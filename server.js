@@ -580,6 +580,55 @@ const start = async () => {
           console.log('✅ Events table exists');
         }
         
+        // ============================================================================
+        // MISSING COLUMNS: ErrorQueries and Subscriptions tables
+        // ============================================================================
+        console.log('📝 Checking for missing columns in ErrorQueries and Subscriptions...');
+        
+        // Check ErrorQueries for feedback columns
+        const [errorQueryColumns] = await sequelize.query(`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name = 'ErrorQueries' 
+          AND column_name IN ('feedback', 'feedback_at', 'feedback_comment')
+        `);
+        
+        const eqColumns = errorQueryColumns.map(r => r.column_name);
+        
+        if (!eqColumns.includes('feedback')) {
+          await sequelize.query(`ALTER TABLE "ErrorQueries" ADD COLUMN IF NOT EXISTS feedback VARCHAR(20)`);
+          console.log('✅ Added: ErrorQueries.feedback');
+        }
+        if (!eqColumns.includes('feedback_at')) {
+          await sequelize.query(`ALTER TABLE "ErrorQueries" ADD COLUMN IF NOT EXISTS feedback_at TIMESTAMP WITH TIME ZONE`);
+          console.log('✅ Added: ErrorQueries.feedback_at');
+        }
+        if (!eqColumns.includes('feedback_comment')) {
+          await sequelize.query(`ALTER TABLE "ErrorQueries" ADD COLUMN IF NOT EXISTS feedback_comment TEXT`);
+          console.log('✅ Added: ErrorQueries.feedback_comment');
+        }
+        
+        // Check Subscriptions for payment columns
+        const [subscriptionColumns] = await sequelize.query(`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name = 'Subscriptions' 
+          AND column_name IN ('paymentMethod', 'cancelAtPeriodEnd')
+        `);
+        
+        const subColumns = subscriptionColumns.map(r => r.column_name);
+        
+        if (!subColumns.includes('paymentMethod')) {
+          await sequelize.query(`ALTER TABLE "Subscriptions" ADD COLUMN IF NOT EXISTS "paymentMethod" VARCHAR(50)`);
+          console.log('✅ Added: Subscriptions.paymentMethod');
+        }
+        if (!subColumns.includes('cancelAtPeriodEnd')) {
+          await sequelize.query(`ALTER TABLE "Subscriptions" ADD COLUMN IF NOT EXISTS "cancelAtPeriodEnd" BOOLEAN DEFAULT false`);
+          console.log('✅ Added: Subscriptions.cancelAtPeriodEnd');
+        }
+        
+        console.log('✅ Missing columns check complete');
+        
       } catch (migrationError) {
         console.error('❌ Migration check failed:', migrationError);
         // Don't fail startup if table already exists

@@ -3,10 +3,25 @@ const crypto = require('crypto');
 
 class DodoPaymentService {
   constructor() {
-    // DodoPayments uses two keys:
-    // - API Key (DODO_API_KEY): For Bearer token authentication
-    // - Secret Key (DODO_SECRET_KEY): For webhook signature verification
-    this.apiKey = process.env.DODO_API_KEY || process.env.DODO_PAYMENTS_API_KEY;
+    // DodoPayments key configuration:
+    // - Secret Key (DODO_SECRET_KEY or DODO_API_KEY with sk_ prefix): For API auth
+    // - Public Key (pk_ prefix): Only for client-side, NOT for server API calls
+    // - Webhook Secret: For verifying webhook signatures
+    
+    const potentialSecretKey = process.env.DODO_SECRET_KEY || process.env.DODO_API_KEY;
+    const potentialPublicKey = process.env.DODO_PUBLIC_KEY;
+    
+    // Determine which key to use for API authentication
+    // Secret keys start with 'sk_', public keys start with 'pk_'
+    if (potentialSecretKey && potentialSecretKey.startsWith('sk_')) {
+      this.apiKey = potentialSecretKey;
+    } else if (process.env.DODO_SECRET_KEY && process.env.DODO_SECRET_KEY.startsWith('sk_')) {
+      this.apiKey = process.env.DODO_SECRET_KEY;
+    } else {
+      // Fallback: use whatever is set, but warn if it's a public key
+      this.apiKey = potentialSecretKey;
+    }
+    
     this.secretKey = process.env.DODO_SECRET_KEY || process.env.DODO_PAYMENTS_SECRET;
     this.baseURL = process.env.DODO_BASE_URL || process.env.DODO_API_URL || 'https://api.dodopayments.com/v1';
     this.webhookSecret = process.env.DODO_WEBHOOK_SECRET || this.secretKey;
@@ -16,6 +31,13 @@ class DodoPaymentService {
     console.log(`   API Key: ${this.apiKey ? '✅ SET (' + this.apiKey.substring(0, 8) + '...)' : '❌ NOT SET'}`);
     console.log(`   Secret Key: ${this.secretKey ? '✅ SET' : '❌ NOT SET'}`);
     console.log(`   Base URL: ${this.baseURL}`);
+    
+    // CRITICAL: Warn if using public key for API auth
+    if (this.apiKey && this.apiKey.startsWith('pk_')) {
+      console.error('⚠️ WARNING: Using PUBLIC key (pk_...) for API authentication!');
+      console.error('   DodoPayments API requires SECRET key (sk_...) for server-side calls.');
+      console.error('   Please set DODO_SECRET_KEY or DODO_API_KEY with your secret key (starts with sk_).');
+    }
 
     // Only treat as placeholder if it contains obvious placeholder text
     const isPlaceholder = !this.apiKey || 
@@ -26,8 +48,10 @@ class DodoPaymentService {
     if (isPlaceholder) {
       console.warn('⚠️ Dodo payment API key not configured. Payment will use mock mode locally.');
       this.apiKey = null; // Force mock mode
+    } else if (this.apiKey && this.apiKey.startsWith('sk_')) {
+      console.log('✅ DodoPayments ready for live transactions (using secret key)');
     } else {
-      console.log('✅ DodoPayments ready for live transactions');
+      console.log('⚠️ DodoPayments configured but may have wrong key type');
     }
   }  // Generate signature for API requests
   generateSignature(timestamp, method, path, body = '') {

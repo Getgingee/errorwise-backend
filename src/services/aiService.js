@@ -2353,13 +2353,19 @@ Remember: Your goal is to help users understand their issues and learn from them
     
     // If user has a preferred model, use it as primary
     if (resolvedModel) {
+      // SAFETY: Ensure apiId is never null (Auto mode should be resolved by now)
+      const modelApiId = resolvedModel.apiId || modelConfig.CLAUDE_MODELS['haiku'].apiId;
+      if (!resolvedModel.apiId) {
+        console.warn(`⚠️ Model ${resolvedModel.name} has null apiId, falling back to haiku`);
+      }
+      
       providers.push({
         provider: 'anthropic',
-        model: resolvedModel.apiId,
+        model: modelApiId,
         maxTokens: Math.min(resolvedModel.maxTokens, modelConfig.getMaxTokensForTier(validTier)),
         temperature: tierConfig.primary?.temperature || 0.3
       });
-      console.log(`📌 Primary provider set to user's choice: ${resolvedModel.name}`);
+      console.log(`📌 Primary provider set to user's choice: ${resolvedModel.name} (${modelApiId})`);
     } else if (tierConfig.primary) {
       providers.push(tierConfig.primary);
     }
