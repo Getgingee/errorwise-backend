@@ -3,7 +3,11 @@ const Subscription = require('../models/Subscription');
 const logger = require('../utils/logger');
 const subscriptionService = require('../services/subscriptionService');
 
+// UNIFIED: Import central model configuration
+const modelConfig = require('../config/modelConfig');
+
 // Subscription tier configuration - matches pricing page exactly
+// UNIFIED: AI models now come from central modelConfig
 const SUBSCRIPTION_TIERS = {
   free: {
     name: 'Free Plan',
@@ -20,10 +24,10 @@ const SUBSCRIPTION_TIERS = {
       errorHistory: '7-day',
       historyDays: 7,
       
-      // AI Model
-      aiProvider: 'gemini-2.0-flash-exp',
-      aiModel: 'Gemini 2.0 Flash AI (800 tokens)',
-      maxTokens: 800,
+      // UNIFIED: AI Model from central config
+      aiProvider: modelConfig.CLAUDE_MODELS['haiku'].apiId,
+      aiModel: 'Claude Haiku (Fast)',
+      maxTokens: modelConfig.getMaxTokensForTier('free'),
       
       // Features list (matching pricing page)
       basicErrorExplanations: true,
@@ -67,10 +71,10 @@ const SUBSCRIPTION_TIERS = {
       historyDays: -1,
       unlimitedHistory: true,
       
-      // AI Model
-      aiProvider: 'claude-3-5-haiku-20241022',
-      aiModel: 'Claude Haiku AI (1200 tokens)',
-      maxTokens: 1200,
+      // UNIFIED: AI Model from central config
+      aiProvider: modelConfig.CLAUDE_MODELS['haiku'].apiId,
+      aiModel: 'Claude Haiku (Fast)',
+      maxTokens: modelConfig.getMaxTokensForTier('pro'),
       
       // Features list (matching pricing page)
       errorExplanation: true,
@@ -117,10 +121,10 @@ const SUBSCRIPTION_TIERS = {
       historyDays: -1,
       unlimitedHistory: true,
       
-      // AI Model
-      aiProvider: 'claude-3-5-sonnet-20241022',
-      aiModel: 'Claude Sonnet AI (2000 tokens)',
-      maxTokens: 2000,
+      // UNIFIED: AI Model from central config
+      aiProvider: modelConfig.CLAUDE_MODELS['sonnet'].apiId,
+      aiModel: 'Claude Sonnet (Advanced)',
+      maxTokens: modelConfig.getMaxTokensForTier('team'),
       
       // All Pro features
       everythingInPro: true,

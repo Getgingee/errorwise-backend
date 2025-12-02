@@ -2,12 +2,17 @@
  * Conversational AI Service
  * Google Assistant-like conversational experience with context awareness,
  * follow-up questions, web scraping, and tier-based features
+ * 
+ * UNIFIED: Uses central modelConfig.js for all AI model configuration
  */
 
 const axios = require('axios');
 const cheerio = require('cheerio');
 const Anthropic = require('@anthropic-ai/sdk');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+// UNIFIED: Import central model configuration
+const modelConfig = require('../config/modelConfig');
 
 // Initialize AI clients
 const anthropic = process.env.ANTHROPIC_API_KEY ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }) : null;
@@ -16,25 +21,24 @@ const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GE
 // Conversation context store (use Redis in production)
 const conversationContexts = new Map();
 
-// Tier-based AI configuration - ALL tiers use Claude/Anthropic
-const AI_CONFIG = {
-  free: {
-    model: 'claude-3-5-haiku-20241022',  // Claude Haiku for FREE tier (fast & affordable)
-    provider: 'anthropic',
-    maxTokens: 800,
-    features: {
+/**
+ * UNIFIED: Get AI config from central modelConfig
+ * No more hardcoded models - everything flows from modelConfig.js
+ */
+function getAIConfig(tier = 'free') {
+  const defaultModel = modelConfig.getDefaultModelForTier(tier);
+  const maxTokens = modelConfig.getMaxTokensForTier(tier);
+  
+  // Feature configuration based on tier
+  const featuresByTier = {
+    free: {
       basicExplanations: true,
       followUpQuestions: false,
       webScraping: false,
       codeExamples: false,
       multiLanguage: false
-    }
-  },
-  pro: {
-    model: 'claude-3-5-haiku-20241022',  // Claude Haiku for PRO tier (more tokens)
-    provider: 'anthropic',
-    maxTokens: 1200,
-    features: {
+    },
+    pro: {
       basicExplanations: true,
       fullExplanations: true,
       followUpQuestions: true,
@@ -43,13 +47,8 @@ const AI_CONFIG = {
       fixSuggestions: true,
       multiLanguage: true,
       contextAwareness: true
-    }
-  },
-  team: {
-    model: 'claude-3-5-sonnet-20241022',  // Claude Sonnet for TEAM tier (best quality)
-    provider: 'anthropic',
-    maxTokens: 2000,
-    features: {
+    },
+    team: {
       basicExplanations: true,
       fullExplanations: true,
       followUpQuestions: true,
@@ -61,8 +60,16 @@ const AI_CONFIG = {
       advancedAnalysis: true,
       deepWebSearch: true
     }
-  }
-};
+  };
+  
+  return {
+    model: defaultModel.apiId,
+    modelName: defaultModel.name,
+    provider: 'anthropic', // All tiers use Anthropic Claude
+    maxTokens: maxTokens,
+    features: featuresByTier[tier] || featuresByTier.free
+  };
+}
 
 /**
  * Web scraping utility - scrape forums, Stack Overflow, manufacturer sites
@@ -428,9 +435,9 @@ async function getConversationalResponse({
       timestamp: new Date()
     });
     
-    // Get tier configuration
-    const config = AI_CONFIG[tier] || AI_CONFIG.free;
-    console.log(`[ConversationalAI] Using config: provider=${config.provider}, model=${config.model}`);
+    // UNIFIED: Get tier configuration from central modelConfig
+    const config = getAIConfig(tier);
+    console.log(`[ConversationalAI] Using config: provider=${config.provider}, model=${config.model}, modelName=${config.modelName}`);
     
     // Check if Anthropic is available
     if (config.provider === 'anthropic' && !anthropic) {
@@ -666,16 +673,21 @@ async function getClaudeResponse(prompt, config) {
 }
 
 /**
- * Get response from Gemini (Free tier)
+ * Get response from Gemini (LEGACY FALLBACK - Not used since all tiers use Claude)
+ * Kept for emergency fallback only
  */
 async function getGeminiResponse(prompt, config) {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    if (!genAI) {
+      throw new Error('Gemini client not initialized');
+    }
+    // Use a stable Gemini model as emergency fallback
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     return response.text();
   } catch (error) {
-    console.error('Gemini API error:', error);
+    console.error('[Gemini] API error (fallback):', error.message);
     throw error;
   }
 }
@@ -713,5 +725,5 @@ module.exports = {
   getConversationHistory,
   clearConversation,
   extractContext,
-  AI_CONFIG
+  getAIConfig  // UNIFIED: Export the function that uses central modelConfig
 };

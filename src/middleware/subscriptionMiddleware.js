@@ -1,13 +1,19 @@
 /**
  * Subscription Middleware
  * Handles tier-based feature access control and usage limits
+ * 
+ * UNIFIED: Uses central modelConfig for AI model configuration
  */
 
 const User = require('../models/User');
 const ErrorQuery = require('../models/ErrorQuery');
 const { Op } = require('sequelize');
 
+// UNIFIED: Import central model configuration
+const modelConfig = require('../config/modelConfig');
+
 // Subscription tier configuration - matches pricing page exactly
+// UNIFIED: AI models now come from central modelConfig
 const SUBSCRIPTION_TIERS = {
   free: {
     name: 'Free Plan',
@@ -15,7 +21,7 @@ const SUBSCRIPTION_TIERS = {
     dailyQueries: -1, // No daily limit
     monthlyQueries: 50, // 50 queries per month
     historyDays: 7, // 7-day error history
-    aiModel: 'gemini-2.0-flash-exp',
+    aiModel: modelConfig.CLAUDE_MODELS['haiku'].apiId, // UNIFIED: Claude Haiku for FREE
     maxTokens: 800,
     features: {
       // Basic features

@@ -358,68 +358,58 @@ try {
 }
 
 // ============================================================================
-// TIER CONFIGURATION
+// TIER CONFIGURATION - UNIFIED with modelConfig.js
 // ============================================================================
 
+// Import central model configuration
+const modelConfig = require('../config/modelConfig');
+
+/**
+ * UNIFIED: Get tier config dynamically from central modelConfig
+ * No more hardcoded models - everything flows from one source
+ */
+function getTierConfig(tier = 'free') {
+  const defaultModel = modelConfig.getDefaultModelForTier(tier);
+  const fallbackModel = modelConfig.getFallbackModelForTier(tier);
+  const maxTokens = modelConfig.getMaxTokensForTier(tier);
+  
+  // Temperature settings by tier
+  const temperatures = { free: 0.5, pro: 0.4, team: 0.3 };
+  
+  // Feature settings by tier
+  const featuresByTier = {
+    free: { batchAnalysis: false, urlScraping: false, conversationHistory: false },
+    pro: { batchAnalysis: false, urlScraping: true, conversationHistory: true },
+    team: { batchAnalysis: true, urlScraping: true, conversationHistory: true }
+  };
+  
+  return {
+    primary: {
+      provider: 'anthropic',
+      model: defaultModel.apiId,
+      modelName: defaultModel.name,
+      maxTokens: maxTokens,
+      temperature: temperatures[tier] || 0.5,
+    },
+    fallback: {
+      provider: 'anthropic',
+      model: fallbackModel.apiId,
+      modelName: fallbackModel.name,
+      maxTokens: maxTokens,
+      temperature: temperatures[tier] || 0.5,
+    },
+    features: featuresByTier[tier] || featuresByTier.free,
+  };
+}
+
+// Legacy TIER_CONFIG for backward compatibility - now uses dynamic function
 const TIER_CONFIG = {
-  free: {
-    primary: { 
-      provider: 'anthropic',  // FREE tier uses Claude 3.5 Haiku (fast & affordable)
-      model: 'claude-3-5-haiku-20241022',
-      maxTokens: 800,
-      temperature: 0.5,
-    },
-    fallback: { 
-      provider: 'anthropic',
-      model: 'claude-3-haiku-20240307',  // Older Haiku as fallback
-      maxTokens: 800,
-      temperature: 0.5,
-    },
-    features: {
-      batchAnalysis: false,
-      urlScraping: false,
-      conversationHistory: false,
-    },
-  },
-  pro: {
-    primary: { 
-      provider: 'anthropic',  // PRO tier uses Claude 3.5 Haiku (more tokens)
-      model: 'claude-3-5-haiku-20241022',
-      maxTokens: 1500,
-      temperature: 0.4,
-    },
-    fallback: { 
-      provider: 'anthropic',
-      model: 'claude-3-haiku-20240307',
-      maxTokens: 1500,
-      temperature: 0.4,
-    },
-    features: {
-      batchAnalysis: false,
-      urlScraping: true,
-      conversationHistory: true,
-    },
-  },
-  team: {
-    primary: { 
-      provider: 'anthropic',  // TEAM tier uses Claude 3.5 Sonnet (BEST quality)
-      model: 'claude-3-5-sonnet-20241022',
-      maxTokens: 2500,
-      temperature: 0.3,
-    },
-    fallback: { 
-      provider: 'anthropic',
-      model: 'claude-3-5-haiku-20241022',  // Fallback to Haiku
-      maxTokens: 2500,
-      temperature: 0.3,
-    },
-    features: {
-      batchAnalysis: true,
-      urlScraping: true,
-      conversationHistory: true,
-    }
-  },
+  get free() { return getTierConfig('free'); },
+  get pro() { return getTierConfig('pro'); },
+  get team() { return getTierConfig('team'); },
 };
+
+console.log('✅ AI Service using UNIFIED modelConfig for all tier configurations');
 
 // ============================================================================
 // UTILITY FUNCTIONS
@@ -2034,16 +2024,25 @@ async function scrapeURL(url) {
 
 /**
  * Summarize scraped URL content using AI
+ * UNIFIED: Uses Claude (Anthropic) for consistency with other AI calls
  */
 async function summarizeURLContent(url, content, errorContext) {
   try {
     console.log(`📝 Summarizing content from ${url}`);
     
-    // Use Gemini for quick summarization
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    // UNIFIED: Use Claude/Anthropic for URL summarization (same as other AI calls)
+    if (!anthropic) {
+      console.warn('⚠️ Anthropic not available for URL summarization, using basic summary');
+      return {
+        url,
+        summary: `Referenced documentation from ${url}`,
+        keyPoints: ['Content available at source URL'],
+        relevance: 'medium',
+        success: true
+      };
+    }
     
-    const prompt = `You are analyzing documentation/content from a URL to help solve a programming error.
+    const summaryPrompt = `You are analyzing documentation/content from a URL to help solve a programming error.
 
 **URL:** ${url}
 
@@ -2067,9 +2066,16 @@ Respond in JSON format:
 
 Keep it concise and focused only on what helps solve the error.`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    // Use Claude Haiku for fast summarization (from central config)
+    const haikuModel = modelConfig.CLAUDE_MODELS['haiku'].apiId;
+    
+    const response = await anthropic.messages.create({
+      model: haikuModel,
+      max_tokens: 500,
+      messages: [{ role: 'user', content: summaryPrompt }]
+    });
+    
+    const text = response.content[0].text;
     
     let cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const parsed = JSON.parse(cleanText);
@@ -2144,8 +2150,7 @@ async function processURLs(errorMessage, codeSnippet) {
 // MAIN ERROR ANALYSIS FUNCTION
 // ============================================================================
 
-// Import model configuration
-const modelConfig = require('../config/modelConfig');
+// Note: modelConfig is already imported at the top of this file
 
 /**
  * Analyze error with AI providers, caching, and fallback handling
@@ -2815,10 +2820,10 @@ async function analyzeWithContext({ messages, newMessage, userId, subscriptionTi
       content: msg.content
     }));
     
-    // Get the appropriate model for this tier
-    const modelConfig = require('../config/modelConfig');
+    // UNIFIED: Get the appropriate model for this tier from central config
+    // Note: modelConfig is already imported at the top
     const model = modelConfig.resolveModelForRequest('auto', subscriptionTier, newMessage);
-    const modelId = model.apiId || 'claude-3-5-haiku-20241022';
+    const modelId = model.apiId || modelConfig.CLAUDE_MODELS['haiku'].apiId;
     
     // Create system prompt for follow-up context
     const systemPrompt = `You are ErrorWise AI, a helpful coding assistant specialized in debugging and error analysis.
