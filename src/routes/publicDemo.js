@@ -121,14 +121,14 @@ router.post('/analyze', demoRateLimiter, async (req, res) => {
     console.error('❌ Error message:', error.message);
     console.error('❌ Error name:', error.name);
     console.error('❌ Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+    
+    // Temporarily include error details in production for debugging
     res.status(500).json({
       error: 'Analysis failed',
-      message: 'Something went wrong. Please try again or sign up for better support!',
-      debug: process.env.NODE_ENV === 'development' ? {
-        message: error.message,
-        name: error.name,
-        stack: error.stack
-      } : undefined
+      message: error.message || 'Something went wrong. Please try again or sign up for better support!',
+      errorName: error.name,
+      // Include debug info temporarily
+      debugHint: error.message?.substring(0, 200)
     });
   }
 });
