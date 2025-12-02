@@ -15,6 +15,17 @@ const SUBSCRIPTION_TIERS = {
     interval: 'forever',
     description: 'Perfect for trying out ErrorWise. Get 50 error explanations per month with 7-day history.',
     dodo_plan_id: null,
+    // Display-ready feature list for frontend (single source of truth)
+    displayFeatures: [
+      { text: '50 queries per month', available: true },
+      { text: 'Basic error explanations', available: true },
+      { text: `Claude Haiku AI (${modelConfig.getMaxTokensForTier('free')} tokens)`, available: true },
+      { text: '7-day error history', available: true },
+      { text: 'Community support', available: true },
+      { text: 'Code examples & fixes', available: false },
+      { text: 'Unlimited queries', available: false },
+      { text: 'Export history', available: false }
+    ],
     features: {
       // Query limits
       monthlyQueries: 50,
@@ -60,6 +71,18 @@ const SUBSCRIPTION_TIERS = {
     trialDays: 7,
     dodo_plan_id: 'pdt_OKdKW76gtO6vBWltBBV5d',
     mostPopular: true,
+    // Display-ready feature list for frontend (single source of truth)
+    displayFeatures: [
+      { text: 'Unlimited queries', available: true },
+      { text: 'Full error explanations + fixes', available: true },
+      { text: 'Code examples & prevention tips', available: true },
+      { text: `Claude Haiku AI (${modelConfig.getMaxTokensForTier('pro')} tokens)`, available: true },
+      { text: 'Unlimited error history', available: true },
+      { text: 'Export to JSON/CSV', available: true },
+      { text: 'URL scraping context', available: true },
+      { text: 'Multi-language support', available: true },
+      { text: 'Email support', available: true }
+    ],
     features: {
       // Query limits
       monthlyQueries: -1, // unlimited
@@ -110,6 +133,18 @@ const SUBSCRIPTION_TIERS = {
     description: 'Everything in Pro plus shared team history, team dashboard, and collaborative features.',
     trialDays: 14,
     dodo_plan_id: 'pdt_Zbn5YM2pCgkKcdQyV0ouY',
+    // Display-ready feature list for frontend (single source of truth)
+    displayFeatures: [
+      { text: 'Everything in Pro', available: true },
+      { text: 'Team features (10 members)', available: true },
+      { text: 'Shared error history', available: true },
+      { text: 'Team dashboard & analytics', available: true },
+      { text: `Claude Sonnet AI (${modelConfig.getMaxTokensForTier('team')} tokens)`, available: true },
+      { text: 'Advanced debugging tools', available: true },
+      { text: 'Priority support', available: true },
+      { text: 'API access', available: true },
+      { text: 'Custom integrations', available: true }
+    ],
     features: {
       // Query limits
       monthlyQueries: -1, // unlimited
@@ -280,6 +315,7 @@ exports.getPlans = async (req, res) => {
             interval: plan.billing_interval || plan.interval || 'month',
             trialDays: plan.trial_period_days || plan.trial_days || (tierKey === 'pro' ? 7 : tierKey === 'team' ? 14 : 0),
             features: tierConfig.features, // Use features from SUBSCRIPTION_TIERS
+            displayFeatures: tierConfig.displayFeatures, // Frontend-ready feature list
             popular: tierKey === 'pro', // Mark Pro as popular
             description: plan.description || getPlanDescription(tierKey),
             dodo_plan_id: tierConfig.dodo_plan_id || plan.dodo_plan_id // Use SUBSCRIPTION_TIERS Product ID first
@@ -300,6 +336,7 @@ exports.getPlans = async (req, res) => {
         interval: tier.interval,
         trialDays: tier.trialDays || 0,
         features: tier.features,
+        displayFeatures: tier.displayFeatures, // Frontend-ready feature list
         popular: tierKey === 'pro', // Mark Pro as popular
         description: getPlanDescription(tierKey)
       };
