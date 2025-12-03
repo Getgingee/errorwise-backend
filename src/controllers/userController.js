@@ -226,7 +226,8 @@ exports.getProfile = async (req, res) => {
       },
       stats: {
         totalQueries,
-        thisMonthQueries
+        thisMonthQueries,
+        subscriptionTier: effectiveTier
       },
       subscription: {
         tier: effectiveTier,
