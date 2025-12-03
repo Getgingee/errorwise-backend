@@ -1310,10 +1310,19 @@ async function getUsageLimits(userId, tier) {
   };
 }
 
-// Helper function to get features by tier
+// Helper function to get features by tier (returns format expected by frontend)
 function getFeaturesByTier(tier) {
   const tierConfig = SUBSCRIPTION_TIERS[tier] || SUBSCRIPTION_TIERS.free;
-  return tierConfig.features;
+  const features = tierConfig.features;
+  
+  // Return simplified feature flags for frontend UsageStats interface
+  return {
+    errorExplanation: features.errorExplanation || features.basicErrorExplanations || true,
+    fixSuggestions: features.fixSuggestions || tier !== 'free',
+    codeExamples: features.codeExamples || tier !== 'free',
+    exportHistory: features.exportToJSON || features.exportToCSV || tier !== 'free',
+    teamFeatures: features.teamFeatures || tier === 'team'
+  };
 }
 
 // ============================================================================
