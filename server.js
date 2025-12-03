@@ -349,9 +349,14 @@ const start = async () => {
     console.log(`🌐 API Base URL: ${process.env.API_BASE_URL || 'http://localhost:3001'}`);
     console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}\n`);
 
-    // Connect to Redis first
+    // Connect to Redis first (both redisClient and redisService)
     try {
       await connectRedis();
+      
+      // Also connect the redisService singleton used by chatController
+      const redisService = require('./src/services/redisService');
+      await redisService.connect();
+      
       console.log('✅ Redis initialization complete');
     } catch (redisError) {
       console.warn('⚠️  Redis connection failed - sessions will use memory store:', redisError.message);
