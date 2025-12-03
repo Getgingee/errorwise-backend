@@ -374,21 +374,19 @@ function getAutoReason(modelId, errorText) {
 /**
  * Get toggle data for frontend
  * Returns simple toggle config based on tier
+ * Always includes at least the default model for frontend compatibility
  */
 function getToggleConfig(tier = 'free') {
   const tierConfig = TIER_MODEL_DEFAULTS[tier] || TIER_MODEL_DEFAULTS.free;
   
-  if (!tierConfig.showToggle) {
-    return {
-      show: false,
-      models: [],
-      default: tierConfig.default
-    };
-  }
+  // Always include models array with at least the default model for frontend compatibility
+  const modelsToInclude = tierConfig.showToggle 
+    ? tierConfig.allowedModels 
+    : [tierConfig.default]; // Free tier just gets the default model
   
   return {
-    show: true,
-    models: tierConfig.allowedModels.map(id => ({
+    show: tierConfig.showToggle,
+    models: modelsToInclude.map(id => ({
       id: CLAUDE_MODELS[id].id,
       name: CLAUDE_MODELS[id].shortName,
       icon: CLAUDE_MODELS[id].icon,
