@@ -101,6 +101,18 @@ class DodoPaymentService {
       }
 
       // Build Checkout Session payload as per latest Dodo docs
+      // IMPORTANT: DODO API rejects null values - only include defined fields
+      const metadata = {
+        userId: String(userId),
+        planId: String(planId),
+        planName: String(planName)
+      };
+      
+      // Only add couponRedemptionId if it exists (DODO rejects null)
+      if (couponRedemptionId) {
+        metadata.couponRedemptionId = String(couponRedemptionId);
+      }
+      
       const payload = {
         product_cart: [
           {
@@ -113,25 +125,23 @@ class DodoPaymentService {
         customer: {
           email: userEmail
         },
-        subscription_data: {
-          trial_period_days: trialDays
-        },
         return_url: successUrl || `${process.env.FRONTEND_URL}/dashboard?payment=success`,
-        metadata: {
-          userId: String(userId),
-          planId,
-          planName,
-          couponRedemptionId: couponRedemptionId ? String(couponRedemptionId) : null
-        },
-        // Enable discount code input in Dodo checkout
-        feature_flags: {
-          allow_discount_code: true
-        }
+        metadata
       };
-
-      // Pre-fill discount code if provided
+      
+      // Only add subscription_data if there's a trial period
+      if (trialDays > 0) {
+        payload.subscription_data = {
+          trial_period_days: trialDays
+        };
+      }
+      
+      // Only add discount code if provided
       if (discountCode) {
         payload.discount_code = discountCode;
+        payload.feature_flags = {
+          allow_discount_code: true
+        };
       }
 
       console.log('💳 Dodo API Request:', {
