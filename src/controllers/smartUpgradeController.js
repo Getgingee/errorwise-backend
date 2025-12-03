@@ -39,7 +39,7 @@ const SMART_EVENTS = {
  */
 async function checkSmartUpgrade(req, res) {
   try {
-    const userId = req.user.id;
+    const userId = req.user.id || req.user.userId;
     const { context } = req.query; // 'after_query', 'high_confidence', 'follow_up'
     
     const user = await User.findByPk(userId);
@@ -156,7 +156,7 @@ async function checkSmartUpgrade(req, res) {
  */
 async function trackSmartUpgradeShown(req, res) {
   try {
-    const userId = req.user.id;
+    const userId = req.user.id || req.user.userId;
     const { promptType, triggers, page } = req.body;
     
     await eventTracking.trackEvent({
@@ -190,7 +190,7 @@ async function trackSmartUpgradeShown(req, res) {
  */
 async function trackSmartUpgradeClicked(req, res) {
   try {
-    const userId = req.user.id;
+    const userId = req.user.id || req.user.userId;
     const { promptType, triggers, page } = req.body;
     
     await eventTracking.trackEvent({
@@ -235,7 +235,7 @@ async function trackSmartUpgradeClicked(req, res) {
  */
 async function trackSmartUpgradeDismissed(req, res) {
   try {
-    const userId = req.user.id;
+    const userId = req.user.id || req.user.userId;
     const { promptType, reason } = req.body;
     
     await eventTracking.trackEvent({
