@@ -1085,35 +1085,47 @@ exports.getHistory = async (req, res) => {
 
     const total = await Subscription.count({ where: { userId } });
 
-    // Format history
-    const history = subscriptions.map(sub => {
+    // Format history to match frontend HistoryItem interface
+    // Frontend expects: { id, type, fromPlan, toPlan, date, amount }
+    const history = subscriptions.map((sub, index) => {
       const plan = SUBSCRIPTION_TIERS[sub.tier] || SUBSCRIPTION_TIERS.free;
+      const previousSub = subscriptions[index + 1]; // Previous subscription in time order
+      const actionType = getActionType(sub);
+      
+      // Map action types to frontend expected types
+      let type = 'renewed';
+      if (actionType === 'subscribed' || actionType === 'trial_started') {
+        type = 'upgrade';
+      } else if (actionType === 'upgraded') {
+        type = 'upgrade';
+      } else if (actionType === 'downgraded') {
+        type = 'downgrade';
+      } else if (actionType === 'cancelled' || actionType === 'expired') {
+        type = 'cancelled';
+      }
+      
       return {
         id: sub.id,
-        tier: sub.tier,
-        planName: plan.name,
-        status: sub.status,
+        type,
+        fromPlan: previousSub ? (SUBSCRIPTION_TIERS[previousSub.tier]?.name || 'Free Plan') : 'Free Plan',
+        toPlan: plan.name,
+        date: sub.createdAt,
         amount: plan.price,
-        currency: 'USD',
-        interval: plan.interval,
-        startDate: sub.startDate,
-        endDate: sub.endDate,
-        createdAt: sub.createdAt,
-        updatedAt: sub.updatedAt,
-        action: getActionType(sub)
+        // Extra fields for compatibility
+        tier: sub.tier,
+        status: sub.status,
+        interval: plan.interval
       };
     });
 
+    // Return in format frontend expects - directly as { history: [...] }
     res.json({
-      success: true,
-      data: {
-        history,
-        pagination: {
-          total,
-          limit,
-          offset,
-          hasMore: offset + limit < total
-        }
+      history,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasMore: offset + limit < total
       }
     });
 
@@ -1230,45 +1242,55 @@ async function getUsageLimits(userId, tier) {
   const tierConfig = SUBSCRIPTION_TIERS[tier] || SUBSCRIPTION_TIERS.free;
   
   // For unlimited plans (Pro and Team)
-  if (tierConfig.features.dailyQueries === -1) {
+  if (tierConfig.features.monthlyQueries === -1 || tierConfig.features.dailyQueries === -1) {
     const totalUsed = await ErrorQuery.count({
       where: { userId }
     });
 
     return {
       queriesUsed: totalUsed,
+      queriesLimit: -1, // -1 means unlimited
       queriesRemaining: 'unlimited',
+      percentage: 0, // No percentage for unlimited
       dailyLimit: 'unlimited',
       resetTime: null,
       planType: tier
     };
   }
 
-  // For free plan - daily limit
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  // For free plan - use monthly limit (50) or daily limit
+  const monthlyLimit = tierConfig.features.monthlyQueries || 50;
+  
+  // Get start of current month
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+  
+  const nextMonth = new Date(startOfMonth);
+  nextMonth.setMonth(nextMonth.getMonth() + 1);
 
-  const dailyUsed = await ErrorQuery.count({
+  const monthlyUsed = await ErrorQuery.count({
     where: {
       userId,
       createdAt: {
-        [Op.gte]: today,
-        [Op.lt]: tomorrow
+        [Op.gte]: startOfMonth,
+        [Op.lt]: nextMonth
       }
     }
   });
 
-  const dailyRemaining = Math.max(0, tierConfig.features.dailyQueries - dailyUsed);
+  const monthlyRemaining = Math.max(0, monthlyLimit - monthlyUsed);
+  const percentage = Math.min(100, (monthlyUsed / monthlyLimit) * 100);
 
   return {
-    queriesUsed: dailyUsed,
-    queriesRemaining: dailyRemaining,
-    dailyLimit: tierConfig.features.dailyQueries,
-    resetTime: tomorrow.toISOString(),
+    queriesUsed: monthlyUsed,
+    queriesLimit: monthlyLimit,
+    queriesRemaining: monthlyRemaining,
+    percentage: percentage, // Frontend needs this!
+    dailyLimit: tierConfig.features.dailyQueries || monthlyLimit,
+    resetTime: nextMonth.toISOString(),
     planType: 'free',
-    limitReached: dailyRemaining === 0
+    limitReached: monthlyRemaining === 0
   };
 }
 

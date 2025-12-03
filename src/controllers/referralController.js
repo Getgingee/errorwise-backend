@@ -49,7 +49,13 @@ function generateReferralCode(username, userId) {
  */
 async function getReferralLink(req, res) {
   try {
-    const userId = req.user.id;
+    // Handle both req.user.id and req.user.userId (token payload variations)
+    const userId = req.user.id || req.user.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+    
     const user = await User.findByPk(userId);
     
     if (!user) {
@@ -411,7 +417,13 @@ async function awardProReferralBonus(refereeId) {
  */
 async function getReferralDashboard(req, res) {
   try {
-    const userId = req.user.id;
+    // Handle both req.user.id and req.user.userId (token payload variations)
+    const userId = req.user.id || req.user.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+    
     const user = await User.findByPk(userId);
     
     if (!user) {
