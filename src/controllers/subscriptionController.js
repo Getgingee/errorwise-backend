@@ -904,6 +904,14 @@ exports.createCheckout = async (req, res) => {
     // Production: Create payment session
     const paymentService = require('../services/paymentService');
     
+    console.log('💳 Creating payment session:', {
+      userId: user.id,
+      planId,
+      productId: plan.dodo_plan_id,
+      hasUsedTrial,
+      userEmail: user.email?.substring(0, 5) + '***'
+    });
+    
     let paymentSession;
     try {
       paymentSession = await paymentService.createPaymentSession({
@@ -921,8 +929,16 @@ exports.createCheckout = async (req, res) => {
         cancelUrl: cancelUrl || `${process.env.FRONTEND_URL}/pricing?payment=cancelled`,
         discountCode: discountCode || null
       });
+      
+      console.log('💳 Payment session result:', {
+        success: paymentSession?.success,
+        hasUrl: !!paymentSession?.sessionUrl,
+        error: paymentSession?.error
+      });
+      
     } catch (paymentError) {
       console.error('⚠️ Payment service error:', paymentError.message);
+      console.error('⚠️ Payment error stack:', paymentError.stack);
       // Only fallback to trial if user hasn't used it before
       if (!hasUsedTrial) {
         logger.info('Payment failed, offering trial instead');
@@ -937,14 +953,14 @@ exports.createCheckout = async (req, res) => {
     }
 
     if (!paymentSession || !paymentSession.success) {
-      console.log('⚠️ Payment session creation failed');
+      console.log('⚠️ Payment session creation failed:', paymentSession?.error || 'No session returned');
       // Only fallback to trial if user hasn't used it before
       if (!hasUsedTrial) {
         return activateTrialSubscription();
       }
       return res.status(500).json({ 
         success: false, 
-        error: 'Failed to create payment session. Please try again.',
+        error: paymentSession?.error || 'Failed to create payment session. Please try again.',
         requiresPayment: true
       });
     }

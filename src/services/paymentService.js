@@ -134,6 +134,14 @@ class DodoPaymentService {
         payload.discount_code = discountCode;
       }
 
+      console.log('💳 Dodo API Request:', {
+        url: `${this.baseURL}/checkouts`,
+        productId,
+        userEmail: userEmail?.substring(0, 5) + '***',
+        hasApiKey: !!this.apiKey,
+        apiKeyPrefix: this.apiKey?.substring(0, 8)
+      });
+
       const response = await axios.post(`${this.baseURL}/checkouts`, payload, {
         headers: {
           'Content-Type': 'application/json',
