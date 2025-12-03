@@ -101,7 +101,14 @@ function generateConversationalChips(previousMessages, latestResponse) {
  */
 async function getContext(conversationId) {
   try {
-    const context = await redisService.get(`${CONTEXT_PREFIX}${conversationId}`);
+    const key = `${CONTEXT_PREFIX}${conversationId}`;
+    console.log(`[Context] Looking for key: ${key}, Redis connected: ${redisService.isConnected}`);
+    const context = await redisService.get(key);
+    if (context) {
+      console.log(`[Context] Found context for ${conversationId}, messages: ${context.messages?.length || 0}`);
+    } else {
+      console.log(`[Context] No context found for key: ${key}`);
+    }
     return context;
   } catch (error) {
     console.error('[Context] Redis get error:', error.message);
@@ -572,9 +579,15 @@ exports.saveConversationContext = async function(conversationId, errorMessage, a
       metadata,
       lastUpdated: Date.now()
     };
-    await redisService.set(`${CONTEXT_PREFIX}${conversationId}`, context, CONTEXT_TTL);
-    console.log(`[Context] Saved conversation context to Redis for: ${conversationId}`);
+    const saved = await redisService.set(`${CONTEXT_PREFIX}${conversationId}`, context, CONTEXT_TTL);
+    if (saved) {
+      console.log(`[Context] Saved conversation context to Redis for: ${conversationId}`);
+    } else {
+      console.warn(`[Context] Redis not connected, context NOT saved for: ${conversationId}`);
+    }
+    return saved;
   } catch (error) {
     console.error(`[Context] Failed to save context to Redis:`, error.message);
+    return false;
   }
 };
