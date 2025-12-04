@@ -249,6 +249,7 @@ router.get('/all', async (req, res) => {
 /**
  * GET /api/models/available
  * Alias for /toggle - returns available models for user
+ * Response format matches what frontend ModelToggle.tsx expects
  */
 router.get('/available', authMiddleware, async (req, res) => {
   try {
@@ -274,19 +275,50 @@ router.get('/available', authMiddleware, async (req, res) => {
     const toggleConfig = getToggleConfig(effectiveTier);
     const currentModel = user.preferred_ai_model || toggleConfig.default;
     
+    // Format models with available flag for frontend compatibility
+    const formattedModels = toggleConfig.models.map(m => ({
+      id: m.id,
+      name: m.name,
+      description: m.description,
+      speed: m.id === 'haiku' ? 'Fast' : m.id === 'sonnet' ? 'Medium' : 'Slower',
+      quality: m.id === 'haiku' ? 'Good' : m.id === 'sonnet' ? 'Better' : m.id === 'opus' ? 'Best' : 'Smart',
+      available: true, // All models in the list are available for this tier
+      recommended: m.id === toggleConfig.default
+    }));
+    
+    // Check if auto mode is available (Pro and Team tiers)
+    const autoModeAvailable = effectiveTier === 'pro' || effectiveTier === 'team';
+    const autoModeEnabled = currentModel === 'auto';
+    
     res.json({
       success: true,
       tier: baseTier,
       effectiveTier,
       showToggle: toggleConfig.show,
       currentModel,
-      models: toggleConfig.models,
-      available: toggleConfig.models, // Frontend compatibility
+      models: formattedModels,
+      autoModeEnabled,
+      autoModeAvailable,
       defaultModel: toggleConfig.default
     });
   } catch (error) {
     console.error('Error fetching available models:', error);
-    res.status(500).json({ error: 'Failed to fetch models' });
+    // Return fallback data so frontend doesn't crash
+    res.status(500).json({ 
+      error: 'Failed to fetch models',
+      models: [{
+        id: 'haiku',
+        name: 'Fast',
+        description: 'Quick responses for simple errors',
+        speed: 'Fast',
+        quality: 'Good',
+        available: true,
+        recommended: true
+      }],
+      currentModel: 'haiku',
+      autoModeEnabled: false,
+      autoModeAvailable: false
+    });
   }
 });
 
@@ -297,10 +329,11 @@ router.get('/available', authMiddleware, async (req, res) => {
 router.post('/select', authMiddleware, modelPreferenceLimiter, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { modelId } = req.body;
+    // Accept both 'modelId' and 'model' for frontend compatibility
+    const modelId = req.body.modelId || req.body.model;
     
     if (!modelId) {
-      return res.status(400).json({ error: 'Model ID is required' });
+      return res.status(400).json({ error: 'Model ID is required (send modelId or model)' });
     }
     
     const user = await User.findByPk(userId);
@@ -337,7 +370,8 @@ router.post('/select', authMiddleware, modelPreferenceLimiter, async (req, res) 
     res.json({
       success: true,
       message: `Model changed to ${model.name}`,
-      model: {
+      model: modelId, // Frontend expects model as string ID
+      modelInfo: {
         id: model.id,
         name: model.name,
         icon: model.icon
