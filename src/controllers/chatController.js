@@ -349,6 +349,7 @@ exports.sendFollowUp = async (req, res) => {
     // Save follow-up to database (use explanation + solution fields since ErrorQuery doesn't have aiResponse)
     const followUp = await ErrorQuery.create({
       userId,
+      rawError: message.substring(0, 10000), // Required field - use the follow-up message
       errorMessage: message.substring(0, 10000),
       explanation: analysis.response,
       solution: '', // Follow-ups combine into explanation

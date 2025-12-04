@@ -30,6 +30,11 @@ process.on('unhandledRejection', (reason, promise) => {
 const app = express();
 
 // ============================================================================
+// PROXY CONFIGURATION - Required for Railway/Vercel behind reverse proxy
+// ============================================================================
+app.set('trust proxy', 1); // Trust first proxy (Railway's load balancer)
+
+// ============================================================================
 // PERFORMANCE: Enable compression for all responses
 // ============================================================================
 app.use(compression({
