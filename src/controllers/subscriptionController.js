@@ -1091,7 +1091,12 @@ exports.getHistory = async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const offset = parseInt(req.query.offset) || 0;
 
-    // Get subscription changes/transactions
+    // Get user for account creation date
+    const user = await User.findByPk(userId, {
+      attributes: ['id', 'createdAt', 'subscriptionTier', 'subscriptionStatus', 'subscriptionStartDate', 'trialEndsAt']
+    });
+
+    // Get subscription changes/transactions from Subscription model
     const subscriptions = await Subscription.findAll({
       where: { userId },
       order: [['createdAt', 'DESC']],
@@ -1099,16 +1104,35 @@ exports.getHistory = async (req, res) => {
       offset
     });
 
+    // Get subscription-related events from Event model
+    const Event = require('../models/Event');
+    const { Op } = require('sequelize');
+    const subscriptionEvents = await Event.findAll({
+      where: {
+        user_id: userId,
+        event_name: {
+          [Op.in]: [
+            'subscription_created', 'subscription_upgraded', 'subscription_downgraded',
+            'subscription_cancelled', 'subscription_renewed', 'trial_started',
+            'payment_succeeded', 'payment_failed', 'trial_expired'
+          ]
+        }
+      },
+      order: [['timestamp', 'DESC']],
+      limit: 20
+    });
+
     const total = await Subscription.count({ where: { userId } });
 
-    // Format history to match frontend HistoryItem interface
-    // Frontend expects: { id, type, fromPlan, toPlan, date, amount }
-    const history = subscriptions.map((sub, index) => {
+    // Build comprehensive history
+    const history = [];
+
+    // Add subscription records
+    subscriptions.forEach((sub, index) => {
       const plan = SUBSCRIPTION_TIERS[sub.tier] || SUBSCRIPTION_TIERS.free;
-      const previousSub = subscriptions[index + 1]; // Previous subscription in time order
+      const previousSub = subscriptions[index + 1];
       const actionType = getActionType(sub);
       
-      // Map action types to frontend expected types
       let type = 'renewed';
       if (actionType === 'subscribed' || actionType === 'trial_started') {
         type = 'upgrade';
@@ -1120,28 +1144,87 @@ exports.getHistory = async (req, res) => {
         type = 'cancelled';
       }
       
-      return {
+      history.push({
         id: sub.id,
         type,
         fromPlan: previousSub ? (SUBSCRIPTION_TIERS[previousSub.tier]?.name || 'Free Plan') : 'Free Plan',
         toPlan: plan.name,
         date: sub.createdAt,
         amount: plan.price,
-        // Extra fields for compatibility
         tier: sub.tier,
         status: sub.status,
-        interval: plan.interval
-      };
+        interval: plan.interval,
+        source: 'subscription'
+      });
     });
 
-    // Return in format frontend expects - directly as { history: [...] }
+    // Add events that aren't duplicates of subscription records
+    subscriptionEvents.forEach(event => {
+      const eventDate = new Date(event.timestamp);
+      const isDuplicate = history.some(h => {
+        const historyDate = new Date(h.date);
+        return Math.abs(historyDate - eventDate) < 60000; // Within 1 minute
+      });
+
+      if (!isDuplicate) {
+        const props = event.properties || {};
+        let type = 'renewed';
+        let fromPlan = 'Free Plan';
+        let toPlan = props.plan_name || props.tier || 'Unknown';
+        
+        if (event.event_name.includes('trial_started')) {
+          type = 'upgrade';
+          toPlan = 'Pro Plan (Trial)';
+        } else if (event.event_name.includes('upgraded') || event.event_name.includes('created')) {
+          type = 'upgrade';
+        } else if (event.event_name.includes('downgraded')) {
+          type = 'downgrade';
+        } else if (event.event_name.includes('cancelled') || event.event_name.includes('expired')) {
+          type = 'cancelled';
+        } else if (event.event_name.includes('payment_succeeded')) {
+          type = 'renewed';
+          toPlan = props.plan_name || 'Pro Plan';
+        }
+
+        history.push({
+          id: event.id,
+          type,
+          fromPlan,
+          toPlan,
+          date: event.timestamp,
+          amount: props.amount || 0,
+          source: 'event',
+          eventName: event.event_name
+        });
+      }
+    });
+
+    // Add account creation as the first event if no other history
+    if (user && (history.length === 0 || !history.some(h => h.type === 'account_created'))) {
+      history.push({
+        id: `account_${user.id}`,
+        type: 'account_created',
+        fromPlan: null,
+        toPlan: 'Free Plan',
+        date: user.createdAt,
+        amount: 0,
+        source: 'account'
+      });
+    }
+
+    // Sort by date descending
+    history.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    // Apply pagination
+    const paginatedHistory = history.slice(offset, offset + limit);
+
     res.json({
-      history,
+      history: paginatedHistory,
       pagination: {
-        total,
+        total: history.length,
         limit,
         offset,
-        hasMore: offset + limit < total
+        hasMore: offset + limit < history.length
       }
     });
 
