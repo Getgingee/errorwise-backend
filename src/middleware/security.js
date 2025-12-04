@@ -315,8 +315,8 @@ const preventTabAbuse = (req, res, next) => {
   const userSessions = sessionTracker.get(userId);
   userSessions.sessions.add(sessionId);
   
-  // Limit concurrent sessions (prevent opening many tabs)
-  const MAX_SESSIONS = req.user ? 5 : 2; // Authenticated users get more tabs
+  // Limit concurrent sessions (prevent opening many tabs) - increased for better UX
+  const MAX_SESSIONS = req.user ? 10 : 5; // Authenticated users get more tabs (was 5/2)
   
   if (userSessions.sessions.size > MAX_SESSIONS) {
     logger.warn('⚠️ Too many concurrent sessions:', {
@@ -371,12 +371,12 @@ const preventRequestFlooding = (req, res, next) => {
   
   userRequests.count++;
   
-  // Set limits based on user tier
+  // Set limits based on user tier (increased for better UX)
   const limits = {
-    free: 30,      // 30 requests per minute
-    pro: 100,      // 100 requests per minute
-    team: 300,     // 300 requests per minute
-    anonymous: 10  // 10 requests per minute for non-authenticated
+    free: 120,     // 120 requests per minute (was 30 - too aggressive)
+    pro: 300,      // 300 requests per minute (was 100)
+    team: 600,     // 600 requests per minute (was 300)
+    anonymous: 30  // 30 requests per minute for non-authenticated (was 10)
   };
   
   const userTier = req.user?.subscriptionTier || 'anonymous';

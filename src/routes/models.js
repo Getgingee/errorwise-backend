@@ -94,7 +94,24 @@ router.get('/toggle', authMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching toggle config:', error);
-    res.status(500).json({ error: 'Failed to fetch model settings' });
+    // Return fallback data so frontend doesn't crash
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to fetch model settings',
+      // Include fallback models to prevent frontend TypeError
+      models: [{
+        id: 'haiku',
+        name: 'Fast',
+        icon: '⚡',
+        color: '#22c55e',
+        description: 'Quick responses for simple errors'
+      }],
+      showToggle: false,
+      tier: 'free',
+      effectiveTier: 'free',
+      currentModel: 'haiku',
+      defaultModel: 'haiku'
+    });
   }
 });
 

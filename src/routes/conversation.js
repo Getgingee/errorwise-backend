@@ -15,6 +15,10 @@ router.use(addSubscriptionInfo);
  */
 router.post('/ask', checkQueryLimit, async (req, res) => {
   try {
+    // Debug: Log the raw body to diagnose issues
+    console.log(`[Conversation] Raw body:`, JSON.stringify(req.body));
+    console.log(`[Conversation] Content-Type:`, req.get('Content-Type'));
+    
     const {
       message,
       conversationId,
@@ -22,12 +26,17 @@ router.post('/ask', checkQueryLimit, async (req, res) => {
       includeWebSearch = true
     } = req.body;
 
-    console.log(`[Conversation] Request from user ${req.user.id}: "${message?.substring(0, 50)}..."`);
+    console.log(`[Conversation] Request from user ${req.user.id}: "${message?.substring(0, 50) || 'NO MESSAGE'}"`);
 
     if (!message || message.trim().length === 0) {
+      console.log(`[Conversation] Missing message! Body keys: ${Object.keys(req.body).join(', ')}`);
       return res.status(400).json({
         error: 'Message is required',
-        message: 'Please provide a message to get started.'
+        message: 'Please provide a message to get started.',
+        debug: {
+          receivedKeys: Object.keys(req.body),
+          hasMessage: !!message
+        }
       });
     }
 
