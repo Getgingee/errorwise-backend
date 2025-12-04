@@ -62,6 +62,33 @@ async function submitFeedback(req, res) {
       return res.status(404).json({ error: 'User not found' });
     }
     
+    // =========================================================================
+    // SAVE FEEDBACK TO ERRORQUERY MODEL (for quality tracking & improvements)
+    // =========================================================================
+    if (queryId) {
+      try {
+        // Map feedback types to ErrorQuery enum values
+        const feedbackValueMap = {
+          [FEEDBACK_TYPES.YES]: 'up',
+          [FEEDBACK_TYPES.NO]: 'down',
+          [FEEDBACK_TYPES.PARTIAL]: 'down' // Partial counts as needs improvement
+        };
+        
+        const errorQuery = await ErrorQuery.findByPk(queryId);
+        if (errorQuery && errorQuery.userId === userId) {
+          await errorQuery.update({
+            feedback: feedbackValueMap[feedback],
+            feedbackComment: reason ? reason.substring(0, 500) : null,
+            feedbackAt: new Date()
+          });
+          console.log(`[Feedback] Saved to ErrorQuery ${queryId}: ${feedback}`);
+        }
+      } catch (dbError) {
+        // Don't fail the request if DB update fails, just log it
+        console.error('[Feedback] Failed to update ErrorQuery:', dbError.message);
+      }
+    }
+    
     // Map feedback to event name
     const feedbackEventMap = {
       [FEEDBACK_TYPES.YES]: FEEDBACK_EVENTS.FEEDBACK_YES,
@@ -113,7 +140,8 @@ async function submitFeedback(req, res) {
       message: responseMessages[feedback],
       bonusOffered,
       bonusMessage,
-      bonusQueries: bonusOffered ? SHARE_BONUS.QUERIES : 0
+      bonusQueries: bonusOffered ? SHARE_BONUS.QUERIES : 0,
+      savedToQuery: !!queryId
     });
     
   } catch (error) {

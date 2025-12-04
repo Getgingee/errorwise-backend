@@ -252,7 +252,17 @@ exports.getSubscription = async (req, res) => {
     // Get tier configuration
     const tierConfig = SUBSCRIPTION_TIERS[tier] || SUBSCRIPTION_TIERS.free;
 
+    // Frontend expects these fields directly at root level for currentSubscription
     res.json({
+      // Root-level subscription fields for frontend compatibility
+      tier,
+      status: actualStatus,
+      startDate: user.subscriptionStartDate,
+      endDate: user.subscriptionEndDate,
+      trialEndsAt: user.trialEndsAt,
+      isActive: actualStatus === 'active' || actualStatus === 'trial',
+      isTrial: status === 'trial',
+      // Nested data
       user: {
         id: user.id,
         email: user.email,
@@ -634,10 +644,18 @@ exports.getUsage = async (req, res) => {
     
     const limits = await getUsageLimits(userId, effectiveTier);
 
+    // Frontend UsageStats interface expects: tier, usage: {queriesUsed, queriesLimit, percentage}, features
     res.json({
       tier: effectiveTier,
       status,
-      usage: limits,
+      usage: {
+        queriesUsed: limits.queriesUsed || 0,
+        queriesLimit: limits.queriesLimit || 50,
+        queriesRemaining: limits.queriesRemaining,
+        percentage: limits.percentage || 0,
+        resetTime: limits.resetTime,
+        planType: limits.planType
+      },
       features: getFeaturesByTier(effectiveTier),
       subscription: {
         tier: effectiveTier,

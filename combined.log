@@ -6871,3 +6871,26 @@
 {"code":"ECONNREFUSED","level":"error","message":"Redis error:","service":"errorwise-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-30T13:17:42.879Z"}
 {"level":"info","message":"Redis reconnecting...","service":"errorwise-backend","timestamp":"2025-11-30T13:17:43.035Z"}
 {"code":"ECONNREFUSED","level":"error","message":"Redis error:","service":"errorwise-backend","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1134:18)\n    at afterConnectMultiple (node:net:1715:7)","timestamp":"2025-11-30T13:17:43.038Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T05:53:52.182Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T06:13:08.649Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T06:23:08.704Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T06:33:08.750Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T06:43:08.801Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T06:53:08.846Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T07:03:08.894Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T07:13:08.936Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T07:23:08.988Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T07:33:09.040Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T07:43:09.102Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T08:00:20.911Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T08:10:20.945Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T08:20:20.975Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T08:30:21.029Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T09:23:21.037Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T09:33:20.920Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T09:43:20.968Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T10:29:38.030Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T10:39:38.060Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T10:49:38.102Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T10:59:38.167Z"}
+{"behaviorTrackerSize":0,"level":"info","message":"🧹 Security trackers cleaned up","requestTrackerSize":0,"service":"errorwise-backend","sessionTrackerSize":0,"timestamp":"2025-12-04T11:09:38.204Z"}

@@ -571,6 +571,102 @@ setInterval(() => {
   });
 }, 10 * 60 * 1000); // Run every 10 minutes
 
+// ============================================================================
+// REQUEST ID TRACKING - For better audit trail
+// ============================================================================
+const { v4: uuidv4 } = require('uuid');
+
+/**
+ * Add unique request ID to each request for tracking/debugging
+ * Useful for correlating logs across services
+ */
+const requestIdMiddleware = (req, res, next) => {
+  // Use existing request ID from header or generate new one
+  const requestId = req.headers['x-request-id'] || uuidv4();
+  
+  // Attach to request object
+  req.requestId = requestId;
+  
+  // Add to response headers for client correlation
+  res.setHeader('X-Request-ID', requestId);
+  
+  // Add to logger context
+  if (logger && logger.addContext) {
+    logger.addContext({ requestId });
+  }
+  
+  next();
+};
+
+// ============================================================================
+// API KEY RATE LIMITING - For external integrations
+// ============================================================================
+const apiKeyRequestTracker = new Map(); // apiKey -> { count, resetTime }
+
+/**
+ * Rate limit by API key for external integrations
+ * Separate from user-based rate limiting
+ */
+const apiKeyRateLimiter = (options = {}) => {
+  const {
+    windowMs = 60 * 1000, // 1 minute
+    max = 100, // 100 requests per minute per API key
+    keyHeader = 'X-API-Key'
+  } = options;
+
+  return (req, res, next) => {
+    const apiKey = req.get(keyHeader);
+    
+    // Skip if no API key (user auth will handle it)
+    if (!apiKey) {
+      return next();
+    }
+    
+    const now = Date.now();
+    
+    // Initialize or get tracker
+    if (!apiKeyRequestTracker.has(apiKey)) {
+      apiKeyRequestTracker.set(apiKey, { count: 0, resetTime: now + windowMs });
+    }
+    
+    const tracker = apiKeyRequestTracker.get(apiKey);
+    
+    // Reset if window expired
+    if (now > tracker.resetTime) {
+      tracker.count = 0;
+      tracker.resetTime = now + windowMs;
+    }
+    
+    // Check limit
+    if (tracker.count >= max) {
+      const retryAfter = Math.ceil((tracker.resetTime - now) / 1000);
+      
+      res.setHeader('X-RateLimit-Limit', max);
+      res.setHeader('X-RateLimit-Remaining', 0);
+      res.setHeader('Retry-After', retryAfter);
+      
+      logger.warn('⚠️ API key rate limit exceeded:', {
+        apiKey: apiKey.substring(0, 8) + '...',
+        ip: req.ip
+      });
+      
+      return res.status(429).json({
+        success: false,
+        error: 'API key rate limit exceeded',
+        retryAfter
+      });
+    }
+    
+    // Increment and continue
+    tracker.count++;
+    
+    res.setHeader('X-RateLimit-Limit', max);
+    res.setHeader('X-RateLimit-Remaining', Math.max(0, max - tracker.count));
+    
+    next();
+  };
+};
+
 module.exports = {
   sanitizeInput,
   detectSpam,
@@ -583,5 +679,7 @@ module.exports = {
   preventTabAbuse,
   preventRequestFlooding,
   preventDuplicateRequests,
-  detectSuspiciousBehavior
+  detectSuspiciousBehavior,
+  requestIdMiddleware,
+  apiKeyRateLimiter
 };

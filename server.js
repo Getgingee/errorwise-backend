@@ -126,11 +126,15 @@ const {
   preventTabAbuse,
   preventRequestFlooding,
   preventDuplicateRequests,
-  detectSuspiciousBehavior
+  detectSuspiciousBehavior,
+  requestIdMiddleware,
+  apiKeyRateLimiter
 } = require('./src/middleware/security');
 
+app.use(requestIdMiddleware); // Add unique request ID for tracking/debugging
 app.use(securityHeaders); // Add security headers to all responses
 app.use(sanitizeInput); // Sanitize all inputs (XSS, SQL injection, code injection)
+app.use(apiKeyRateLimiter()); // Rate limit external API key usage
 
 // Session middleware (loads user session from Redis)
 app.use(sessionMiddleware);
