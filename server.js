@@ -661,6 +661,17 @@ const start = async () => {
         `);
         
         if (tableExists[0]?.exists) {
+          // FIX: Make raw_error nullable (for follow-up chats that don't have errors)
+          try {
+            await sequelize.query(`ALTER TABLE "query_logs" ALTER COLUMN "raw_error" DROP NOT NULL`);
+            console.log('✅ Fixed: query_logs.raw_error is now nullable (for follow-ups)');
+          } catch (e) {
+            // Column might already be nullable
+            if (!e.message.includes('already')) {
+              console.log('ℹ️  query_logs.raw_error constraint: ' + e.message.substring(0, 50));
+            }
+          }
+          
           if (!qlColumns.includes('feedback')) {
             await sequelize.query(`ALTER TABLE "query_logs" ADD COLUMN IF NOT EXISTS "feedback" VARCHAR(10)`);
             console.log('✅ Added: query_logs.feedback');
