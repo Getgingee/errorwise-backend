@@ -150,8 +150,11 @@ app.use(preventTabAbuse); // Limit concurrent sessions/tabs
 app.use(preventDuplicateRequests); // Prevent double-click submissions
 app.use(detectSuspiciousBehavior); // Detect bot/abuse patterns
 
-// General rate limiting DISABLED for development/testing
-// app.use(rateLimiters.general);
+// General rate limiting - ENABLED for production
+if (process.env.NODE_ENV === 'production') {
+  app.use(rateLimiters.general);
+  console.log('🛡️  Rate limiting: ENABLED (production mode)');
+}
 
 // Request logging
 app.use((req, res, next) => {
@@ -204,6 +207,48 @@ const configRoutes = require('./src/routes/configRoutes'); // App configuration 
 
 // PERFORMANCE - Response time monitoring
 const { router: performanceRoutes, responseTimeMiddleware } = require('./src/routes/performance');
+
+// ============================================================================
+// HEALTH CHECK ENDPOINT - For Railway/Load Balancers
+// ============================================================================
+app.get('/health', async (req, res) => {
+  const startTime = Date.now();
+  const health = {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    checks: {}
+  };
+
+  // Check database
+  try {
+    await sequelize.authenticate();
+    health.checks.database = { status: 'healthy', latency: Date.now() - startTime };
+  } catch (err) {
+    health.checks.database = { status: 'unhealthy', error: err.message };
+    health.status = 'degraded';
+  }
+
+  // Check Redis
+  try {
+    const { redis } = require('./src/utils/redisClient');
+    const redisStart = Date.now();
+    await redis.set('health_check', 'ok', 10);
+    health.checks.redis = { status: 'healthy', latency: Date.now() - redisStart };
+  } catch (err) {
+    health.checks.redis = { status: 'unhealthy', error: err.message };
+    health.status = 'degraded';
+  }
+
+  const statusCode = health.status === 'healthy' ? 200 : 503;
+  res.status(statusCode).json(health);
+});
+
+// Lightweight health check for frequent pings
+app.get('/ping', (req, res) => {
+  res.status(200).send('pong');
+});
 
 // Apply response time tracking middleware (before routes)
 app.use(responseTimeMiddleware);
@@ -595,6 +640,51 @@ const start = async () => {
         } else {
           console.log('✅ Events table exists');
         }
+
+        // ============================================================================
+        // VIDEO MEETINGS TABLE (Team tier feature)
+        // ============================================================================
+        const [videoMeetingsExists] = await sequelize.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'video_meetings'
+          ) as exists
+        `);
+        
+        if (!videoMeetingsExists[0].exists) {
+          console.log('⚠️  video_meetings table missing. Creating...');
+          await sequelize.query(`
+            CREATE TABLE IF NOT EXISTS video_meetings (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              team_id INTEGER REFERENCES teams(id) ON DELETE CASCADE,
+              title VARCHAR(255) NOT NULL DEFAULT 'Team Meeting',
+              description TEXT,
+              scheduled_start TIMESTAMP WITH TIME ZONE,
+              duration_minutes INTEGER DEFAULT 30,
+              meeting_type VARCHAR(20) DEFAULT 'instant',
+              status VARCHAR(20) DEFAULT 'scheduled',
+              room_id VARCHAR(100) NOT NULL,
+              invite_code VARCHAR(20),
+              created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+              started_at TIMESTAMP WITH TIME ZONE,
+              ended_at TIMESTAMP WITH TIME ZONE,
+              settings JSONB DEFAULT '{}',
+              meeting_notes JSONB DEFAULT '[]',
+              error_context JSONB DEFAULT '[]',
+              participants JSONB DEFAULT '[]',
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            )
+          `);
+          
+          await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_video_meetings_team_id ON video_meetings(team_id)`);
+          await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_video_meetings_status ON video_meetings(status)`);
+          await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_video_meetings_scheduled ON video_meetings(scheduled_start)`);
+          
+          console.log('✅ video_meetings table created with indexes');
+        } else {
+          console.log('✅ video_meetings table exists');
+        }
         
         // ============================================================================
         // MISSING COLUMNS: ErrorQueries and Subscriptions tables
@@ -777,6 +867,11 @@ const start = async () => {
     const newsletterJob = require('./src/jobs/newsletterJob');
     newsletterJob.initializeNewsletterJobs();
     console.log('✅ Newsletter job initialized (weekly updates to subscribers)');
+    
+    // Initialize session cleanup job (hourly stale session cleanup)
+    const sessionCleanupJob = require('./src/jobs/sessionCleanupJob');
+    sessionCleanupJob.startSessionCleanupJob();
+    console.log('✅ Session cleanup job initialized (hourly cleanup)');
     
     // Start server
     const port = process.env.PORT || 3001;
