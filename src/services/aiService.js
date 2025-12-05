@@ -317,9 +317,9 @@ async function cacheResponseFast(cacheKey, response) {
 
 // Log API key status on startup
 console.log('\n🔑 AI Service Configuration (Claude-Only):');
-console.log(`   FREE tier: Claude Haiku ${process.env.ANTHROPIC_API_KEY ? '✅' : '❌ MISSING!'}`);
-console.log(`   PRO tier: Claude Haiku ${process.env.ANTHROPIC_API_KEY ? '✅' : '❌ MISSING!'}`);
-console.log(`   TEAM tier: Claude Sonnet ${process.env.ANTHROPIC_API_KEY ? '✅' : '❌ MISSING!'}`);
+console.log(`   FREE tier: Claude Haiku (Fast) ${process.env.ANTHROPIC_API_KEY ? '✅' : '❌ MISSING!'}`);
+console.log(`   PRO tier: Auto (Haiku/Sonnet based on complexity) ${process.env.ANTHROPIC_API_KEY ? '✅' : '❌ MISSING!'}`);
+console.log(`   TEAM tier: Auto (Haiku/Sonnet/Opus based on complexity) ${process.env.ANTHROPIC_API_KEY ? '✅' : '❌ MISSING!'}`);
 console.log(`   URL Scraping: ✅ Enabled (Pro/Team)`);
 console.log(`   Cache TTL: ${CONFIG.CACHE_TTL_MS / 1000}s`);
 console.log(`   Max Retries: ${CONFIG.MAX_RETRIES}`);

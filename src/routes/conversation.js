@@ -19,8 +19,9 @@ router.post('/ask', checkQueryLimit, async (req, res) => {
     console.log(`[Conversation] Raw body:`, JSON.stringify(req.body));
     console.log(`[Conversation] Content-Type:`, req.get('Content-Type'));
     
+    // Accept both 'message' and 'query' for frontend compatibility
+    const message = req.body.message || req.body.query;
     const {
-      message,
       conversationId,
       language = 'english',
       includeWebSearch = true
@@ -33,9 +34,11 @@ router.post('/ask', checkQueryLimit, async (req, res) => {
       return res.status(400).json({
         error: 'Message is required',
         message: 'Please provide a message to get started.',
+        hint: 'Send either "message" or "query" in request body',
         debug: {
           receivedKeys: Object.keys(req.body),
-          hasMessage: !!message
+          hasMessage: !!req.body.message,
+          hasQuery: !!req.body.query
         }
       });
     }

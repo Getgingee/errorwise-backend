@@ -177,8 +177,8 @@ async function logQuery({
   errorCategory = null
 }) {
   try {
-    // Sanitize sensitive data
-    const sanitizedError = sanitizeSensitiveData(rawError);
+    // Sanitize sensitive data (handle null for follow-ups)
+    const sanitizedError = rawError ? sanitizeSensitiveData(rawError) : null;
     const sanitizedFailureReason = sanitizeSensitiveData(failureReason);
     
     // Calculate if low confidence

@@ -46,8 +46,9 @@ const QueryLog = sequelize.define('QueryLog', {
   // Sanitized error message (sensitive data redacted)
   raw_error: {
     type: DataTypes.TEXT,
-    allowNull: false,
-    comment: 'Sanitized error message (emails/tokens redacted)'
+    allowNull: true,  // Allow null for follow-up questions which don't have errors
+    defaultValue: null,
+    comment: 'Sanitized error message (emails/tokens redacted). Null for follow-ups.'
   },
   
   // Original error hash for deduplication
