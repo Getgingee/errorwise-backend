@@ -149,6 +149,38 @@ class EmailService {
     return await this.sendEmail(email, subject, htmlContent);
   }
 
+  // Trial started email
+  async sendTrialStartedEmail(email, username, trialEndDate) {
+    const subject = 'Your 7-Day Pro Trial Has Started! 🎉';
+    const htmlContent = this.generateTrialStartedHtml(username, trialEndDate);
+    
+    return await this.sendEmail(email, subject, htmlContent);
+  }
+
+  // Trial expiring soon email (sent 2 days before expiry)
+  async sendTrialExpiringEmail(email, username, daysLeft) {
+    const subject = `Your Trial Ends in ${daysLeft} Day${daysLeft > 1 ? 's' : ''} - ErrorWise`;
+    const htmlContent = this.generateTrialExpiringHtml(username, daysLeft);
+    
+    return await this.sendEmail(email, subject, htmlContent);
+  }
+
+  // Trial expired email
+  async sendTrialExpiredEmail(email) {
+    const subject = 'Your ErrorWise Trial Has Ended';
+    const htmlContent = this.generateTrialExpiredHtml();
+    
+    return await this.sendEmail(email, subject, htmlContent);
+  }
+
+  // Trial cancelled email
+  async sendTrialCancelledEmail(email, username, accessUntil) {
+    const subject = 'Trial Cancellation Confirmed - ErrorWise';
+    const htmlContent = this.generateTrialCancelledHtml(username, accessUntil);
+    
+    return await this.sendEmail(email, subject, htmlContent);
+  }
+
   // Email templates
   generateWelcomeEmailHtml(user) {
     return `
@@ -350,6 +382,106 @@ class EmailService {
           </ul>
         </div>
         <p>Best regards,<br>The ErrorWise Team</p>
+      </div>
+    `;
+  }
+
+  generateTrialStartedHtml(username, trialEndDate) {
+    const endDateStr = new Date(trialEndDate).toLocaleDateString('en-US', { 
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+    });
+    return `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #2563eb;">Your Pro Trial Has Started! 🎉</h1>
+        <p>Hello ${username || 'there'},</p>
+        <p>Welcome to ErrorWise Pro! Your 7-day trial is now active.</p>
+        <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="color: #1e40af; margin-top: 0;">What you now have access to:</h3>
+          <ul style="color: #1e40af;">
+            <li>✨ Unlimited error analyses</li>
+            <li>🤖 Advanced AI models (Claude Sonnet)</li>
+            <li>💬 Follow-up questions for deeper understanding</li>
+            <li>📊 Full history access</li>
+            <li>📤 Export your error history</li>
+          </ul>
+        </div>
+        <p><strong>Your trial ends on:</strong> ${endDateStr}</p>
+        <p>If you love ErrorWise Pro, you don't need to do anything - your subscription will automatically continue after the trial.</p>
+        <p>Want to cancel? No problem! You can cancel anytime from your dashboard before the trial ends.</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${process.env.FRONTEND_URL}/dashboard" 
+             style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+            Start Exploring Pro Features
+          </a>
+        </div>
+        <p>Happy debugging!<br>The ErrorWise Team</p>
+      </div>
+    `;
+  }
+
+  generateTrialExpiringHtml(username, daysLeft) {
+    return `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #f59e0b;">Your Trial Ends Soon ⏰</h1>
+        <p>Hello ${username || 'there'},</p>
+        <p>Just a heads up - your ErrorWise Pro trial ends in <strong>${daysLeft} day${daysLeft > 1 ? 's' : ''}</strong>.</p>
+        <div style="background: #fffbeb; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+          <p style="margin: 0;"><strong>What happens next?</strong></p>
+          <p style="margin: 10px 0 0 0;">After your trial ends, your subscription will automatically continue and you'll be charged based on your selected plan. If you'd like to cancel, you can do so from your dashboard.</p>
+        </div>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${process.env.FRONTEND_URL}/settings/subscription" 
+             style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+            Manage Subscription
+          </a>
+        </div>
+        <p>Questions? Reply to this email and we'll help you out.</p>
+        <p>Best,<br>The ErrorWise Team</p>
+      </div>
+    `;
+  }
+
+  generateTrialExpiredHtml() {
+    return `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #6b7280;">Your Trial Has Ended</h1>
+        <p>Hello,</p>
+        <p>Your 7-day ErrorWise Pro trial has ended. We hope you enjoyed the experience!</p>
+        <p>You're now on the Free plan with limited features. Want to continue with Pro?</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${process.env.FRONTEND_URL}/pricing" 
+             style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+            Upgrade to Pro
+          </a>
+        </div>
+        <p>Thank you for trying ErrorWise!</p>
+        <p>Best,<br>The ErrorWise Team</p>
+      </div>
+    `;
+  }
+
+  generateTrialCancelledHtml(username, accessUntil) {
+    const accessUntilStr = new Date(accessUntil).toLocaleDateString('en-US', { 
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+    });
+    return `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #2563eb;">Trial Cancellation Confirmed</h1>
+        <p>Hello ${username || 'there'},</p>
+        <p>Your ErrorWise Pro trial has been cancelled as requested.</p>
+        <div style="background: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 0;"><strong>Good news:</strong> You'll continue to have Pro access until <strong>${accessUntilStr}</strong>.</p>
+        </div>
+        <p>After that date, your account will switch to our Free plan. You won't be charged.</p>
+        <p>Changed your mind? You can always subscribe to Pro from your dashboard.</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${process.env.FRONTEND_URL}/pricing" 
+             style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+            View Plans
+          </a>
+        </div>
+        <p>Thank you for trying ErrorWise!</p>
+        <p>Best,<br>The ErrorWise Team</p>
       </div>
     `;
   }

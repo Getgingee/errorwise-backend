@@ -17,14 +17,56 @@ const { hasFeature, getLimit, isUnlimited, validateTierAccess, getUpgradePrompt 
  */
 function getEffectiveTier(user) {
   const baseTier = user.subscriptionTier || 'free';
+  const subscriptionStatus = user.subscriptionStatus || '';
   
-  // If already paid, use that
-  if (baseTier !== 'free') {
+  // If already paid and active, use that
+  if (baseTier !== 'free' && subscriptionStatus === 'active') {
     return { tier: baseTier, isTrial: false };
   }
   
-  // Check for active trial
-  if (user.trialEndsAt) {
+  // Check for active trial via subscriptionStatus (new Dodo trial flow)
+  if (subscriptionStatus === 'trial_active') {
+    const now = new Date();
+    const trialEnd = user.trialEndsAt ? new Date(user.trialEndsAt) : null;
+    const daysLeft = trialEnd ? Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24)) : 7;
+    
+    if (daysLeft > 0) {
+      // During active trial, give Pro access
+      return { 
+        tier: 'pro', 
+        isTrial: true, 
+        trialDaysLeft: Math.max(0, daysLeft),
+        trialEndsAt: user.trialEndsAt
+      };
+    } else {
+      // Trial expired but not yet processed
+      return { 
+        tier: 'free', 
+        isTrial: false, 
+        trialExpired: true 
+      };
+    }
+  }
+  
+  // Check for cancelled trial (still has access until end date)
+  if (subscriptionStatus === 'trial_cancelled' && user.trialEndsAt) {
+    const now = new Date();
+    const trialEnd = new Date(user.trialEndsAt);
+    const daysLeft = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
+    
+    if (daysLeft > 0) {
+      return { 
+        tier: 'pro', 
+        isTrial: true, 
+        trialDaysLeft: Math.max(0, daysLeft),
+        trialEndsAt: user.trialEndsAt,
+        trialCancelled: true
+      };
+    }
+  }
+  
+  // Legacy trial check via trialEndsAt field
+  if (user.trialEndsAt && !['trial_cancelled', 'expired'].includes(subscriptionStatus)) {
     const now = new Date();
     const trialEnd = new Date(user.trialEndsAt);
     const daysLeft = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
@@ -45,7 +87,10 @@ function getEffectiveTier(user) {
     }
   }
   
-  return { tier: 'free', isTrial: false, canStartTrial: true };
+  // Check if user can start a trial (hasn't used one before)
+  const canStartTrial = !user.hasUsedTrial;
+  
+  return { tier: 'free', isTrial: false, canStartTrial };
 }
 
 /**

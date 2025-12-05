@@ -186,6 +186,178 @@ class DodoPaymentService {
     }
   }
 
+  // ============================================================================
+  // TRIAL CHECKOUT - Creates checkout with $0 initial charge + card capture
+  // ============================================================================
+  async createTrialCheckout({
+    userId,
+    userEmail,
+    planId,
+    planName,
+    productId,
+    price,
+    trialDays = 7,
+    successUrl,
+    cancelUrl
+  }) {
+    try {
+      // Development fallback (no credentials)
+      if (!this.apiKey) {
+        console.log('⚠️  Dodo API key not configured. Using mock trial flow.');
+
+        const mockSessionId = `mock_trial_${Date.now()}_${userId}`;
+        const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const mockSessionUrl = `${baseUrl}/subscription/mock-trial?sessionId=${mockSessionId}&planId=${planId}&userId=${userId}`;
+
+        return {
+          success: true,
+          sessionId: mockSessionId,
+          sessionUrl: mockSessionUrl,
+          mode: 'mock',
+          isTrial: true
+        };
+      }
+
+      // Build trial checkout payload
+      // Key difference: subscription_data with trial_period_days
+      const payload = {
+        product_cart: [
+          {
+            product_id: productId,
+            quantity: 1
+          }
+        ],
+        allowed_payment_method_types: ['credit', 'debit', 'upi_collect', 'upi_intent'],
+        billing_currency: 'USD',
+        customer: {
+          email: userEmail
+        },
+        return_url: successUrl,
+        // CRITICAL: This tells Dodo to create a subscription with trial
+        subscription_data: {
+          trial_period_days: trialDays
+        },
+        metadata: {
+          userId: String(userId),
+          planId: String(planId),
+          planName: String(planName),
+          isTrial: 'true',
+          trialDays: String(trialDays),
+          chargeAfterTrial: String(price)
+        }
+      };
+
+      console.log('🎁 Creating trial checkout:', {
+        userId: userId?.substring?.(0, 8) || userId,
+        planId,
+        productId: productId?.substring?.(0, 15),
+        trialDays
+      });
+
+      const response = await axios.post(`${this.baseURL}/checkouts`, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+        timeout: 15000
+      });
+
+      const sessionId = response?.data?.session_id || response?.data?.id;
+      const checkoutUrl = response?.data?.checkout_url || response?.data?.url;
+
+      console.log('✅ Trial checkout created:', sessionId);
+
+      return {
+        success: true,
+        sessionId,
+        sessionUrl: checkoutUrl,
+        isTrial: true,
+        data: response.data
+      };
+
+    } catch (error) {
+      console.error('❌ Trial checkout creation failed:', error.response?.data || error.message);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Trial checkout creation failed',
+        code: error.response?.status
+      };
+    }
+  }
+
+  // Get checkout session status (for verifying trial completion)
+  async getCheckoutStatus(sessionId) {
+    try {
+      if (!this.apiKey) {
+        // Mock mode - assume completed for mock sessions
+        if (sessionId?.startsWith('mock_')) {
+          return {
+            completed: true,
+            status: 'completed',
+            subscriptionId: `mock_sub_${Date.now()}`,
+            customerId: `mock_cust_${Date.now()}`
+          };
+        }
+        return { completed: false, status: 'unknown' };
+      }
+
+      const response = await axios.get(`${this.baseURL}/checkouts/${sessionId}`, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+        timeout: 10000
+      });
+
+      const status = response?.data?.status;
+      const completed = ['completed', 'paid', 'active'].includes(status?.toLowerCase());
+
+      return {
+        completed,
+        status,
+        subscriptionId: response?.data?.subscription_id || response?.data?.subscription?.id,
+        customerId: response?.data?.customer_id || response?.data?.customer?.id,
+        data: response.data
+      };
+
+    } catch (error) {
+      console.error('Failed to get checkout status:', error.response?.data || error.message);
+      return {
+        completed: false,
+        status: 'error',
+        error: error.message
+      };
+    }
+  }
+
+  // Cancel subscription with Dodo
+  async cancelSubscription(subscriptionId) {
+    try {
+      if (!this.apiKey) {
+        console.log('⚠️ Mock mode: Would cancel subscription', subscriptionId);
+        return { success: true, mock: true };
+      }
+
+      const response = await axios.post(
+        `${this.baseURL}/subscriptions/${subscriptionId}/cancel`,
+        { cancel_at_period_end: false }, // Immediate cancellation for trials
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiKey}`
+          },
+          timeout: 10000
+        }
+      );
+
+      console.log('✅ Subscription cancelled with Dodo:', subscriptionId);
+      return { success: true, data: response.data };
+
+    } catch (error) {
+      console.error('Failed to cancel subscription:', error.response?.data || error.message);
+      throw error;
+    }
+  }
+
   // Verify webhook signature
   verifyWebhookSignature(payload, signature) {
     try {
@@ -355,18 +527,34 @@ class DodoPaymentService {
   async handlePaymentSuccess(invoiceOrPayload) {
     try {
       const subscriptionId = invoiceOrPayload?.subscription || invoiceOrPayload?.subscription_id;
+      const paymentId = invoiceOrPayload?.payment_id || invoiceOrPayload?.id;
 
-      // Update subscription status if needed
       const Subscription = require('../models/Subscription');
       const User = require('../models/User');
 
+      // Check if this is a trial conversion (first payment after trial ends)
+      const subRecord = await Subscription.findOne({ where: { dodoSubscriptionId: subscriptionId } });
+      
+      if (subRecord?.trialStatus === 'active') {
+        // ============================================================
+        // TRIAL CONVERSION - First payment after trial period
+        // ============================================================
+        console.log('💰 [Webhook] Trial conversion payment, routing to trial controller');
+        const trialController = require('../controllers/trialController');
+        return await trialController.convertTrialFromWebhook({
+          subscription_id: subscriptionId,
+          payment_id: paymentId
+        });
+      }
+
+      // ============================================================
+      // REGULAR PAYMENT SUCCESS
+      // ============================================================
       await Subscription.update(
-        { status: 'active' },
+        { status: 'active', lastPaymentDate: new Date() },
         { where: { dodoSubscriptionId: subscriptionId } }
       );
 
-      // If possible, update the user status too (lookup by subscription)
-      const subRecord = await Subscription.findOne({ where: { dodoSubscriptionId: subscriptionId } });
       if (subRecord?.userId) {
         await User.update(
           { subscriptionStatus: 'active', subscriptionTier: subRecord.tier },
@@ -374,7 +562,7 @@ class DodoPaymentService {
         );
       }
 
-      console.log(`Payment successful for subscription: ${subscriptionId}`);
+      console.log(`✅ Payment successful for subscription: ${subscriptionId}`);
       
       return {
         success: true,
@@ -483,7 +671,26 @@ class DodoPaymentService {
       const userId = data?.metadata?.userId;
       const planId = data?.metadata?.planId;
       const subscriptionId = data?.id || data?.subscription_id;
+      const isTrial = data?.metadata?.isTrial === 'true';
+      const sessionId = data?.session_id || data?.metadata?.session_id;
 
+      // ============================================================
+      // TRIAL ACTIVATION - Route to trial controller
+      // ============================================================
+      if (isTrial) {
+        console.log('🎁 [Webhook] Trial subscription activated, routing to trial controller');
+        const trialController = require('../controllers/trialController');
+        return await trialController.activateTrialFromWebhook({
+          session_id: sessionId,
+          subscription_id: subscriptionId,
+          customer_id: data?.customer_id || data?.customer?.id,
+          metadata: data?.metadata
+        });
+      }
+
+      // ============================================================
+      // REGULAR SUBSCRIPTION ACTIVATION
+      // ============================================================
       const startDate = new Date();
       const endDate = new Date();
       endDate.setMonth(endDate.getMonth() + 1);

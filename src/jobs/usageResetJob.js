@@ -58,25 +58,98 @@ function scheduleTrialExpirationCheck() {
     
     try {
       const now = new Date();
+      const Subscription = require('../models/Subscription');
       
-      // Find users with expired trials who are still on free tier
-      // These users' trial period has ended, they're now on regular free limits
+      // Find users with trial_active status whose trial has expired
       const expiredTrialUsers = await User.findAll({
         where: {
-          trialEndsAt: {
-            [Op.lt]: now,
-            [Op.ne]: null
-          },
-          subscriptionTier: 'free'
+          [Op.or]: [
+            // New Dodo trial flow - trial_active with expired trialEndsAt
+            {
+              subscriptionStatus: 'trial_active',
+              trialEndsAt: {
+                [Op.lt]: now,
+                [Op.ne]: null
+              }
+            },
+            // Legacy trial flow - free tier with expired trialEndsAt
+            {
+              trialEndsAt: {
+                [Op.lt]: now,
+                [Op.ne]: null
+              },
+              subscriptionTier: 'free',
+              subscriptionStatus: {
+                [Op.notIn]: ['trial_cancelled', 'expired', 'active']
+              }
+            }
+          ]
         },
-        attributes: ['id', 'email', 'trialEndsAt']
+        attributes: ['id', 'email', 'trialEndsAt', 'subscriptionStatus', 'subscriptionTier']
       });
       
       logger.info(`[UsageResetJob] Found ${expiredTrialUsers.length} users with expired trials`);
       
-      // Log for metrics (can be enhanced to send email reminders)
+      // Process expired trials
       for (const user of expiredTrialUsers) {
-        logger.info(`[UsageResetJob] Trial expired for user ${user.id} (${user.email})`);
+        try {
+          // Downgrade user to free
+          await user.update({
+            subscriptionTier: 'free',
+            subscriptionStatus: 'expired',
+            trialEndedNotified: true
+          });
+          
+          // Also update Subscription record if exists
+          await Subscription.update(
+            {
+              status: 'expired',
+              isTrial: false
+            },
+            {
+              where: { userId: user.id, status: 'trial_active' }
+            }
+          );
+          
+          logger.info(`[UsageResetJob] Trial expired and downgraded user ${user.id} (${user.email})`);
+          
+          // Send trial expired email
+          const emailService = require('../services/emailService');
+          await emailService.sendTrialExpiredEmail(user.email);
+          
+        } catch (userError) {
+          logger.error(`[UsageResetJob] Failed to process expired trial for user ${user.id}:`, userError);
+        }
+      }
+      
+      // Also handle cancelled trials that have ended
+      const cancelledTrials = await User.findAll({
+        where: {
+          subscriptionStatus: 'trial_cancelled',
+          trialEndsAt: {
+            [Op.lt]: now,
+            [Op.ne]: null
+          }
+        },
+        attributes: ['id', 'email', 'trialEndsAt']
+      });
+      
+      for (const user of cancelledTrials) {
+        try {
+          await user.update({
+            subscriptionTier: 'free',
+            subscriptionStatus: 'expired'
+          });
+          
+          await Subscription.update(
+            { status: 'expired' },
+            { where: { userId: user.id, status: 'trial_cancelled' } }
+          );
+          
+          logger.info(`[UsageResetJob] Cancelled trial ended for user ${user.id} (${user.email})`);
+        } catch (userError) {
+          logger.error(`[UsageResetJob] Failed to expire cancelled trial for user ${user.id}:`, userError);
+        }
       }
       
     } catch (error) {
