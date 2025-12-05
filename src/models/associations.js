@@ -5,6 +5,7 @@ const Subscription = require('./Subscription');
 const Team = require('./Team');
 const TeamMember = require('./TeamMember');
 const ErrorLibrary = require('./ErrorLibrary');
+const VideoMeeting = require('./VideoMeeting');
 // Coupon system disabled - using Dodo Payments built-in coupons
 // const Coupon = require('./Coupon');
 // const CouponRedemption = require('./CouponRedemption');
@@ -108,13 +109,35 @@ User.hasMany(ErrorLibrary, {
 //   as: 'couponRedemptions'
 // });
 
+// VideoMeeting associations
+VideoMeeting.belongsTo(Team, {
+  foreignKey: 'team_id',
+  as: 'team'
+});
+
+VideoMeeting.belongsTo(User, {
+  foreignKey: 'host_id',
+  as: 'host'
+});
+
+Team.hasMany(VideoMeeting, {
+  foreignKey: 'team_id',
+  as: 'meetings'
+});
+
+User.hasMany(VideoMeeting, {
+  foreignKey: 'host_id',
+  as: 'hostedMeetings'
+});
+
 module.exports = {
   User,
   ErrorQuery,
   Subscription,
   Team,
   TeamMember,
-  ErrorLibrary
+  ErrorLibrary,
+  VideoMeeting
   // Coupon,
   // CouponRedemption
 };

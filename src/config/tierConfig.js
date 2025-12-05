@@ -62,19 +62,23 @@ const TIERS = {
       exportHistory: false,
       solutionLibrary: false, // No access to shared library
       saveSolutions: true, // Can save, limited count
-      
+
       // Team Features
       teamAccess: false,
       sharedLibrary: false,
       teamAnalytics: false,
       adminControls: false,
-      
+
+      // Video Meetings (Team only)
+      videoMeetings: false,
+      scheduleMeetings: false,
+      meetingNotes: false,
+      screenShareContext: false,
+
       // Support
       communitySupport: true,
       emailSupport: false,
-      prioritySupport: false,
-      
-      // Integrations
+      prioritySupport: false,      // Integrations
       vscodeExtension: true,
       apiAccess: false,
       webhooks: false,
@@ -131,19 +135,23 @@ const TIERS = {
       exportHistory: true,
       solutionLibrary: true, // Read-only access
       saveSolutions: true,
-      
+
       // Team Features
       teamAccess: false,
       sharedLibrary: false,
       teamAnalytics: false,
       adminControls: false,
-      
+
+      // Video Meetings (Team only)
+      videoMeetings: false,
+      scheduleMeetings: false,
+      meetingNotes: false,
+      screenShareContext: false,
+
       // Support
       communitySupport: true,
       emailSupport: true,
-      prioritySupport: false,
-      
-      // Integrations
+      prioritySupport: false,      // Integrations
       vscodeExtension: true,
       apiAccess: true,
       webhooks: false,
@@ -206,13 +214,17 @@ const TIERS = {
       sharedLibrary: true,
       teamAnalytics: true,
       adminControls: true,
-      
+
+      // Video Meetings (Team only)
+      videoMeetings: true,
+      scheduleMeetings: true,
+      meetingNotes: true,
+      screenShareContext: true,
+
       // Support
       communitySupport: true,
       emailSupport: true,
-      prioritySupport: true,
-      
-      // Integrations
+      prioritySupport: true,      // Integrations
       vscodeExtension: true,
       apiAccess: true,
       webhooks: true,
@@ -258,6 +270,12 @@ const FEATURE_DISPLAY = {
   sharedLibrary: { name: 'Shared Library', description: 'Team solution library', icon: '📁' },
   teamAnalytics: { name: 'Team Analytics', description: 'Team usage insights', icon: '📊' },
   adminControls: { name: 'Admin Controls', description: 'Manage team settings', icon: '⚙️' },
+  
+  // Video Meetings
+  videoMeetings: { name: 'Video Meetings', description: 'Video calls with screen share', icon: '📹' },
+  scheduleMeetings: { name: 'Schedule Meetings', description: 'Plan meetings in advance', icon: '📅' },
+  meetingNotes: { name: 'Meeting Notes', description: 'Collaborative meeting notes', icon: '📝' },
+  screenShareContext: { name: 'Screen Share Context', description: 'Share error context in calls', icon: '🖥️' },
   
   // Support
   communitySupport: { name: 'Community Support', description: 'Community forums', icon: '🌐' },
@@ -307,7 +325,11 @@ const COMPARISON_TABLE = {
       rows: [
         { feature: 'Team Members', free: '1', pro: '1', team: 'Up to 10' },
         { feature: 'Shared Library', free: '❌', pro: '❌', team: '✅' },
-        { feature: 'Team Analytics', free: '❌', pro: '❌', team: '✅' }
+        { feature: 'Team Analytics', free: '❌', pro: '❌', team: '✅' },
+        { feature: 'Video Meetings', free: '❌', pro: '❌', team: '✅ Unlimited' },
+        { feature: 'Schedule Meetings', free: '❌', pro: '❌', team: '✅' },
+        { feature: 'Meeting Notes', free: '❌', pro: '❌', team: '✅ Collaborative' },
+        { feature: 'Screen Share Context', free: '❌', pro: '❌', team: '✅' }
       ]
     },
     {

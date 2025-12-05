@@ -334,6 +334,7 @@ app.use('/api/config', configRoutes); // App configuration - SINGLE SOURCE OF TR
 app.use('/api/tiers', require('./src/routes/tiers'));
 app.use('/api/chat', require('./src/routes/chat')); // Conversational AI chat
 app.use('/api/trial', require('./src/routes/trial')); // 7-day trial with payment capture
+app.use('/api/teams', require('./src/routes/videoMeetings')); // Video meetings for Team tier
 
 // PERFORMANCE - Response time monitoring
 app.use('/api/performance', performanceRoutes);
