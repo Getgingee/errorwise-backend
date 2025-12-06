@@ -139,8 +139,8 @@ exports.updateAiPreferences = async (req, res) => {
       return res.status(400).json({ error: 'Valid AI preferences object is required' });
     }
 
-    const validProviders = ['auto', 'openai', 'gemini', 'mock'];
-    const validDepths = ['basic', 'standard', 'advanced'];
+    const validProviders = ['auto', 'anthropic', 'mock'];  // Anthropic is the active provider (Claude)
+    const validDepths = ['basic', 'standard', 'advanced', 'detailed'];
     
     if (ai.preferredProvider && !validProviders.includes(ai.preferredProvider)) {
       return res.status(400).json({ error: 'Invalid AI provider' });

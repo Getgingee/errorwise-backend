@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const ErrorQuery = require('../models/ErrorQuery');
+const UserSettings = require('../models/UserSettings');
 const authService = require('../services/authService');
 const { invalidateUserCache } = require('../middleware/auth');
 
@@ -180,6 +181,14 @@ exports.getProfile = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // Get user settings/preferences
+    let userSettings = await UserSettings.findOne({ where: { userId } });
+    if (!userSettings) {
+      // Create default settings if none exist
+      userSettings = await UserSettings.create({ userId });
+    }
+    }
+
     // Determine effective subscription status
     const now = new Date();
     let effectiveTier = user.subscriptionTier || 'free';
@@ -238,7 +247,8 @@ exports.getProfile = async (req, res) => {
         daysRemaining,
         isActive: effectiveStatus === 'active' || effectiveStatus === 'trial',
         isTrial: effectiveStatus === 'trial'
-      }
+      },
+      preferences: userSettings.preferences
     });
 
   } catch (error) {
@@ -372,6 +382,11 @@ exports.getDashboard = async (req, res) => {
   try {
     const userId = req.user.id;
 
+    // Get user with subscription info
+    const user = await User.findByPk(userId, {
+      attributes: ['id', 'subscriptionTier', 'subscriptionStatus']
+    });
+
     // Get recent error queries
     const recentQueries = await ErrorQuery.findAll({
       where: { userId },
@@ -425,7 +440,7 @@ exports.getDashboard = async (req, res) => {
         totalQueries,
         thisWeekQueries,
         categoriesCount: categoryStats.length,
-        subscriptionTier: 'free'
+        subscriptionTier: user.subscriptionTier || 'free'
       },
       recentQueries,
       categoryStats,

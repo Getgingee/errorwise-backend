@@ -5,6 +5,9 @@ const subscriptionService = require('../services/subscriptionService');
 
 // UNIFIED: Import central model configuration
 const modelConfig = require('../config/modelConfig');
+const { configDotenv } = require('dotenv');
+const { hashData } = require('../services/userTrackingService');
+const { send } = require('process');
 
 // Subscription tier configuration - matches pricing page exactly
 // UNIFIED: AI models now come from central modelConfig
@@ -252,17 +255,8 @@ exports.getSubscription = async (req, res) => {
     // Get tier configuration
     const tierConfig = SUBSCRIPTION_TIERS[tier] || SUBSCRIPTION_TIERS.free;
 
-    // Frontend expects these fields directly at root level for currentSubscription
+    // Single source of truth response - no redundant data
     res.json({
-      // Root-level subscription fields for frontend compatibility
-      tier,
-      status: actualStatus,
-      startDate: user.subscriptionStartDate,
-      endDate: user.subscriptionEndDate,
-      trialEndsAt: user.trialEndsAt,
-      isActive: actualStatus === 'active' || actualStatus === 'trial',
-      isTrial: status === 'trial',
-      // Nested data
       user: {
         id: user.id,
         email: user.email,

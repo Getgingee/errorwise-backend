@@ -18,8 +18,51 @@ const modelConfig = require('../config/modelConfig');
 const anthropic = process.env.ANTHROPIC_API_KEY ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }) : null;
 const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
-// Conversation context store (use Redis in production)
-const conversationContexts = new Map();
+// Import Redis service for cluster-compatible context storage
+const redisService = require('./redisService');
+
+// Redis key prefix for conversational AI context
+const CONVO_AI_PREFIX = 'convo_ai:';
+const CONVO_AI_TTL = 60 * 60; // 1 hour TTL
+
+/**
+ * Get conversation context from Redis (cluster-compatible)
+ */
+async function getConversationContext(contextKey) {
+  try {
+    const context = await redisService.get(`${CONVO_AI_PREFIX}${contextKey}`);
+    return context || null;
+  } catch (error) {
+    console.warn('[ConversationalAI] Redis get failed:', error.message);
+    return null;
+  }
+}
+
+/**
+ * Save conversation context to Redis (cluster-compatible)
+ */
+async function saveConversationContext(contextKey, conversation) {
+  try {
+    await redisService.set(`${CONVO_AI_PREFIX}${contextKey}`, conversation, CONVO_AI_TTL);
+    return true;
+  } catch (error) {
+    console.warn('[ConversationalAI] Redis save failed:', error.message);
+    return false;
+  }
+}
+
+/**
+ * Delete conversation context from Redis
+ */
+async function deleteConversationContext(contextKey) {
+  try {
+    await redisService.del(`${CONVO_AI_PREFIX}${contextKey}`);
+    return true;
+  } catch (error) {
+    console.warn('[ConversationalAI] Redis delete failed:', error.message);
+    return false;
+  }
+}
 
 /**
  * UNIFIED: Get AI config from central modelConfig
@@ -483,15 +526,18 @@ async function getConversationalResponse({
   try {
     console.log(`[ConversationalAI] Starting response for user ${userId}, tier: ${tier}`);
     
-    // Get or create conversation context
+    // Get or create conversation context from Redis (cluster-compatible)
     const contextKey = conversationId || `${userId}_${Date.now()}`;
-    let conversation = conversationContexts.get(contextKey) || {
-      id: contextKey,
-      userId,
-      messages: [],
-      context: {},
-      createdAt: new Date()
-    };
+    let conversation = await getConversationContext(contextKey);
+    if (!conversation) {
+      conversation = {
+        id: contextKey,
+        userId,
+        messages: [],
+        context: {},
+        createdAt: new Date().toISOString()
+      };
+    }
     
     // Extract context from current message
     const newContext = extractContext(message);
@@ -501,7 +547,7 @@ async function getConversationalResponse({
     conversation.messages.push({
       role: 'user',
       content: message,
-      timestamp: new Date()
+      timestamp: new Date().toISOString()
     });
     
     // UNIFIED: Get tier configuration from central modelConfig
@@ -528,13 +574,13 @@ async function getConversationalResponse({
         context: conversation.context
       };
       
-      // Save conversation
+      // Save conversation to Redis
       conversation.messages.push({
         role: 'assistant',
         content: response.message,
-        timestamp: new Date()
+        timestamp: new Date().toISOString()
       });
-      conversationContexts.set(contextKey, conversation);
+      await saveConversationContext(contextKey, conversation);
       
       return response;
     }
@@ -581,19 +627,11 @@ async function getConversationalResponse({
     conversation.messages.push({
       role: 'assistant',
       content: aiResponse,
-      timestamp: new Date()
+      timestamp: new Date().toISOString()
     });
     
-    // Clean up old conversations (keep last 1 hour)
-    const oneHourAgo = Date.now() - (60 * 60 * 1000);
-    for (const [key, conv] of conversationContexts.entries()) {
-      if (conv.createdAt < oneHourAgo) {
-        conversationContexts.delete(key);
-      }
-    }
-    
-    // Save updated conversation
-    conversationContexts.set(contextKey, conversation);
+    // Save updated conversation to Redis (TTL handles cleanup automatically)
+    await saveConversationContext(contextKey, conversation);
     
     console.log('[ConversationalAI] Response complete');
     
@@ -816,17 +854,17 @@ Your current tier: ${tier}`;
 }
 
 /**
- * Get conversation history for a user
+ * Get conversation history for a user (async - uses Redis)
  */
-function getConversationHistory(conversationId) {
-  return conversationContexts.get(conversationId) || null;
+async function getConversationHistory(conversationId) {
+  return await getConversationContext(conversationId);
 }
 
 /**
- * Clear conversation context
+ * Clear conversation context (async - uses Redis)
  */
-function clearConversation(conversationId) {
-  conversationContexts.delete(conversationId);
+async function clearConversation(conversationId) {
+  return await deleteConversationContext(conversationId);
 }
 
 module.exports = {

@@ -32,6 +32,7 @@ const FOLLOWUP_COUNT_PREFIX = 'conv_followups:';
 /**
  * Generate engaging, conversational follow-up chips based on AI response
  * Made for non-tech users - friendly and helpful!
+ * Returns chip objects with action property for frontend handling
  */
 function generateConversationalChips(previousMessages, latestResponse) {
   const chips = [];
@@ -39,61 +40,134 @@ function generateConversationalChips(previousMessages, latestResponse) {
   
   // For code-related responses
   if (responseLower.includes('```') || responseLower.includes('function') || responseLower.includes('const ')) {
-    chips.push("🤔 Can you explain this simpler?");
-    chips.push("📝 Show me step by step");
+    chips.push({
+      text: "🤔 Can you explain this simpler?",
+      action: "follow_up",
+      message: "Can you explain this in simpler terms, like you're explaining to someone who's not very technical?"
+    });
+    chips.push({
+      text: "📝 Show me step by step",
+      action: "follow_up",
+      message: "Can you break this down into simple step-by-step instructions?"
+    });
   }
   
   // If solution involves trying something
   if (responseLower.includes('try') || responseLower.includes('should work') || responseLower.includes('fix')) {
-    chips.push("😕 What if it still doesn't work?");
-    chips.push("🔄 Any other ways to fix this?");
+    chips.push({
+      text: "😕 What if it still doesn't work?",
+      action: "follow_up",
+      message: "What should I do if this solution doesn't work? Are there alternative approaches?"
+    });
+    chips.push({
+      text: "🔄 Any other ways to fix this?",
+      action: "follow_up",
+      message: "Are there other alternative ways to solve this problem?"
+    });
   }
   
   // If response mentions settings or configuration
   if (responseLower.includes('setting') || responseLower.includes('config') || responseLower.includes('option')) {
-    chips.push("📍 Where do I find this setting?");
-    chips.push("🖼️ Can you show me exactly?");
+    chips.push({
+      text: "📍 Where do I find this setting?",
+      action: "follow_up",
+      message: "Can you give me the exact location or path to find this setting?"
+    });
+    chips.push({
+      text: "🖼️ Can you show me exactly?",
+      action: "follow_up",
+      message: "Can you provide more detailed instructions on where to find this?"
+    });
   }
   
   // If response mentions installing or downloading
   if (responseLower.includes('install') || responseLower.includes('download') || responseLower.includes('update')) {
-    chips.push("📥 How do I install this?");
-    chips.push("⚠️ Is it safe to download?");
+    chips.push({
+      text: "📥 How do I install this?",
+      action: "follow_up",
+      message: "Can you provide step-by-step installation instructions?"
+    });
+    chips.push({
+      text: "⚠️ Is it safe to download?",
+      action: "follow_up",
+      message: "Is this download safe? Where is the official source?"
+    });
   }
   
   // If response mentions restarting or refreshing
   if (responseLower.includes('restart') || responseLower.includes('refresh') || responseLower.includes('reboot')) {
-    chips.push("💡 What should I save first?");
+    chips.push({
+      text: "💡 What should I save first?",
+      action: "follow_up",
+      message: "What things should I save or backup before restarting?"
+    });
   }
   
   // If about password or login issues
   if (responseLower.includes('password') || responseLower.includes('login') || responseLower.includes('account')) {
-    chips.push("🔐 How do I reset my password?");
-    chips.push("📧 What if I forgot my email too?");
+    chips.push({
+      text: "🔐 How do I reset my password?",
+      action: "follow_up",
+      message: "How do I reset my password if I forgot it?"
+    });
+    chips.push({
+      text: "📧 What if I forgot my email too?",
+      action: "follow_up",
+      message: "What options do I have if I also forgot my email address?"
+    });
   }
   
   // If about payment or billing
   if (responseLower.includes('payment') || responseLower.includes('card') || responseLower.includes('charge')) {
-    chips.push("💳 Is my payment info safe?");
-    chips.push("📞 How do I contact support?");
+    chips.push({
+      text: "💳 Is my payment info safe?",
+      action: "follow_up",
+      message: "How is my payment information protected?"
+    });
+    chips.push({
+      text: "📞 How do I contact support?",
+      action: "follow_up",
+      message: "How can I contact customer support for billing issues?"
+    });
   }
   
   // Generic helpful chips based on response length
   if (latestResponse.length > 500) {
-    chips.push("📋 Give me the quick version");
+    chips.push({
+      text: "📋 Give me the quick version",
+      action: "follow_up",
+      message: "Can you give me a shorter, summarized version of this?"
+    });
   }
   
   // Always add some engaging options
   if (chips.length < 3) {
-    chips.push("🤷 I'm confused, help!");
-    chips.push("✨ Any tips to prevent this?");
+    chips.push({
+      text: "🤷 I'm confused, help!",
+      action: "follow_up",
+      message: "I'm still confused. Can you explain this differently?"
+    });
+    chips.push({
+      text: "✨ Any tips to prevent this?",
+      action: "follow_up",
+      message: "What can I do to prevent this issue from happening again?"
+    });
   }
   
-  // Success chip
-  chips.push("✅ That fixed it, thanks!");
+  // Success chip - special action to close conversation
+  chips.push({
+    text: "✅ That fixed it, thanks!",
+    action: "close_conversation",
+    message: "Thank you, that solved my problem!"
+  });
   
-  // Remove duplicates and limit to 4 chips
-  return [...new Set(chips)].slice(0, 4);
+  // Remove duplicates by text and limit to 4 chips
+  const seen = new Set();
+  return chips.filter(chip => {
+    if (seen.has(chip.text)) return false;
+    seen.add(chip.text);
+    return true;
+  }).slice(0, 4);
 }
 
 /**

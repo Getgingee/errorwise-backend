@@ -32,8 +32,8 @@ const UserSettings = sequelize.define('UserSettings', {
         publicProfile: false
       },
       ai: {
-        preferredProvider: 'auto',
-        analysisDepth: 'standard',
+        preferredProvider: 'auto',  // auto, anthropic (system uses Claude)
+        analysisDepth: 'standard',  // standard, detailed
         codeContext: true
       },
       display: {
