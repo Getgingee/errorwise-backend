@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { AppError } = require('./errorHandler');
 const logger = require('../utils/logger');
+const { getSession } = require('./session');
 
 // ============================================================================
 // PERFORMANCE: User cache to avoid DB lookups on every request
@@ -116,6 +117,28 @@ const authMiddleware = async (req, res, next) => {
 
     // Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // ===== SESSION VALIDATION (Single Session Enforcement) =====
+    // Check if session still exists in Redis
+    // If user logged in elsewhere, their old sessions are deleted
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+      const sessionData = await getSession(refreshToken);
+      if (!sessionData) {
+        // Session was invalidated (user logged in elsewhere or session expired)
+        logger.info('Session invalidated - user may have logged in elsewhere', { 
+          userId: decoded.userId 
+        });
+        // Clear cookies
+        res.clearCookie('accessToken');
+        res.clearCookie('refreshToken');
+        return res.status(401).json({
+          success: false,
+          error: 'Session expired. You may have logged in from another device.',
+          code: 'SESSION_INVALIDATED'
+        });
+      }
+    }
     
     // PERFORMANCE: Check if user exists (with caching)
     const user = await getCachedUser(decoded.userId);

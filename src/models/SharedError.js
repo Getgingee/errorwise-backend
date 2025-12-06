@@ -32,10 +32,10 @@ const SharedError = sequelize.define('SharedError', {
     }
   },
   title: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(500), // Increased for encrypted data
     allowNull: false,
     validate: {
-      len: [5, 200]
+      len: [5, 500]
     }
   },
   description: {
@@ -45,6 +45,11 @@ const SharedError = sequelize.define('SharedError', {
   category: {
     type: DataTypes.STRING,
     allowNull: true
+  },
+  // E2E encryption flag
+  is_encrypted: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
   priority: {
     type: DataTypes.ENUM('low', 'medium', 'high', 'critical'),

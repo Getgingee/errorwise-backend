@@ -1,5 +1,6 @@
 const axios = require('axios');
 const crypto = require('crypto');
+const asyncNotificationQueue = require('./asyncNotificationQueue');
 
 class DodoPaymentService {
   constructor() {
@@ -560,6 +561,16 @@ class DodoPaymentService {
           { subscriptionStatus: 'active', subscriptionTier: subRecord.tier },
           { where: { id: subRecord.userId } }
         );
+        
+        // ===== ASYNC NOTIFICATION (Decoupled) =====
+        // Queue payment confirmation email - doesn't block webhook response
+        asyncNotificationQueue.enqueuePaymentNotification('payment_success', {
+          userId: subRecord.userId,
+          tier: subRecord.tier,
+          plan: subRecord.tier,
+          amount: invoiceOrPayload?.amount || invoiceOrPayload?.total,
+          subscriptionId
+        });
       }
 
       console.log(`✅ Payment successful for subscription: ${subscriptionId}`);
@@ -582,10 +593,23 @@ class DodoPaymentService {
       
       // Update subscription status
       const Subscription = require('../models/Subscription');
+      const subRecord = await Subscription.findOne({ where: { dodoSubscriptionId: subscriptionId } });
+      
       await Subscription.update(
         { status: 'past_due' },
         { where: { dodoSubscriptionId: subscriptionId } }
       );
+
+      // ===== ASYNC NOTIFICATION (Decoupled) =====
+      // Queue payment failed email - doesn't block webhook response
+      if (subRecord?.userId) {
+        asyncNotificationQueue.enqueuePaymentNotification('payment_failed', {
+          userId: subRecord.userId,
+          reason: invoice.failure_message || invoice.last_payment_error?.message || 'Payment declined',
+          amount: invoice.amount_due || invoice.total,
+          subscriptionId
+        });
+      }
 
       console.log(`Payment failed for subscription: ${subscriptionId}`);
       
@@ -624,6 +648,15 @@ class DodoPaymentService {
           { subscriptionStatus: 'cancelled' },
           { where: { id: subRecord.userId } }
         );
+        
+        // ===== ASYNC NOTIFICATION (Decoupled) =====
+        // Queue cancellation email - doesn't block webhook response
+        asyncNotificationQueue.enqueuePaymentNotification('subscription_cancelled', {
+          userId: subRecord.userId,
+          tier: subRecord.tier,
+          endDate: subRecord.endDate,
+          subscriptionId
+        });
       }
 
       console.log(`✅ Subscription cancelled: ${subscriptionId} (cancel at period end: ${cancelAtPeriodEnd})`);
@@ -778,6 +811,15 @@ class DodoPaymentService {
           { subscriptionStatus: 'active', subscriptionEndDate: endDate },
           { where: { id: subRecord.userId } }
         );
+        
+        // ===== ASYNC NOTIFICATION (Decoupled) =====
+        // Queue renewal email - doesn't block webhook response
+        asyncNotificationQueue.enqueuePaymentNotification('subscription_renewed', {
+          userId: subRecord.userId,
+          tier: subRecord.tier,
+          nextBillingDate: endDate,
+          subscriptionId
+        });
       }
 
       console.log(`✅ Subscription renewed: ${subscriptionId}`);
@@ -875,10 +917,22 @@ class DodoPaymentService {
     try {
       const refundId = data?.id;
       const paymentId = data?.payment_id;
+      const userId = data?.metadata?.userId || data?.customer_id;
+      
       console.log(`✅ Refund succeeded: ${refundId} for payment ${paymentId}`);
       
-      // You can track refunds in a separate table if needed
-      // For now, just log it
+      // ===== ASYNC NOTIFICATION (Decoupled) =====
+      // Queue refund email - doesn't block webhook response
+      if (userId) {
+        asyncNotificationQueue.enqueuePaymentNotification('refund_processed', {
+          userId,
+          amount: data?.amount || data?.refund_amount,
+          reason: data?.reason || 'Refund processed',
+          refundId,
+          paymentId
+        });
+      }
+      
       return { success: true, message: 'Refund processed successfully' };
     } catch (error) {
       console.error('Refund succeeded handler failed:', error);

@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const crypto = require('crypto');
 
 const Team = sequelize.define('Team', {
   id: {
@@ -43,6 +44,12 @@ const Team = sequelize.define('Team', {
     type: DataTypes.STRING,
     allowNull: true,
     unique: true
+  },
+  // E2E Encryption salt for team data
+  encryption_salt: {
+    type: DataTypes.STRING(64),
+    allowNull: true,
+    defaultValue: () => crypto.randomBytes(32).toString('base64')
   },
   settings: {
     type: DataTypes.JSON,

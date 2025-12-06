@@ -6,6 +6,7 @@ const Subscription = require('../models/Subscription');
 const sequelize = require('../config/database');
 const { Op } = require('sequelize');
 const { v4: uuidv4 } = require('uuid');
+const encryptionService = require('../services/encryptionService');
 
 /**
  * Create a new team (Team subscription required)
@@ -262,7 +263,7 @@ exports.acceptInvitation = async (req, res) => {
 };
 
 /**
- * Share error with team
+ * Share error with team (with E2E encryption for sensitive data)
  */
 exports.shareError = async (req, res) => {
   try {
@@ -282,19 +283,45 @@ exports.shareError = async (req, res) => {
       });
     }
 
+    // Get team for encryption salt
+    const team = await Team.findByPk(teamId);
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+
+    // Ensure team has encryption salt (for existing teams)
+    let encryptionSalt = team.encryption_salt;
+    if (!encryptionSalt) {
+      encryptionSalt = encryptionService.generateTeamSalt();
+      await team.update({ encryption_salt: encryptionSalt });
+    }
+
+    // Encrypt sensitive data (title, description) for E2E security
+    const encryptedTitle = encryptionService.encrypt(title, teamId, encryptionSalt);
+    const encryptedDescription = description 
+      ? encryptionService.encrypt(description, teamId, encryptionSalt)
+      : null;
+
     const sharedError = await SharedError.create({
       team_id: teamId,
       shared_by: userId,
       error_query_id: errorQueryId,
-      title, 
-      description,
+      title: encryptedTitle,
+      description: encryptedDescription,
       category,
-      priority
+      priority,
+      is_encrypted: true
     });
 
+    // Return decrypted data in response
     res.status(201).json({
-      message: 'Error shared with team successfully',
-      shared_error: sharedError
+      message: 'Error shared with team successfully (E2E encrypted)',
+      shared_error: {
+        ...sharedError.toJSON(),
+        title,
+        description,
+        is_encrypted: true
+      }
     });
   } catch (error) {
     console.error('Share error error:', error);
@@ -303,7 +330,7 @@ exports.shareError = async (req, res) => {
 };
 
 /**
- * Get team shared errors
+ * Get team shared errors (with E2E decryption)
  */
 exports.getTeamErrors = async (req, res) => {
   try {
@@ -321,6 +348,12 @@ exports.getTeamErrors = async (req, res) => {
         error: 'Access denied',
         message: 'You must be a team member to view shared errors'
       });
+    }
+
+    // Get team for encryption salt
+    const team = await Team.findByPk(teamId);
+    if (!team) {
+      return res.status(404).json({ error: 'Team not found' });
     }
 
     const whereClause = { team_id: teamId };
@@ -341,8 +374,35 @@ exports.getTeamErrors = async (req, res) => {
       offset: (parseInt(page) - 1) * parseInt(limit)
     });
 
+    // Decrypt encrypted errors for authorized team members
+    const decryptedErrors = sharedErrors.map(error => {
+      const errorJson = error.toJSON();
+      
+      if (errorJson.is_encrypted && team.encryption_salt) {
+        try {
+          // Decrypt title
+          if (errorJson.title && errorJson.title.includes(':')) {
+            errorJson.title = encryptionService.decrypt(
+              errorJson.title, teamId, team.encryption_salt, false
+            );
+          }
+          // Decrypt description
+          if (errorJson.description && errorJson.description.includes(':')) {
+            errorJson.description = encryptionService.decrypt(
+              errorJson.description, teamId, team.encryption_salt, false
+            );
+          }
+        } catch (decryptError) {
+          console.error('Decryption error for shared error:', decryptError);
+          // Keep encrypted version if decryption fails
+        }
+      }
+      
+      return errorJson;
+    });
+
     res.json({
-      shared_errors: sharedErrors,
+      shared_errors: decryptedErrors,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),

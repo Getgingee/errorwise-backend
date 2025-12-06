@@ -375,6 +375,195 @@ class NotificationService {
       </div>
     `;
   }
+
+  // ===== ASYNC PAYMENT NOTIFICATION METHODS =====
+
+  /**
+   * Send payment failed notification
+   */
+  async sendPaymentFailedNotification(user, paymentData) {
+    try {
+      await emailService.sendEmail({
+        to: user.email,
+        subject: `⚠️ Payment Failed - Action Required`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #dc2626; margin: 0;">⚠️ Payment Failed</h1>
+            </div>
+            
+            <p>Hi ${user.username},</p>
+            
+            <p>We were unable to process your payment of <strong>$${paymentData.amount || 'N/A'}</strong>.</p>
+            
+            <div style="background: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
+              <p style="color: #991b1b; margin: 0;"><strong>Reason:</strong> ${paymentData.reason || 'Payment declined'}</p>
+            </div>
+            
+            <p>Please update your payment method to continue enjoying ErrorWise features:</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL}/settings/billing" 
+                 style="background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Update Payment Method →
+              </a>
+            </div>
+          </div>
+        `
+      });
+      console.log(`Payment failed notification sent to ${user.email}`);
+    } catch (error) {
+      console.error('Failed to send payment failed notification:', error);
+    }
+  }
+
+  /**
+   * Send subscription renewed notification
+   */
+  async sendSubscriptionRenewedNotification(user, subscriptionData) {
+    try {
+      await emailService.sendEmail({
+        to: user.email,
+        subject: `✅ Subscription Renewed - ${subscriptionData.tier} Plan`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #22c55e; margin: 0;">✅ Subscription Renewed!</h1>
+            </div>
+            
+            <p>Hi ${user.username},</p>
+            
+            <p>Your <strong>${subscriptionData.tier}</strong> subscription has been successfully renewed.</p>
+            
+            <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p><strong>Next billing date:</strong> ${new Date(subscriptionData.nextBillingDate).toLocaleDateString()}</p>
+            </div>
+            
+            <p>Thank you for continuing to use ErrorWise!</p>
+          </div>
+        `
+      });
+      console.log(`Subscription renewed notification sent to ${user.email}`);
+    } catch (error) {
+      console.error('Failed to send subscription renewed notification:', error);
+    }
+  }
+
+  /**
+   * Send subscription cancelled notification
+   */
+  async sendSubscriptionCancelledNotification(user, subscriptionData) {
+    try {
+      await emailService.sendEmail({
+        to: user.email,
+        subject: `😢 Subscription Cancelled`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #6b7280; margin: 0;">Subscription Cancelled</h1>
+            </div>
+            
+            <p>Hi ${user.username},</p>
+            
+            <p>Your <strong>${subscriptionData.tier}</strong> subscription has been cancelled.</p>
+            
+            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p><strong>Access until:</strong> ${new Date(subscriptionData.endDate).toLocaleDateString()}</p>
+              <p style="color: #64748b;">You'll continue to have access to all features until this date.</p>
+            </div>
+            
+            <p>We'd love to have you back! Resubscribe anytime:</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL}/pricing" 
+                 style="background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                View Plans →
+              </a>
+            </div>
+          </div>
+        `
+      });
+      console.log(`Subscription cancelled notification sent to ${user.email}`);
+    } catch (error) {
+      console.error('Failed to send subscription cancelled notification:', error);
+    }
+  }
+
+  /**
+   * Send refund notification
+   */
+  async sendRefundNotification(user, refundData) {
+    try {
+      await emailService.sendEmail({
+        to: user.email,
+        subject: `💰 Refund Processed`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #22c55e; margin: 0;">💰 Refund Processed</h1>
+            </div>
+            
+            <p>Hi ${user.username},</p>
+            
+            <p>Your refund of <strong>$${refundData.amount}</strong> has been processed.</p>
+            
+            <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <p><strong>Reason:</strong> ${refundData.reason || 'Requested by customer'}</p>
+              <p style="color: #64748b;">Please allow 5-10 business days for the refund to appear in your account.</p>
+            </div>
+            
+            <p>If you have any questions, please contact our support team.</p>
+          </div>
+        `
+      });
+      console.log(`Refund notification sent to ${user.email}`);
+    } catch (error) {
+      console.error('Failed to send refund notification:', error);
+    }
+  }
+
+  /**
+   * Send trial ended notification
+   */
+  async sendTrialEndedNotification(user) {
+    try {
+      await emailService.sendEmail({
+        to: user.email,
+        subject: `⏰ Your Trial Has Ended`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #f59e0b; margin: 0;">⏰ Trial Period Ended</h1>
+            </div>
+            
+            <p>Hi ${user.username},</p>
+            
+            <p>Your free trial of ErrorWise Pro has ended. You've been moved to the free tier.</p>
+            
+            <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #92400e; margin-top: 0;">Continue with Pro!</h3>
+              <ul>
+                <li>Unlimited error analysis</li>
+                <li>Priority AI responses</li>
+                <li>Complete error history</li>
+                <li>Only $3/month</li>
+              </ul>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL}/pricing" 
+                 style="background: #2563eb; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                Upgrade Now →
+              </a>
+            </div>
+          </div>
+        `
+      });
+      console.log(`Trial ended notification sent to ${user.email}`);
+    } catch (error) {
+      console.error('Failed to send trial ended notification:', error);
+    }
+  }
 }
 
 module.exports = new NotificationService();

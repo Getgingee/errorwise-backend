@@ -1038,6 +1038,11 @@ const start = async () => {
     sessionCleanupJob.startSessionCleanupJob();
     console.log('✅ Session cleanup job initialized (hourly cleanup)');
     
+    // Initialize async notification queue processor (payment notifications, etc.)
+    const asyncNotificationQueue = require('./src/services/asyncNotificationQueue');
+    asyncNotificationQueue.start(5000); // Process every 5 seconds
+    console.log('✅ Async notification queue processor started');
+    
     // Start server
     const port = process.env.PORT || 3001;
     const server = app.listen(port, '0.0.0.0', () => {

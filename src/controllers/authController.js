@@ -3,6 +3,7 @@ const authService = require('../services/authService');
 const emailService = require('../utils/emailService');
 const logger = require('../utils/logger');
 const { trackFailedAttempt, resetFailedAttempts } = require('../middleware/accountLock');
+const { deleteAllUserSessions, createSession } = require('../middleware/session');
 
 // Simple registration without OTP
 exports.register = async (req, res) => {
@@ -50,6 +51,17 @@ exports.register = async (req, res) => {
         // Generate tokens
         const accessToken = authService.generateAccessToken(user);
         const refreshToken = authService.generateRefreshToken(user);
+
+        // ===== CREATE SESSION IN REDIS =====
+        // Store session for new user (single session by default for new users)
+        await createSession(user.id, {
+            email: user.email,
+            username: user.username,
+            subscriptionTier: user.subscriptionTier,
+            subscriptionStatus: user.subscriptionStatus,
+            ipAddress: req.ip || req.connection.remoteAddress,
+            userAgent: req.get('user-agent')
+        }, refreshToken);
 
         // Set cookies
         res.cookie('accessToken', accessToken, {
@@ -158,6 +170,14 @@ exports.login = async (req, res) => {
         // Successful login - reset failed attempts
         await resetFailedAttempts(email);
 
+        // ===== SINGLE SESSION ENFORCEMENT =====
+        // Delete all existing sessions for this user before creating new one
+        // This prevents multi-device/multi-tab concurrent logins
+        const deletedSessions = await deleteAllUserSessions(user.id);
+        if (deletedSessions > 0) {
+            logger.info(`Single session enforcement: Invalidated ${deletedSessions} existing session(s) for user ${user.id}`);
+        }
+
         // Detect suspicious login patterns
         const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
         const userAgent = req.get('user-agent') || 'unknown';
@@ -189,6 +209,17 @@ exports.login = async (req, res) => {
         // Generate tokens
         const accessToken = authService.generateAccessToken(user);
         const refreshToken = authService.generateRefreshToken(user);
+
+        // ===== CREATE SESSION IN REDIS =====
+        // Store session with 7-day expiry for persistence across tab/browser closes
+        await createSession(user.id, {
+            email: user.email,
+            username: user.username,
+            subscriptionTier: user.subscriptionTier,
+            subscriptionStatus: user.subscriptionStatus,
+            ipAddress: req.ip || req.connection.remoteAddress,
+            userAgent: req.get('user-agent')
+        }, refreshToken);
 
         // Set cookies
         res.cookie('accessToken', accessToken, {
