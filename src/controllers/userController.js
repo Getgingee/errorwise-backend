@@ -187,7 +187,6 @@ exports.getProfile = async (req, res) => {
       // Create default settings if none exist
       userSettings = await UserSettings.create({ userId });
     }
-    }
 
     // Determine effective subscription status
     const now = new Date();
