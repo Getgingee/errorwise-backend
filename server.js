@@ -660,8 +660,24 @@ const start = async () => {
           ) as exists
         `);
         
-        if (!teamsExists[0].exists && !isClusterWorker) {
-          console.log('⚠️  teams table missing. Creating...');
+        // Also check if teams table has an 'id' column (required for FK references)
+        let teamsHasIdColumn = false;
+        if (teamsExists[0].exists) {
+          const [teamsIdCheck] = await sequelize.query(`
+            SELECT column_name FROM information_schema.columns 
+            WHERE table_name = 'teams' AND column_name = 'id'
+          `);
+          teamsHasIdColumn = teamsIdCheck.length > 0;
+          if (!teamsHasIdColumn) {
+            console.log('⚠️  teams table exists but has no "id" column. Recreating...');
+            if (!isClusterWorker) {
+              await sequelize.query(`DROP TABLE IF EXISTS teams CASCADE`);
+            }
+          }
+        }
+        
+        if ((!teamsExists[0].exists || !teamsHasIdColumn) && !isClusterWorker) {
+          console.log('⚠️  teams table missing or invalid. Creating...');
           await sequelize.query(`
             CREATE TABLE IF NOT EXISTS teams (
               id SERIAL PRIMARY KEY,

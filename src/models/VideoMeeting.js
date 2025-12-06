@@ -13,7 +13,7 @@ const VideoMeeting = sequelize.define('VideoMeeting', {
     primaryKey: true
   },
   team_id: {
-    type: DataTypes.UUID,
+    type: DataTypes.INTEGER,
     allowNull: false,
     references: {
       model: 'teams',
@@ -61,7 +61,7 @@ const VideoMeeting = sequelize.define('VideoMeeting', {
   },
   // Host info
   host_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.UUID,
     allowNull: false,
     references: {
       model: 'users',
