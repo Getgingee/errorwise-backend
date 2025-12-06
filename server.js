@@ -426,12 +426,20 @@ const start = async () => {
     await sequelize.authenticate();
     console.log('✅ Database connected successfully');
     
-    // Run migrations in production (create ErrorQueries table if missing)
+    // Run migrations in production (create tables if missing)
+    // In cluster mode, master process runs sync first, workers skip heavy migrations
+    const isClusterWorker = process.env.SKIP_WORKER_MIGRATIONS === 'false';
+    
     if (process.env.NODE_ENV === 'production') {
       try {
-        console.log('📝 Checking for required tables and columns...');
+        // If running as cluster worker, skip table creation (master already did it)
+        if (isClusterWorker) {
+          console.log('📝 Cluster worker: Skipping table migrations (master handled)');
+        } else {
+          console.log('📝 Checking for required tables and columns...');
+        }
         
-        // Check if ErrorQueries table exists
+        // Check if ErrorQueries table exists (still check, but skip creation if worker)
         const [results] = await sequelize.query(`
           SELECT EXISTS (
             SELECT FROM information_schema.tables 
@@ -439,7 +447,7 @@ const start = async () => {
           );
         `);
         
-        if (!results[0].exists) {
+        if (!results[0].exists && !isClusterWorker) {
           console.log('⚠️  ErrorQueries table missing. Creating...');
           
           // Create ErrorQueries table
@@ -569,7 +577,7 @@ const start = async () => {
           )
         `);
         
-        if (!newsletterExists[0].exists) {
+        if (!newsletterExists[0].exists && !isClusterWorker) {
           console.log('⚠️  NewsletterSubscriptions table missing. Creating...');
           await sequelize.query(`
             CREATE TABLE IF NOT EXISTS newslettersubscriptions (
@@ -609,7 +617,7 @@ const start = async () => {
           )
         `);
         
-        if (!eventsExists[0].exists) {
+        if (!eventsExists[0].exists && !isClusterWorker) {
           console.log('⚠️  Events table missing. Creating...');
           await sequelize.query(`
             CREATE TABLE IF NOT EXISTS events (
@@ -642,6 +650,74 @@ const start = async () => {
         }
 
         // ============================================================================
+        // TEAMS TABLE: Ensure teams table exists before video_meetings (for FK reference)
+        // ============================================================================
+        console.log('📝 Checking for teams table (required for video_meetings FK)...');
+        const [teamsExists] = await sequelize.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'teams'
+          ) as exists
+        `);
+        
+        if (!teamsExists[0].exists && !isClusterWorker) {
+          console.log('⚠️  teams table missing. Creating...');
+          await sequelize.query(`
+            CREATE TABLE IF NOT EXISTS teams (
+              id SERIAL PRIMARY KEY,
+              name VARCHAR(100) NOT NULL,
+              description TEXT,
+              owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
+              subscription_id UUID,
+              max_members INTEGER DEFAULT -1,
+              video_room_id VARCHAR(255) UNIQUE,
+              settings JSONB DEFAULT '{"allow_guest_access": false, "require_approval": true, "enable_video_chat": true, "enable_screen_sharing": true, "video_session_duration_minutes": 30, "unlimited_participants": true}',
+              is_active BOOLEAN DEFAULT true,
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            )
+          `);
+          await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_teams_owner_id ON teams(owner_id)`);
+          console.log('✅ teams table created');
+        } else {
+          console.log('✅ teams table exists');
+        }
+        
+        // ============================================================================
+        // TEAM_MEMBERS TABLE: Ensure team_members table exists
+        // ============================================================================
+        console.log('📝 Checking for team_members table...');
+        const [teamMembersExists] = await sequelize.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'team_members'
+          ) as exists
+        `);
+        
+        if (!teamMembersExists[0].exists && !isClusterWorker) {
+          console.log('⚠️  team_members table missing. Creating...');
+          await sequelize.query(`
+            CREATE TABLE IF NOT EXISTS team_members (
+              id SERIAL PRIMARY KEY,
+              team_id INTEGER REFERENCES teams(id) ON DELETE CASCADE,
+              user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+              role VARCHAR(20) DEFAULT 'member',
+              status VARCHAR(20) DEFAULT 'active',
+              invited_by UUID REFERENCES users(id) ON DELETE SET NULL,
+              joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+              created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+              updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+              UNIQUE(team_id, user_id)
+            )
+          `);
+          await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_team_members_team_id ON team_members(team_id)`);
+          await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON team_members(user_id)`);
+          console.log('✅ team_members table created');
+        } else {
+          console.log('✅ team_members table exists');
+        }
+
+        // ============================================================================
         // VIDEO MEETINGS TABLE (Team tier feature)
         // ============================================================================
         const [videoMeetingsExists] = await sequelize.query(`
@@ -651,7 +727,7 @@ const start = async () => {
           ) as exists
         `);
         
-        if (!videoMeetingsExists[0].exists) {
+        if (!videoMeetingsExists[0].exists && !isClusterWorker) {
           console.log('⚠️  video_meetings table missing. Creating...');
           await sequelize.query(`
             CREATE TABLE IF NOT EXISTS video_meetings (
@@ -732,6 +808,58 @@ const start = async () => {
           await sequelize.query(`ALTER TABLE "Subscriptions" ADD COLUMN IF NOT EXISTS "cancelAtPeriodEnd" BOOLEAN DEFAULT false`);
           console.log('✅ Added: Subscriptions.cancelAtPeriodEnd');
         }
+        
+        // ============================================================================
+        // TRIAL COLUMNS: Check and add missing trial-related columns to Subscriptions
+        // ============================================================================
+        console.log('📝 Checking Subscriptions for trial-related columns...');
+        const [trialColumnsCheck] = await sequelize.query(`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name = 'Subscriptions' 
+          AND column_name IN ('trialStatus', 'trialStartDate', 'trialEndDate', 'trialPlanId', 'paymentMethodCaptured', 'trialCancelledAt', 'trialConvertedAt', 'dodoPaymentMethodId', 'cancelReason')
+        `);
+        
+        const existingTrialCols = trialColumnsCheck.map(r => r.column_name);
+        console.log('📊 Existing Subscriptions trial columns:', existingTrialCols);
+        
+        if (!existingTrialCols.includes('trialStatus')) {
+          await sequelize.query(`ALTER TABLE "Subscriptions" ADD COLUMN IF NOT EXISTS "trialStatus" VARCHAR(20) DEFAULT 'none'`);
+          console.log('✅ Added: Subscriptions.trialStatus');
+        }
+        if (!existingTrialCols.includes('trialStartDate')) {
+          await sequelize.query(`ALTER TABLE "Subscriptions" ADD COLUMN IF NOT EXISTS "trialStartDate" TIMESTAMP WITH TIME ZONE`);
+          console.log('✅ Added: Subscriptions.trialStartDate');
+        }
+        if (!existingTrialCols.includes('trialEndDate')) {
+          await sequelize.query(`ALTER TABLE "Subscriptions" ADD COLUMN IF NOT EXISTS "trialEndDate" TIMESTAMP WITH TIME ZONE`);
+          console.log('✅ Added: Subscriptions.trialEndDate');
+        }
+        if (!existingTrialCols.includes('trialPlanId')) {
+          await sequelize.query(`ALTER TABLE "Subscriptions" ADD COLUMN IF NOT EXISTS "trialPlanId" VARCHAR(50)`);
+          console.log('✅ Added: Subscriptions.trialPlanId');
+        }
+        if (!existingTrialCols.includes('paymentMethodCaptured')) {
+          await sequelize.query(`ALTER TABLE "Subscriptions" ADD COLUMN IF NOT EXISTS "paymentMethodCaptured" BOOLEAN DEFAULT false`);
+          console.log('✅ Added: Subscriptions.paymentMethodCaptured');
+        }
+        if (!existingTrialCols.includes('trialCancelledAt')) {
+          await sequelize.query(`ALTER TABLE "Subscriptions" ADD COLUMN IF NOT EXISTS "trialCancelledAt" TIMESTAMP WITH TIME ZONE`);
+          console.log('✅ Added: Subscriptions.trialCancelledAt');
+        }
+        if (!existingTrialCols.includes('trialConvertedAt')) {
+          await sequelize.query(`ALTER TABLE "Subscriptions" ADD COLUMN IF NOT EXISTS "trialConvertedAt" TIMESTAMP WITH TIME ZONE`);
+          console.log('✅ Added: Subscriptions.trialConvertedAt');
+        }
+        if (!existingTrialCols.includes('dodoPaymentMethodId')) {
+          await sequelize.query(`ALTER TABLE "Subscriptions" ADD COLUMN IF NOT EXISTS "dodoPaymentMethodId" VARCHAR(255)`);
+          console.log('✅ Added: Subscriptions.dodoPaymentMethodId');
+        }
+        if (!existingTrialCols.includes('cancelReason')) {
+          await sequelize.query(`ALTER TABLE "Subscriptions" ADD COLUMN IF NOT EXISTS "cancelReason" TEXT`);
+          console.log('✅ Added: Subscriptions.cancelReason');
+        }
+        console.log('✅ Subscriptions trial columns verified');
         
         // === Check query_logs table columns (snake_case - for QueryLog model) ===
         console.log('🔍 Checking query_logs table columns...');
