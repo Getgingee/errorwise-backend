@@ -4,6 +4,7 @@ const rateLimit = require('express-rate-limit');
 const authController = require('../controllers/authController');
 const { authMiddleware } = require('../middleware/auth');
 const { accountLockoutMiddleware } = require('../middleware/accountLock');
+const { validateRegistration, validateLogin } = require('../middleware/validation');
 
 // Rate limiters for security
 const registerLimiter = rateLimit({
@@ -30,11 +31,11 @@ const refreshTokenLimiter = rateLimit({
   legacyHeaders: false
 });
 
-// Public routes with rate limiting
-router.post('/register', registerLimiter, authController.register);
+// Public routes with rate limiting and validation
+router.post('/register', registerLimiter, validateRegistration, authController.register);
 
-// Login with account lockout protection
-router.post('/login', accountLockoutMiddleware, authController.login);
+// Login with account lockout protection and validation
+router.post('/login', accountLockoutMiddleware, validateLogin, authController.login);
 
 router.post('/forgot-password', passwordResetLimiter, authController.forgotPassword);
 router.post('/reset-password', passwordResetLimiter, authController.resetPassword);

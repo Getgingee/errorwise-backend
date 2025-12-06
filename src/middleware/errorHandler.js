@@ -2,17 +2,22 @@ const logger = require('../utils/logger');
 
 // Global error handler middleware
 const errorHandler = (err, req, res, next) => {
+  // Get request ID for tracing
+  const requestId = req.requestId || req.headers['x-request-id'] || 'unknown';
+  
   // Default error
   let error = { ...err };
   error.message = err.message;
 
-  // Log error
-  logger.error(`Error: ${error.message}`, {
+  // Log error with request ID for correlation
+  logger.error(`[${requestId}] Error: ${error.message}`, {
+    requestId,
     stack: err.stack,
     url: req.url,
     method: req.method,
     ip: req.ip,
-    userAgent: req.get('User-Agent')
+    userAgent: req.get('User-Agent'),
+    userId: req.user?.id || 'anonymous'
   });
 
   // Mongoose bad ObjectId
@@ -96,14 +101,18 @@ const errorHandler = (err, req, res, next) => {
   res.status(statusCode).json({
     success: false,
     error: message,
+    requestId, // Include request ID for client-side error reporting
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 };
 
 // 404 handler
 const notFoundHandler = (req, res, next) => {
+  const requestId = req.requestId || req.headers['x-request-id'] || 'unknown';
   const message = `Resource not found - ${req.originalUrl}`;
-  logger.warn(`404 Error: ${message}`, {
+  
+  logger.warn(`[${requestId}] 404 Error: ${message}`, {
+    requestId,
     url: req.originalUrl,
     method: req.method,
     ip: req.ip
@@ -111,7 +120,8 @@ const notFoundHandler = (req, res, next) => {
   
   res.status(404).json({
     success: false,
-    error: message
+    error: message,
+    requestId
   });
 };
 

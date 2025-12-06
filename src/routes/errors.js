@@ -21,6 +21,7 @@ const errorController = require('../controllers/errorController');
 const { authMiddleware } = require('../middleware/auth');
 const { checkUsageLimits, addUsageInfo, getUserUsageStats } = require('../middleware/usageLimits');
 const { checkQueryLimit, addSubscriptionInfo, requireFeature } = require('../middleware/subscriptionMiddleware');
+const { validateErrorAnalysis, validateFeedbackSubmission, validateUUID } = require('../middleware/validation');
 
 // All error routes require authentication
 router.use(authMiddleware);
@@ -31,7 +32,7 @@ router.use(addSubscriptionInfo);
 // ============================================================================
 
 // POST /api/errors/analyze - Analyze an error with AI
-router.post('/analyze', checkQueryLimit, addUsageInfo, errorController.analyzeError);
+router.post('/analyze', validateErrorAnalysis, checkQueryLimit, addUsageInfo, errorController.analyzeError);
 
 // GET /api/errors/history - Get user's query history
 // Supports: ?limit=10 (for recent), ?search=term, ?page=1
@@ -41,13 +42,13 @@ router.get('/history', errorController.getHistory);
 router.get('/usage', getUserUsageStats);
 
 // GET /api/errors/:id - Get specific query
-router.get('/:id', errorController.getErrorQuery);
+router.get('/:id', validateUUID('id'), errorController.getErrorQuery);
 
 // POST /api/errors/:id/feedback - Thumbs up/down on result
-router.post('/:id/feedback', errorController.submitResultFeedback);
+router.post('/:id/feedback', validateUUID('id'), validateFeedbackSubmission, errorController.submitResultFeedback);
 
 // DELETE /api/errors/:id - Delete a query
-router.delete('/:id', errorController.deleteErrorQuery);
+router.delete('/:id', validateUUID('id'), errorController.deleteErrorQuery);
 
 // ============================================================================
 // LEGACY ENDPOINTS (Keep for backward compatibility, redirect internally)

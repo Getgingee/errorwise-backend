@@ -45,12 +45,14 @@ function sanitizeHTMLFields(fields = [], strict = false) {
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.warn(`⚠️  Validation failed | IP: ${req.ip} | Errors: ${JSON.stringify(errors.array())}`);
+    const requestId = req.requestId || req.headers['x-request-id'] || 'unknown';
+    console.warn(`⚠️  [${requestId}] Validation failed | IP: ${req.ip} | Errors: ${JSON.stringify(errors.array())}`);
     
     return res.status(400).json({
       success: false,
       code: 'VALIDATION_ERROR',
       error: 'Validation failed',
+      requestId,
       details: errors.array().map(error => ({
         field: error.path || error.param,
         message: error.msg,

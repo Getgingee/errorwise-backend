@@ -1,8 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const rateLimit = require('express-rate-limit');
+const { body } = require('express-validator');
 const subscriptionController = require('../controllers/subscriptionController');
 const { authMiddleware } = require('../middleware/auth');
+const { handleValidationErrors } = require('../middleware/validation');
+
+// Checkout validation
+const validateCheckout = [
+  body('planId')
+    .notEmpty().withMessage('Plan ID is required')
+    .isIn(['free', 'pro', 'team', 'pro_yearly', 'team_yearly'])
+    .withMessage('Invalid plan ID'),
+  handleValidationErrors
+];
 
 // Rate limiters for subscription operations (fraud prevention)
 const checkoutLimiter = rateLimit({
@@ -35,8 +46,8 @@ router.get('/current', subscriptionController.getSubscription);
 // Create subscription (with rate limiting)
 router.post('/', subscriptionChangeLimiter, subscriptionController.createSubscription);
 
-// Checkout session (with fraud prevention rate limiting)
-router.post('/checkout', checkoutLimiter, subscriptionController.createCheckout);
+// Checkout session (with fraud prevention rate limiting and validation)
+router.post('/checkout', checkoutLimiter, validateCheckout, subscriptionController.createCheckout);
 
 // Update subscription (with rate limiting)
 router.put('/', subscriptionChangeLimiter, subscriptionController.updateSubscription);
