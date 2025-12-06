@@ -6,7 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const videoMeetingController = require('../controllers/videoMeetingController');
-const authMiddleware = require('../middleware/auth');
+const { authMiddleware } = require('../middleware/auth');
 const { requireTier } = require('../middleware/tierAccess');
 
 // All routes require authentication
