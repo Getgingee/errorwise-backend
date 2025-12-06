@@ -743,12 +743,32 @@ const start = async () => {
           ) as exists
         `);
         
-        if (!videoMeetingsExists[0].exists && !isClusterWorker) {
+        // Check if video_meetings table has the required host_id column
+        let needsVideoMeetingsRebuild = false;
+        if (videoMeetingsExists[0].exists) {
+          const [hostIdCheck] = await sequelize.query(`
+            SELECT EXISTS (
+              SELECT FROM information_schema.columns 
+              WHERE table_name = 'video_meetings' AND column_name = 'host_id'
+            ) as exists
+          `);
+          if (!hostIdCheck[0].exists) {
+            console.log('⚠️  video_meetings table missing host_id column. Rebuilding...');
+            needsVideoMeetingsRebuild = true;
+          }
+        }
+        
+        if ((!videoMeetingsExists[0].exists || needsVideoMeetingsRebuild) && !isClusterWorker) {
+          if (needsVideoMeetingsRebuild) {
+            await sequelize.query(`DROP TABLE IF EXISTS video_meetings CASCADE`);
+            console.log('🗑️  Dropped old video_meetings table');
+          }
           console.log('⚠️  video_meetings table missing. Creating...');
           await sequelize.query(`
             CREATE TABLE IF NOT EXISTS video_meetings (
               id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-              team_id INTEGER REFERENCES teams(id) ON DELETE CASCADE,
+              team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+              host_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
               title VARCHAR(255) NOT NULL DEFAULT 'Team Meeting',
               description TEXT,
               scheduled_start TIMESTAMP WITH TIME ZONE,
@@ -770,12 +790,13 @@ const start = async () => {
           `);
           
           await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_video_meetings_team_id ON video_meetings(team_id)`);
+          await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_video_meetings_host_id ON video_meetings(host_id)`);
           await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_video_meetings_status ON video_meetings(status)`);
           await sequelize.query(`CREATE INDEX IF NOT EXISTS idx_video_meetings_scheduled ON video_meetings(scheduled_start)`);
           
-          console.log('✅ video_meetings table created with indexes');
-        } else {
-          console.log('✅ video_meetings table exists');
+          console.log('✅ video_meetings table created with all columns and indexes');
+        } else if (videoMeetingsExists[0].exists && !needsVideoMeetingsRebuild) {
+          console.log('✅ video_meetings table exists with correct schema');
         }
         
         // ============================================================================
