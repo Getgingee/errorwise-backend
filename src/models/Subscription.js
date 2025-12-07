@@ -2,128 +2,95 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const Subscription = sequelize.define('Subscription', {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true
+  subscriptionId: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+    field: 'subscription_id'
   },
   userId: {
-    type: DataTypes.UUID,
-    allowNull: false
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    field: 'user_id'
+  },
+  planId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    field: 'plan_id'
   },
   tier: {
-    type: DataTypes.ENUM('free', 'pro', 'team'),
-    defaultValue: 'free'
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'subscription_tier'
   },
   status: {
-    type: DataTypes.ENUM('active', 'cancelled', 'expired', 'trial', 'trial_pending', 'past_due', 'pending'),
+    type: DataTypes.STRING,
     defaultValue: 'active'
   },
   startDate: {
     type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
+    allowNull: true,
+    field: 'start_date'
   },
   endDate: {
     type: DataTypes.DATE,
-    allowNull: true
-  },
-
-  // ============================================================================
-  // TRIAL FIELDS - 7-day trial with payment capture
-  // ============================================================================
-  trialStartDate: {
-    type: DataTypes.DATE,
     allowNull: true,
-    comment: 'When the trial period started'
+    field: 'end_date'
   },
-  trialEndDate: {
-    type: DataTypes.DATE,
+  trialStart: {
+    type: DataTypes.DATEONLY,
     allowNull: true,
-    comment: 'When the trial period ends (7 days from start)'
+    field: 'trial_start'
   },
-  trialStatus: {
-    type: DataTypes.ENUM('none', 'pending', 'active', 'converted', 'cancelled', 'expired'),
-    defaultValue: 'none',
-    comment: 'Trial state machine: none -> pending -> active -> converted/cancelled/expired'
-  },
-  paymentMethodCaptured: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-    comment: 'Whether payment method was captured during trial checkout'
-  },
-  trialPlanId: {
-    type: DataTypes.STRING,
+  trialEnd: {
+    type: DataTypes.DATEONLY,
     allowNull: true,
-    comment: 'The plan (pro/team) user is trialing'
+    field: 'trial_end'
   },
-  trialCancelledAt: {
-    type: DataTypes.DATE,
+  nextBillingDate: {
+    type: DataTypes.DATEONLY,
     allowNull: true,
-    comment: 'When user cancelled the trial (if they did)'
-  },
-  trialConvertedAt: {
-    type: DataTypes.DATE,
-    allowNull: true,
-    comment: 'When trial converted to paid subscription'
-  },
-
-  // ============================================================================
-  // DODO PAYMENTS INTEGRATION
-  // ============================================================================
-  dodoSubscriptionId: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'Dodo Payments subscription ID'
-  },
-  dodoCustomerId: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'Dodo Payments customer ID'
-  },
-  dodoSessionId: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'Dodo Payments session ID'
-  },
-  dodoPaymentMethodId: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'Captured payment method ID for future billing'
-  },
-  legacyStripeId: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'Legacy Stripe subscription ID (deprecated)'
-  },
-  lastPaymentDate: {
-    type: DataTypes.DATE,
-    allowNull: true
-  },
-  paymentMethod: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    comment: 'Payment method type (e.g., card, upi)'
+    field: 'next_billing_date'
   },
   cancelAtPeriodEnd: {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
-    comment: 'Whether subscription will cancel at period end'
+    field: 'cancel_at_period_end'
   },
-  cancelReason: {
-    type: DataTypes.TEXT,
+  cancelledAt: {
+    type: DataTypes.DATE,
     allowNull: true,
-    comment: 'Reason provided when cancelling'
+    field: 'cancelled_at'
+  },
+  dodoSubscriptionId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'dodo_subscription_id'
+  },
+  dodoCustomerId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'dodo_customer_id'
+  },
+  paymentMethod: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    field: 'payment_method'
+  },
+  autoRenew: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    field: 'auto_renew'
   }
 }, {
-  indexes: [
-    { fields: ['user_id', 'tier'] },  // Use snake_case to match underscored: true
-    { fields: ['status'] },
-    { fields: ['trial_status'] },     // Use snake_case to match underscored: true
-    { fields: ['trial_end_date'] },   // Use snake_case to match underscored: true
-    { fields: ['dodo_subscription_id'] } // Use snake_case to match underscored: true
-  ],
+  tableName: 'subscriptions',
   timestamps: true,
-  underscored: true // Use snake_case for automatically generated columns
+  underscored: true,
+  indexes: [
+    { fields: ['user_id'] },
+    { fields: ['status'] },
+    { fields: ['dodo_subscription_id'] }
+  ]
 });
 
 module.exports = Subscription;
