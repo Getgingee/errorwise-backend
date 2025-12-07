@@ -280,7 +280,20 @@ const getUserUsageStats = async (req, res) => {
     const monthlyUsed = user.queriesUsedThisPeriod || 0;
     const monthlyRemaining = monthlyLimit === -1 ? -1 : Math.max(0, monthlyLimit - monthlyUsed);
 
+    // Calculate flat values for ProfilePage compatibility
+    const effectiveLimit = monthlyLimit === -1 ? 999999 : monthlyLimit;
+    const percentage = monthlyLimit > 0 ? Math.round((monthlyUsed / monthlyLimit) * 100) : 0;
+
     const response = {
+      // Flat fields for ProfilePage compatibility (UsageData interface)
+      queriesUsed: monthlyUsed,
+      queriesLimit: effectiveLimit,
+      followUpsUsed: 0, // Follow-ups not tracked separately yet
+      followUpsLimit: effectiveLimit,
+      resetDate: thisMonthEnd.toISOString(),
+      percentage,
+      
+      // Original fields for other pages
       tier,
       // C2: Trial information
       trial: {
@@ -310,7 +323,7 @@ const getUserUsageStats = async (req, res) => {
           remaining: monthlyRemaining,
           resetTime: thisMonthEnd.toISOString(),
           daysUntilReset: Math.ceil((thisMonthEnd - now) / (1000 * 60 * 60 * 24)),
-          percentage: monthlyLimit > 0 ? Math.round((monthlyUsed / monthlyLimit) * 100) : 0
+          percentage
         },
         // Additional stats
         daily: dailyQueries,

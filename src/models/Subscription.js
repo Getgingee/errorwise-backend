@@ -2,32 +2,32 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const Subscription = sequelize.define('Subscription', {
-  id: { 
-    type: DataTypes.UUID, 
-    defaultValue: DataTypes.UUIDV4, 
-    primaryKey: true 
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true
   },
-  userId: { 
-    type: DataTypes.UUID, 
+  userId: {
+    type: DataTypes.UUID,
     allowNull: false
   },
-  tier: { 
-    type: DataTypes.ENUM('free', 'pro', 'team'), 
-    defaultValue: 'free' 
+  tier: {
+    type: DataTypes.ENUM('free', 'pro', 'team'),
+    defaultValue: 'free'
   },
-  status: { 
-    type: DataTypes.ENUM('active', 'cancelled', 'expired', 'trial', 'trial_pending', 'past_due', 'pending'), 
-    defaultValue: 'active' 
+  status: {
+    type: DataTypes.ENUM('active', 'cancelled', 'expired', 'trial', 'trial_pending', 'past_due', 'pending'),
+    defaultValue: 'active'
   },
-  startDate: { 
-    type: DataTypes.DATE, 
-    defaultValue: DataTypes.NOW 
+  startDate: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW
   },
-  endDate: { 
-    type: DataTypes.DATE, 
-    allowNull: true 
+  endDate: {
+    type: DataTypes.DATE,
+    allowNull: true
   },
-  
+
   // ============================================================================
   // TRIAL FIELDS - 7-day trial with payment capture
   // ============================================================================
@@ -66,22 +66,22 @@ const Subscription = sequelize.define('Subscription', {
     allowNull: true,
     comment: 'When trial converted to paid subscription'
   },
-  
+
   // ============================================================================
   // DODO PAYMENTS INTEGRATION
   // ============================================================================
-  dodoSubscriptionId: { 
-    type: DataTypes.STRING, 
+  dodoSubscriptionId: {
+    type: DataTypes.STRING,
     allowNull: true,
     comment: 'Dodo Payments subscription ID'
   },
-  dodoCustomerId: { 
-    type: DataTypes.STRING, 
+  dodoCustomerId: {
+    type: DataTypes.STRING,
     allowNull: true,
     comment: 'Dodo Payments customer ID'
   },
-  dodoSessionId: { 
-    type: DataTypes.STRING, 
+  dodoSessionId: {
+    type: DataTypes.STRING,
     allowNull: true,
     comment: 'Dodo Payments session ID'
   },
@@ -90,14 +90,14 @@ const Subscription = sequelize.define('Subscription', {
     allowNull: true,
     comment: 'Captured payment method ID for future billing'
   },
-  legacyStripeId: { 
-    type: DataTypes.STRING, 
+  legacyStripeId: {
+    type: DataTypes.STRING,
     allowNull: true,
     comment: 'Legacy Stripe subscription ID (deprecated)'
   },
-  lastPaymentDate: { 
-    type: DataTypes.DATE, 
-    allowNull: true 
+  lastPaymentDate: {
+    type: DataTypes.DATE,
+    allowNull: true
   },
   paymentMethod: {
     type: DataTypes.STRING,
@@ -122,7 +122,8 @@ const Subscription = sequelize.define('Subscription', {
     { fields: ['trialEndDate'] },
     { fields: ['dodoSubscriptionId'] }
   ],
-  timestamps: true
+  timestamps: true,
+  underscored: true // Use snake_case for automatically generated columns
 });
 
 module.exports = Subscription;

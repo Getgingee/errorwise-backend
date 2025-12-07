@@ -1059,40 +1059,35 @@ exports.getBillingInfo = async (req, res) => {
     // Last payment date from subscription or user record
     const lastPaymentDate = currentSubscription?.startDate || user.subscriptionStartDate;
 
+    // Return direct object (no success/data wrapper) to match frontend BillingInfo interface
     res.json({
-      success: true,
-      data: {
-        currentPlan: {
-          name: plan.name,
-          tier: user.subscriptionTier,
-          price: plan.price,
-          interval: plan.interval,
-          status: subscriptionData.status || user.subscriptionStatus || 'free'
-        },
-        billing: {
-          nextBillingDate,
-          amount: plan.price,
-          currency: 'USD',
-          interval: plan.interval,
-          paymentMethod,
-          lastPaymentDate
-        },
-        subscription: {
-          startDate: subscriptionData.current_period_start || user.subscriptionStartDate,
-          endDate: subscriptionData.current_period_end || user.subscriptionEndDate,
-          trialEndsAt: user.trialEndsAt,
-          cancelAtPeriodEnd: subscriptionData.cancel_at_period_end || (user.subscriptionStatus === 'cancelled'),
-          dodoSubscriptionId: currentSubscription?.dodoSubscriptionId || null
-        }
+      currentPlan: {
+        name: plan.name,
+        tier: user.subscriptionTier,
+        price: plan.price,
+        interval: plan.interval,
+        status: subscriptionData.status || user.subscriptionStatus || 'free'
+      },
+      billing: {
+        nextBillingDate,
+        amount: plan.price,
+        currency: 'USD',
+        interval: plan.interval,
+        paymentMethod,
+        lastPaymentDate
+      },
+      subscription: {
+        startDate: subscriptionData.current_period_start || user.subscriptionStartDate,
+        endDate: subscriptionData.current_period_end || user.subscriptionEndDate,
+        trialEndsAt: user.trialEndsAt,
+        cancelAtPeriodEnd: subscriptionData.cancel_at_period_end || (user.subscriptionStatus === 'cancelled'),
+        dodoSubscriptionId: currentSubscription?.dodoSubscriptionId || null
       }
     });
 
   } catch (error) {
     console.error('Failed to fetch billing info:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Failed to fetch billing information' 
-    });
+    res.status(500).json({ error: 'Failed to fetch billing information' });
   }
 };
 
