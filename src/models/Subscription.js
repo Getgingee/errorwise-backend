@@ -85,12 +85,9 @@ const Subscription = sequelize.define('Subscription', {
 }, {
   tableName: 'subscriptions',
   timestamps: true,
-  underscored: true,
-  indexes: [
-    { fields: ['user_id'] },
-    { fields: ['status'] },
-    { fields: ['dodo_subscription_id'] }
-  ]
+  underscored: true
+  // Note: Indexes already exist in database, don't define here to avoid duplicate creation errors
+  // Existing indexes: subscriptions_user_id, subscriptions_status, subscriptions_dodo_subscription_id
 });
 
 module.exports = Subscription;
