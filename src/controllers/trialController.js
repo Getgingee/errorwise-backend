@@ -185,12 +185,11 @@ exports.getTrialStatus = async (req, res) => {
     }
 
     const user = await User.findByPk(userId);
-    const subscription = await Subscription.findOne({
-      where: { userId },
-      order: [['createdAt', 'DESC']]
-    });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-    // Calculate trial info
+    // Calculate trial info based on user's trialEndsAt field
     const now = new Date();
     let trialInfo = {
       hasActiveTrial: false,
@@ -207,50 +206,49 @@ exports.getTrialStatus = async (req, res) => {
       chargeCurrency: 'USD'
     };
 
-    // Check eligibility for new trial
-    const eligibility = await checkTrialEligibility(user);
-    trialInfo.canStartTrial = eligibility.eligible;
-    trialInfo.eligibilityReason = eligibility.reason;
-
-    if (subscription && subscription.trialStatus !== 'none') {
-      const plan = TRIAL_CONFIG.plans[subscription.trialPlanId];
+    // Check if user has used trial before
+    if (user.hasUsedTrial) {
+      trialInfo.trialStatus = 'used';
+      trialInfo.canStartTrial = false;
+      trialInfo.eligibilityReason = 'Trial already used';
+    } else if (user.subscriptionTier && user.subscriptionTier !== 'free') {
+      // Already on paid plan
+      trialInfo.trialStatus = 'not_needed';
+      trialInfo.canStartTrial = false;
+      trialInfo.eligibilityReason = 'Already subscribed';
+    } else if (user.trialEndsAt) {
+      // Has trial date set
+      const trialEnd = new Date(user.trialEndsAt);
+      const msRemaining = trialEnd - now;
       
-      trialInfo.trialStatus = subscription.trialStatus;
-      trialInfo.trialPlan = subscription.trialPlanId;
-      trialInfo.trialStartDate = subscription.trialStartDate;
-      trialInfo.trialEndDate = subscription.trialEndDate;
-      trialInfo.paymentMethodCaptured = subscription.paymentMethodCaptured;
-
-      if (subscription.trialStatus === 'active' && subscription.trialEndDate) {
-        const endDate = new Date(subscription.trialEndDate);
-        const msRemaining = endDate - now;
-        
-        trialInfo.hasActiveTrial = msRemaining > 0;
+      if (msRemaining > 0) {
+        // Active trial
+        trialInfo.hasActiveTrial = true;
+        trialInfo.trialStatus = 'active';
+        trialInfo.trialEndDate = user.trialEndsAt;
         trialInfo.daysRemaining = Math.ceil(msRemaining / (1000 * 60 * 60 * 24));
         trialInfo.hoursRemaining = Math.ceil(msRemaining / (1000 * 60 * 60));
-        trialInfo.canCancelTrial = msRemaining > 0;
-        trialInfo.willAutoCharge = msRemaining > 0 && subscription.paymentMethodCaptured;
-        
-        if (plan) {
-          trialInfo.chargeAmount = plan.price;
-        }
+        trialInfo.canCancelTrial = true;
+        trialInfo.canStartTrial = false;
+      } else {
+        // Trial expired
+        trialInfo.trialStatus = 'expired';
+        trialInfo.trialEndDate = user.trialEndsAt;
+        trialInfo.canStartTrial = false;
+        trialInfo.eligibilityReason = 'Trial expired';
       }
-
-      if (subscription.trialStatus === 'converted') {
-        trialInfo.convertedAt = subscription.trialConvertedAt;
-      }
-
-      if (subscription.trialStatus === 'cancelled') {
-        trialInfo.cancelledAt = subscription.trialCancelledAt;
-      }
+    } else {
+      // Never started trial
+      trialInfo.canStartTrial = true;
+      trialInfo.eligibilityReason = 'Eligible for 7-day trial';
     }
 
     res.json({
       success: true,
       trial: trialInfo,
       user: {
-        tier: user.subscriptionTier,
-        status: user.subscriptionStatus
+        tier: user.subscriptionTier || 'free',
+        status: user.subscriptionStatus || 'active'
       }
     });
 
