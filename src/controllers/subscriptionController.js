@@ -147,13 +147,17 @@ const SUBSCRIPTION_TIERS = {
     description: 'Everything in Pro plus shared team history, team dashboard, and collaborative features.',
     trialDays: 14,
     dodo_plan_id: 'pdt_Zbn5YM2pCgkKcdQyV0ouY',
+    // Team plan is coming soon - not available for purchase yet
+    comingSoon: true,
+    comingSoonMessage: 'Coming Soon! Team features are under development.',
+    disabled: true,
     // Display-ready feature list for frontend (single source of truth)
     // Matches original pricing page design exactly
     displayFeatures: [
-      { text: 'Everything in Pro', available: true, highlight: true, badge: 'NEW' },
-      { text: 'Up to 10 team members', available: true, highlight: true, badge: 'NEW' },
-      { text: 'Team dashboard & analytics', available: true, highlight: true, badge: 'NEW' },
-      { text: 'Shared solution library', available: true, highlight: true, badge: 'NEW' },
+      { text: 'Everything in Pro', available: true, highlight: true, badge: 'COMING SOON' },
+      { text: 'Up to 10 team members', available: true, highlight: true, badge: 'COMING SOON' },
+      { text: 'Team dashboard & analytics', available: true, highlight: true, badge: 'COMING SOON' },
+      { text: 'Shared solution library', available: true, highlight: true, badge: 'COMING SOON' },
       { text: 'Help teammates with errors', available: true },
       { text: 'Member usage reports', available: true },
       { text: 'Best AI model (Claude Sonnet)', available: true },
@@ -336,7 +340,11 @@ exports.getPlans = async (req, res) => {
             displayFeatures: tierConfig.displayFeatures, // Frontend-ready feature list
             popular: tierKey === 'pro', // Mark Pro as popular
             description: plan.description || getPlanDescription(tierKey),
-            dodo_plan_id: tierConfig.dodo_plan_id || plan.dodo_plan_id // Use SUBSCRIPTION_TIERS Product ID first
+            dodo_plan_id: tierConfig.dodo_plan_id || plan.dodo_plan_id, // Use SUBSCRIPTION_TIERS Product ID first
+            // Team plan coming soon flags
+            comingSoon: tierConfig.comingSoon || false,
+            disabled: tierConfig.disabled || false,
+            comingSoonMessage: tierConfig.comingSoonMessage || null
           };
         });
       
@@ -356,7 +364,11 @@ exports.getPlans = async (req, res) => {
         features: tier.features,
         displayFeatures: tier.displayFeatures, // Frontend-ready feature list
         popular: tierKey === 'pro', // Mark Pro as popular
-        description: getPlanDescription(tierKey)
+        description: getPlanDescription(tierKey),
+        // Team plan coming soon flags
+        comingSoon: tier.comingSoon || false,
+        disabled: tier.disabled || false,
+        comingSoonMessage: tier.comingSoonMessage || null
       };
     });
 
@@ -813,6 +825,16 @@ exports.createCheckout = async (req, res) => {
 
     if (!planId || !['pro', 'team'].includes(planId)) {
       return res.status(400).json({ success: false, error: 'Invalid plan ID. Must be "pro" or "team"' });
+    }
+
+    // Block Team plan upgrades - Coming Soon
+    if (planId === 'team') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Team plan is coming soon! Currently only Pro plan is available for upgrade.',
+        comingSoon: true,
+        availablePlans: ['pro']
+      });
     }
 
     const user = await User.findByPk(userId);
@@ -1430,6 +1452,15 @@ exports.upgradeSubscription = async (req, res) => {
     
     if (!targetTier || !['pro', 'team'].includes(targetTier)) {
       return res.status(400).json({ error: 'Invalid target tier' });
+    }
+    
+    // Block Team plan upgrades - Coming Soon
+    if (targetTier === 'team') {
+      return res.status(400).json({ 
+        error: 'Team plan is coming soon! Currently only Pro plan is available for upgrade.',
+        comingSoon: true,
+        availablePlans: ['pro']
+      });
     }
     
     const user = await User.findByPk(req.user.id);
