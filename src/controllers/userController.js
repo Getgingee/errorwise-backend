@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const ErrorQuery = require('../models/ErrorQuery');
-const UserSettings = require('../models/UserSettings');
+const UserSettings = require('../models/userSettings');
 const authService = require('../services/authService');
 const { invalidateUserCache } = require('../middleware/auth');
 
