@@ -999,6 +999,7 @@ exports.createCheckout = async (req, res) => {
 exports.getBillingInfo = async (req, res) => {
   try {
     const userId = req.user.id;
+    const { Op } = require('sequelize');
 
     const user = await User.findByPk(userId);
     if (!user) {
@@ -1009,7 +1010,7 @@ exports.getBillingInfo = async (req, res) => {
     const currentSubscription = await Subscription.findOne({
       where: { 
         userId,
-        status: ['active', 'trial', 'past_due', 'cancelled']
+        status: { [Op.in]: ['active', 'trial', 'past_due', 'cancelled'] }
       },
       order: [['createdAt', 'DESC']]
     });
