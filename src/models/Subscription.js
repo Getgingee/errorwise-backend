@@ -116,11 +116,11 @@ const Subscription = sequelize.define('Subscription', {
   }
 }, {
   indexes: [
-    { fields: ['userId', 'tier'] },
+    { fields: ['user_id', 'tier'] },  // Use snake_case to match underscored: true
     { fields: ['status'] },
-    { fields: ['trialStatus'] },
-    { fields: ['trialEndDate'] },
-    { fields: ['dodoSubscriptionId'] }
+    { fields: ['trial_status'] },     // Use snake_case to match underscored: true
+    { fields: ['trial_end_date'] },   // Use snake_case to match underscored: true
+    { fields: ['dodo_subscription_id'] } // Use snake_case to match underscored: true
   ],
   timestamps: true,
   underscored: true // Use snake_case for automatically generated columns
