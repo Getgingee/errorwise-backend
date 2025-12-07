@@ -10,16 +10,45 @@ const UserSettings = sequelize.define('UserSettings', {
   userId: {
     type: DataTypes.UUID,
     allowNull: false,
-    field: 'user_id', // Map to database column
+    field: 'user_id',
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'id'
     },
     onDelete: 'CASCADE'
   },
+  theme: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: 'light'
+  },
+  notificationsEnabled: {
+    type: DataTypes.BOOLEAN,
+    allowNull: true,
+    defaultValue: true,
+    field: 'notifications_enabled'
+  },
+  emailNotifications: {
+    type: DataTypes.BOOLEAN,
+    allowNull: true,
+    defaultValue: true,
+    field: 'email_notifications'
+  },
+  defaultLanguage: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: 'en',
+    field: 'default_language'
+  },
+  autoSave: {
+    type: DataTypes.BOOLEAN,
+    allowNull: true,
+    defaultValue: true,
+    field: 'auto_save'
+  },
   preferences: {
-    type: DataTypes.JSON,
-    allowNull: false,
+    type: DataTypes.JSONB,
+    allowNull: true,
     defaultValue: {
       notifications: {
         email: true,
@@ -32,8 +61,8 @@ const UserSettings = sequelize.define('UserSettings', {
         publicProfile: false
       },
       ai: {
-        preferredProvider: 'auto',  // auto, anthropic (system uses Claude)
-        analysisDepth: 'standard',  // standard, detailed
+        preferredProvider: 'auto',
+        analysisDepth: 'standard',
         codeContext: true
       },
       display: {
@@ -46,10 +75,11 @@ const UserSettings = sequelize.define('UserSettings', {
 }, {
   tableName: 'user_settings',
   timestamps: true,
+  underscored: true,
   indexes: [
     {
       unique: true,
-      fields: ['user_id'] // Use actual database column name
+      fields: ['user_id']
     }
   ]
 });
