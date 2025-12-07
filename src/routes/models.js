@@ -38,7 +38,7 @@ router.get('/toggle', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
     const user = await User.findByPk(userId, {
-      attributes: ['id', 'subscription_tier', 'preferred_ai_model', 'trialEndsAt']
+      attributes: ['id', 'subscriptionTier', 'preferred_ai_model', 'trialEndsAt']
     });
     
     if (!user) {
@@ -46,7 +46,7 @@ router.get('/toggle', authMiddleware, async (req, res) => {
     }
     
     // Calculate effective tier (trial users get pro features)
-    const baseTier = user.subscription_tier || 'free';
+    const baseTier = user.subscriptionTier || 'free';
     let effectiveTier = baseTier;
     let trialInfo = null;
     
