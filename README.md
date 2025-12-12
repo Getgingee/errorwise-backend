@@ -1,11 +1,15 @@
 # 🚀 ErrorWise Backend
 
-> **AI-Powered Error Analysis Platform** - Intelligent error debugging with multi-tier subscriptions, real-time caching, and production-grade infrastructure.
+> **AI-Powered Error Analysis Platform** - Intelligent error debugging with conversational AI, multi-tier subscriptions, web scraping for solutions, and production-grade infrastructure.
 
-[![Node.js](https://img.shields.io/badge/Node.js-22.x-green)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green)](https://nodejs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16.x-blue)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/Redis-7.x-red)](https://redis.io/)
 [![Express](https://img.shields.io/badge/Express-4.x-lightgrey)](https://expressjs.com/)
+[![Railway](https://img.shields.io/badge/Deployed-Railway-purple)](https://railway.app/)
+
+**Live Production:** [https://errorwise.tech](https://errorwise.tech)  
+**API Endpoint:** `https://errorwise-backend-production.up.railway.app`
 
 ---
 
@@ -26,88 +30,104 @@
 
 ### Core Features
 - 🔐 **Authentication & Authorization**
-  - JWT-based authentication
-  - Security question password recovery (1 question)
-  - Multi-device session management
-  - Refresh token rotation
+  - JWT-based authentication with refresh tokens
+  - Security question password recovery
+  - OTP-based email verification
+  - Multi-device session management via Redis
+  - GitHub OAuth integration
 
 - 🤖 **AI-Powered Error Analysis**
-  - Anthropic Claude integration (Haiku & Sonnet)
-  - Context-aware error debugging
-  - Solution recommendations
-  - Multi-tier AI models (Free: Haiku, Team: Sonnet)
+  - Anthropic Claude integration (Haiku & Sonnet models)
+  - Conversational follow-up questions (10 per query for Pro)
+  - Context-aware error debugging with web scraping
+  - TOON format for token-efficient AI communications
+  - Smart model selection based on subscription tier
+
+- 💬 **Conversational AI Chat**
+  - Follow-up questions with context memory
+  - Ask anything about tech (Pro feature)
+  - Web search for latest solutions
+  - Visual guides and how-to tutorials
 
 - 💳 **Subscription Management**
-  - Free, Pro, and Team tiers
-  - Dodo Payments integration
-  - Upgrade/downgrade flows
-  - Usage tracking per tier
+  - Free, Pro, and Team tiers (Team coming soon)
+  - Dodo Payments integration with webhooks
+  - 7-day free trial for Pro
+  - Upgrade/downgrade/pause/resume flows
+  - Usage tracking and billing history
 
 - ⚡ **Redis Infrastructure**
   - Session storage (7-day expiry)
-  - Response caching (30min-24hr TTL)
+  - Response caching (5min-1hr TTL)
   - Rate limiting (tier-based)
   - 1000+ concurrent user support
 
 - 🛡️ **Security & Performance**
   - Helmet.js security headers
-  - CORS configuration
-  - Rate limiting (100 req/min general, 5/15min auth)
+  - CORS configuration with wildcard support
+  - Rate limiting per tier
   - Request logging with Winston
-  - Comprehensive error handling
+  - Tab abuse protection
+  - Duplicate request prevention
+  - Suspicious behavior detection
+  - Compression enabled (gzip)
 
 ### Subscription Tiers
 
-| Feature | Free | Pro | Team |
-|---------|------|-----|------|
-| Error Queries/Day | 5 | 50 | Unlimited |
+| Feature | Free | Pro ($3/mo) | Team ($8/mo) |
+|---------|------|-------------|--------------|
+| Error Solutions/Month | 50 | Unlimited | Unlimited |
+| Daily Queries | 10 | Unlimited | Unlimited |
 | AI Model | Claude Haiku | Claude Haiku | Claude Sonnet |
 | Max Tokens | 800 | 1200 | 2000 |
+| History | 7 days | Unlimited | Unlimited |
+| Follow-up Questions | ❌ | 10/query | 10/query |
+| Web Search | ❌ | ✅ | ✅ |
+| Export (JSON/CSV) | ❌ | ✅ | ✅ |
 | Team Members | 1 | 1 | 10 |
-| Rate Limit | 10/min | 50/min | 200/min |
-| Priority Support | ❌ | ✅ | ✅ |
-| Advanced Analytics | ❌ | ✅ | ✅ |
+| Support | Community | Email | Priority |
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Backend
-- **Runtime:** Node.js 22.x
+- **Runtime:** Node.js 18+
 - **Framework:** Express 4.x
 - **Database:** PostgreSQL 16.x (with Sequelize ORM)
 - **Cache/Sessions:** Redis 7.x
-- **Authentication:** JWT + bcrypt
+- **Authentication:** JWT + bcrypt + Redis sessions
 
 ### AI/ML
-- **Anthropic:** Claude 3.5 Sonnet, Claude 3 Haiku
+- **Primary:** Anthropic Claude 3.5 Sonnet, Claude 3 Haiku
 - **Fallback:** Enhanced mock responses
+- **Format:** TOON (Token Object-Oriented Notation) for efficiency
 
 ### Payment
 - **Provider:** Dodo Payments
-- **Support:** Subscriptions, webhooks, 3DS
+- **Support:** Subscriptions, webhooks, trials
 
 ### DevOps
-- **Testing:** Jest
-- **Logging:** Winston
-- **Monitoring:** Morgan
-- **Email:** Nodemailer (Mailtrap for dev)
+- **Hosting:** Railway (production)
+- **Logging:** Winston + Morgan
+- **Email:** SendGrid (production), Mailtrap (dev)
+- **Process:** Cluster mode for multi-core support
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js >= 22.x
+- Node.js >= 18.x
 - PostgreSQL >= 16.x
-- Redis >= 7.x (optional but recommended)
+- Redis >= 7.x
 - npm or yarn
 
 ### Installation
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/PankajKumar2804/errorwise-backend.git
+git clone https://github.com/Getgingee/errorwise-backend.git
 cd errorwise-backend
 
 # 2. Install dependencies
@@ -117,14 +137,10 @@ npm install
 cp .env.example .env
 # Edit .env with your configuration
 
-# 4. Set up database
-createdb errorwise
-npm run migrate  # If you have migrations
-
-# 5. Start Redis (if using Docker)
+# 4. Start Redis (if using Docker)
 docker run -d -p 6379:6379 --name redis redis:latest
 
-# 6. Start development server
+# 5. Start development server
 npm run dev
 ```
 
@@ -133,35 +149,32 @@ npm run dev
 Create a `.env` file with the following:
 
 ```env
-# Database
-DATABASE_URL=postgres://postgres:password@localhost:5432/errorwise
+# Database (Railway PostgreSQL or local)
+DATABASE_URL=postgres://user:password@host:port/database
 
-# Redis
+# Redis (Railway Redis or local)
 REDIS_URL=redis://localhost:6379
 
-# JWT Secrets
-JWT_SECRET=your_jwt_secret_here
-JWT_REFRESH_SECRET=your_refresh_secret_here
+# JWT Secrets (generate with: node generate-secrets.js)
+JWT_SECRET=your_jwt_secret_here_min_32_characters
+JWT_REFRESH_SECRET=your_refresh_secret_here_min_32_characters
 
 # AI API (ONLY ANTHROPIC ENABLED)
 ANTHROPIC_API_KEY=sk-ant-...
-# OPENAI_API_KEY=sk-... (DISABLED)
-# GEMINI_API_KEY=... (DISABLED)
 
 # Server
 PORT=3001
-FRONTEND_URL=http://localhost:3000
+NODE_ENV=production
+FRONTEND_URL=https://errorwise.tech
+CORS_ORIGIN=https://errorwise.tech,https://www.errorwise.tech
 
-# Email (Mailtrap for development) future development
-SMTP_HOST=smtp.mailtrap.io
-SMTP_PORT=2525
-SMTP_USER=your_mailtrap_user
-SMTP_PASS=your_mailtrap_password
+# Email (SendGrid for production)
+SENDGRID_API_KEY=your_sendgrid_api_key
+FROM_EMAIL=noreply@errorwise.tech
 
 # Dodo Payments
 DODO_API_KEY=your_dodo_api_key
-DODO_SECRET_KEY=your_dodo_secret_key
-DODO_MERCHANT_ID=your_merchant_id
+DODO_WEBHOOK_SECRET=your_webhook_secret
 ```
 
 ### Running the Server
@@ -170,11 +183,8 @@ DODO_MERCHANT_ID=your_merchant_id
 # Development with auto-reload
 npm run dev
 
-# Production
+# Production (with clustering)
 npm start
-
-# Run tests
-npm test
 ```
 
 ### Verify Installation
@@ -183,32 +193,26 @@ npm test
 # Check server health
 curl http://localhost:3001/health
 
-# Check Redis connection
-redis-cli ping  # Should return PONG
-
-# Check database
-psql -d errorwise -c "SELECT 1;"
+# Ping endpoint
+curl http://localhost:3001/ping
 ```
 
 ---
 
 ## 📚 Documentation
 
-### Setup & Configuration
+### Primary Documentation
+- **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - Complete API reference
 - **[SETUP.md](./SETUP.md)** - Detailed setup instructions
-- **[REDIS-IMPLEMENTATION.md](./REDIS-IMPLEMENTATION.md)** - Redis configuration & usage
+- **[.env.example](./.env.example)** - All environment variables
 
 ### Deployment
-- **[QUICK_START_RAILWAY.md](./QUICK_START_RAILWAY.md)** - 🚀 Deploy in 5 steps!
-- **[RAILWAY_DEPLOYMENT.md](./RAILWAY_DEPLOYMENT.md)** - Complete Railway deployment guide
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - General production deployment guide
-
-### API & Integration
-- **[API-DOCUMENTATION.md](./API-DOCUMENTATION.md)** - Complete API reference
-- **[FRONTEND-INTEGRATION.md](./FRONTEND-INTEGRATION.md)** - Frontend integration guide
+- **[QUICK_START_RAILWAY.md](./QUICK_START_RAILWAY.md)** - Deploy to Railway in 5 steps
+- **[DODOPAYMENTS-WEBHOOKS-SETUP.md](./DODOPAYMENTS-WEBHOOKS-SETUP.md)** - Payment webhooks
 
 ### Features
-- **[FEATURES.md](./FEATURES.md)** - Detailed feature documentation
+- **[SUBSCRIPTION_FEATURES_STATUS.md](./SUBSCRIPTION_FEATURES_STATUS.md)** - Tier features
+- **[COMPREHENSIVE_FEATURES_IMPLEMENTED.md](./COMPREHENSIVE_FEATURES_IMPLEMENTED.md)** - All features
 
 ---
 
@@ -219,34 +223,42 @@ errorwise-backend/
 ├── src/
 │   ├── config/          # Configuration files
 │   │   ├── database.js  # Sequelize configuration
-│   │   └── redis.js     # Redis configuration
+│   │   ├── modelConfig.js # AI model configuration (central)
+│   │   └── platformStats.js # Platform statistics
 │   ├── controllers/     # Route controllers
 │   │   ├── authController.js
 │   │   ├── errorController.js
-│   │   └── subscriptionController.js
+│   │   ├── subscriptionController.js
+│   │   └── userController.js
 │   ├── middleware/      # Express middleware
 │   │   ├── auth.js      # JWT authentication
 │   │   ├── session.js   # Redis session management
-│   │   └── rateLimiter.js # Rate limiting
+│   │   ├── rateLimiter.js # Rate limiting
+│   │   ├── security.js  # Security protections
+│   │   └── validation.js # Input validation
 │   ├── models/          # Sequelize models
 │   │   ├── User.js
 │   │   ├── ErrorQuery.js
-│   │   └── Subscription.js
-│   ├── routes/          # API routes
-│   │   ├── auth.js
-│   │   ├── errors.js
-│   │   └── subscriptions.js
+│   │   ├── Subscription.js
+│   │   └── userSettings.js
+│   ├── routes/          # API routes (34 route files)
+│   │   ├── auth.js, authEnhanced.js
+│   │   ├── errors.js, chat.js, conversation.js
+│   │   ├── subscriptions.js, plans.js, trial.js
+│   │   ├── users.js, settings.js
+│   │   ├── teams.js, videoMeetings.js
+│   │   └── ... (and more)
 │   ├── services/        # Business logic
-│   │   ├── authService.js
-│   │   ├── aiService.js
-│   │   └── paymentService.js
+│   │   ├── aiService.js       # AI error analysis
+│   │   ├── authService.js     # Authentication
+│   │   ├── paymentService.js  # Dodo Payments
+│   │   ├── emailService.js    # SendGrid emails
+│   │   └── subscriptionService.js
 │   └── utils/           # Utility functions
 │       ├── logger.js
-│       ├── cache.js
-│       └── redisClient.js
-├── docs/                # Additional documentation
-│   └── archive/         # Old/archived docs
-├── tests/               # Test files
+│       ├── redisClient.js
+│       └── errors.js
+├── cluster.js           # Multi-core clustering
 ├── server.js            # Application entry point
 ├── package.json
 ├── .env.example
@@ -259,124 +271,118 @@ errorwise-backend/
 
 ### Authentication
 ```
-POST   /api/auth/register          # Register new user (1 security question)
-POST   /api/auth/login             # Login user
-POST   /api/auth/logout            # Logout user
-POST   /api/auth/refresh           # Refresh access token
-POST   /api/auth/forgot-password   # Request password reset
-POST   /api/auth/reset-password    # Reset password with security answer
+POST   /api/auth/register           # Register new user
+POST   /api/auth/login              # Login user
+POST   /api/auth/logout             # Logout user
+POST   /api/auth/refresh            # Refresh access token
+POST   /api/auth/forgot-password    # Request password reset
+POST   /api/auth/reset-password     # Reset with security answer
+POST   /api/auth/verify-email       # Verify email with OTP
+POST   /api/auth/resend-otp         # Resend verification OTP
+GET    /api/auth/github             # GitHub OAuth login
+GET    /api/auth/github/callback    # GitHub OAuth callback
 ```
 
-### Error Queries
+### Error Analysis
 ```
-POST   /api/errors                 # Submit error for analysis
-GET    /api/errors/:id             # Get specific error query
-GET    /api/errors/user/:userId    # Get user's error history
-DELETE /api/errors/:id             # Delete error query
+POST   /api/errors/analyze          # Submit error for AI analysis
+GET    /api/errors/usage            # Get usage stats
+GET    /api/errors/history          # Get error history
+GET    /api/errors/:id              # Get specific error
+DELETE /api/errors/:id              # Delete error
+GET    /api/errors/export           # Export history (Pro+)
+```
+
+### Conversational AI
+```
+POST   /api/chat/follow-up          # Follow-up question (Pro+)
+POST   /api/conversation/chat       # Conversational chat
+GET    /api/models                  # Get available AI models
 ```
 
 ### Subscriptions
 ```
-GET    /api/subscriptions/plans    # Get available plans
-POST   /api/subscriptions/upgrade  # Upgrade subscription
-POST   /api/subscriptions/cancel   # Cancel subscription
-GET    /api/subscriptions/usage    # Get usage statistics
+GET    /api/subscriptions           # Get current subscription
+GET    /api/subscriptions/plans     # Get available plans (public)
+POST   /api/subscriptions/checkout  # Create checkout session
+GET    /api/subscriptions/billing   # Get billing info
+GET    /api/subscriptions/usage     # Get usage statistics
+GET    /api/subscriptions/history   # Get payment history
+POST   /api/subscriptions/cancel    # Cancel subscription
+POST   /api/subscriptions/pause     # Pause subscription
+POST   /api/subscriptions/resume    # Resume subscription
+POST   /api/webhooks/dodo           # Dodo Payments webhook
 ```
 
 ### Users
 ```
-GET    /api/users/profile          # Get user profile
-PUT    /api/users/profile          # Update profile
-GET    /api/users/sessions         # Get active sessions
-DELETE /api/users/sessions/:token  # Revoke specific session
+GET    /api/users/profile           # Get user profile
+PUT    /api/users/profile           # Update profile
+PUT    /api/users/password          # Change password
+DELETE /api/users/account           # Delete account
+GET    /api/users/trial/status      # Get trial status
+POST   /api/users/trial/start       # Start 7-day trial
 ```
 
-For complete API documentation, see [API-DOCUMENTATION.md](./API-DOCUMENTATION.md).
-
----
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-
-# Run specific test file
-npm test -- tests/auth.test.js
+### Settings & Preferences
+```
+GET    /api/settings                # Get user settings
+PUT    /api/settings                # Update settings
 ```
 
----
-
-## 📊 Monitoring
-
-### Health Check
-```bash
-curl http://localhost:3001/health
+### Health & Status
+```
+GET    /health                      # Health check
+GET    /ping                        # Simple ping
+GET    /api/stats                   # Platform statistics
+GET    /api/ai-status               # AI service status
 ```
 
-### Redis Stats
-```bash
-# Connect to Redis CLI
-redis-cli
-
-# View all keys
-KEYS *
-
-# Monitor real-time
-MONITOR
-
-# Check memory usage
-INFO memory
-```
-
-### Database Stats
-```bash
-# Connect to PostgreSQL
-psql -d errorwise
-
-# View user count
-SELECT COUNT(*) FROM users;
-
-# View subscription distribution
-SELECT subscription_tier, COUNT(*) FROM users GROUP BY subscription_tier;
-```
+For complete API documentation, see [API_DOCUMENTATION.md](./API_DOCUMENTATION.md).
 
 ---
 
 ## 🚢 Deployment
 
+### Railway Deployment (Recommended)
+
+1. Connect your GitHub repository to Railway
+2. Add PostgreSQL and Redis addons
+3. Set environment variables
+4. Deploy automatically on push to main
+
+**Production URL:** `https://errorwise-backend-production.up.railway.app`
+
 ### Production Checklist
 
-- [ ] Set all environment variables
-- [ ] Use strong JWT secrets
-- [ ] Configure production database
-- [ ] Set up Redis (ElastiCache, Redis Labs, etc.)
-- [ ] Configure SMTP for production emails
-- [ ] Set up SSL/TLS certificates
-- [ ] Enable CORS for production frontend URL
-- [ ] Set up monitoring and logging
-- [ ] Configure backup strategy
-- [ ] Test payment webhooks
-- [ ] Set up CI/CD pipeline
+- [x] Set all environment variables
+- [x] Use strong JWT secrets (32+ characters)
+- [x] Configure production database (Railway PostgreSQL)
+- [x] Set up Redis (Railway Redis)
+- [x] Configure SendGrid for emails
+- [x] Configure CORS for production frontend
+- [x] Set up Dodo Payments webhooks
+- [x] Enable clustering for multi-core
 
-For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+For detailed deployment instructions, see [QUICK_START_RAILWAY.md](./QUICK_START_RAILWAY.md).
 
 ---
 
 ## 🔐 Security
 
-- All passwords hashed with bcrypt (10 rounds)
+- All passwords hashed with bcrypt (12 rounds)
 - Security answers hashed before storage
-- JWT tokens with expiration
-- Rate limiting on all endpoints
+- JWT tokens with short expiration (1h access, 7d refresh)
+- Redis-backed sessions with automatic expiry
+- Rate limiting on all endpoints (tier-based)
 - Helmet.js security headers
-- CORS whitelist
+- CORS whitelist with wildcard support
 - Input validation and sanitization
 - SQL injection prevention (Sequelize ORM)
 - XSS protection
+- Tab abuse protection
+- Duplicate request prevention
+- Suspicious behavior detection
 
 ---
 
@@ -392,59 +398,64 @@ For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ## 📝 License
 
-This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
 ## 👥 Authors
 
-- **Pankaj Kumar** - [@PankajKumar2804](https://github.com/PankajKumar2804)
+- **Getgingee Team** - [@Getgingee](https://github.com/Getgingee)
 
 ---
 
 ## 🙏 Acknowledgments
 
-- OpenAI for GPT-4 API
-- Google for Gemini API
+- Anthropic for Claude AI API
 - Dodo Payments for payment processing
+- Railway for hosting
 - All open-source contributors
 
 ---
 
 ## 📞 Support
 
-- **Issues:** [GitHub Issues](https://github.com/PankajKumar2804/errorwise-backend/issues)
-- **Email:** support@errorwise.com
-- **Documentation:** [Full Docs](./docs/)
+- **Website:** [errorwise.tech](https://errorwise.tech)
+- **Issues:** [GitHub Issues](https://github.com/Getgingee/errorwise-backend/issues)
+- **Email:** support@errorwise.tech
 
 ---
 
 ## 🗓️ Changelog
 
-### Latest (October 27, 2025)
-- ✅ Added Redis for sessions & caching
-- ✅ Implemented tier-based rate limiting
-- ✅ Updated to single security question
-- ✅ Fixed frontend dark UI
-- ✅ Consolidated documentation
+### December 2025
+- ✅ Conversational AI with follow-up questions
+- ✅ Web scraping for solution context
+- ✅ TOON format for token efficiency
+- ✅ 7-day free trial for Pro
+- ✅ Email verification with OTP
+- ✅ GitHub OAuth integration
+- ✅ Enhanced security middleware
+- ✅ Subscription pause/resume
+- ✅ Export to JSON/CSV (Pro+)
 
-### Previous
-- See [docs/archive/](./docs/archive/) for historical changes
+### Previous Updates
+- See [CHANGELOG.md](./CHANGELOG.md) for full history
 
 ---
 
 ## 🎯 Roadmap
 
+- [x] Conversational AI chat
+- [x] Web search for solutions
+- [x] Multi-language support
+- [ ] Team collaboration features
+- [ ] Mobile app API
 - [ ] GraphQL API support
 - [ ] WebSocket for real-time updates
 - [ ] Advanced analytics dashboard
-- [ ] Team collaboration features
-- [ ] Mobile app API
-- [ ] Multi-language support
-- [ ] Custom AI model training
 
 ---
 
-**Made with ❤️ by the ErrorWise Team**
+**Made with ❤️ by the Getgingee Team**
 
-*Last Updated: October 27, 2025*
+*Last Updated: December 12, 2025*

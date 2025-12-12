@@ -2,6 +2,8 @@
 
 > **Complete API Reference** - All endpoints, request/response formats, authentication, and usage examples.
 
+**Production Base URL:** `https://errorwise-backend-production.up.railway.app`
+
 ---
 
 ## 📋 Table of Contents
@@ -27,7 +29,8 @@ ErrorWise is an AI-powered error analysis platform that helps developers underst
 ### Key Features
 - 🔐 JWT-based authentication with Redis sessions
 - ⚡ Tier-based rate limiting
-- 🤖 AI-powered error analysis (OpenAI GPT-4, Google Gemini)
+- 🤖 AI-powered error analysis (Anthropic Claude)
+- 💬 Conversational follow-up questions
 - 💳 Multi-tier subscriptions (Free, Pro, Team)
 - 📊 Usage tracking and analytics
 
@@ -37,12 +40,12 @@ ErrorWise is an AI-powered error analysis platform that helps developers underst
 
 **Development:**
 ```
-http://localhost:3001/api
+http://localhost:3001
 ```
 
 **Production:**
 ```
-https://api.errorwise.com/api
+https://errorwise-backend-production.up.railway.app
 ```
 
 ---
@@ -54,7 +57,7 @@ https://api.errorwise.com/api
 ErrorWise uses JWT (JSON Web Tokens) with Redis-backed sessions for authentication.
 
 **Token Types:**
-- **Access Token**: Short-lived (15 minutes), sent in `Authorization` header
+- **Access Token**: Short-lived (1 hour), sent in `Authorization` header
 - **Refresh Token**: Long-lived (7 days), stored in Redis session
 
 **Authorization Header Format:**
@@ -69,7 +72,7 @@ Authorization: Bearer <access_token>
 
 ### Security Question
 
-Password recovery uses **1 security question** (not 3):
+Password recovery uses **1 security question**:
 - Question and answer set during registration
 - Answer is bcrypt-hashed before storage
 - Used for password reset verification
@@ -92,9 +95,9 @@ X-RateLimit-Reset: 1698412800
 
 | Tier | General Endpoints | Auth Endpoints | Error Analysis |
 |------|------------------|----------------|----------------|
-| **Free** | 10 req/min | 5 req/15min | 10 queries/month |
-| **Pro** | 50 req/min | 5 req/15min | 500 queries/month |
-| **Team** | 200 req/min | 5 req/15min | 2000 queries/month |
+| **Free** | 10 req/min | 5 req/15min | 50 queries/month |
+| **Pro** | 50 req/min | 5 req/15min | Unlimited |
+| **Team** | 200 req/min | 5 req/15min | Unlimited |
 
 ### Rate Limit Exceeded Response
 
@@ -120,7 +123,7 @@ All errors follow this format:
   "error": "Error message",
   "details": "Additional error details (optional)",
   "code": "ERROR_CODE",
-  "timestamp": "2025-10-27T10:30:00.000Z"
+  "timestamp": "2025-12-12T10:30:00.000Z"
 }
 ```
 
