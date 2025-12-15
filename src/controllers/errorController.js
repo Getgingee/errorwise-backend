@@ -638,13 +638,14 @@ exports.analyzeError = async (req, res) => {
   }
 };
 
-// Get user's error history with advanced search and filtering
+// Get user's error history with advanced search and filtering - Optimized
 exports.getHistory = async (req, res) => {
   try {
     const userId = req.user.id;
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = Math.min(parseInt(req.query.limit) || 15, 50);
     const offset = (page - 1) * limit;
+    const cursor = req.query.cursor;
     
     // Search and filter parameters
     const { 
@@ -661,6 +662,11 @@ exports.getHistory = async (req, res) => {
 
     // Build where clause
     const whereClause = { userId };
+    
+    // Cursor-based pagination
+    if (cursor) {
+      whereClause.id = { [Op.lt]: cursor };
+    }
     
     // Text search in error message and explanation
     if (search) {
@@ -704,11 +710,17 @@ exports.getHistory = async (req, res) => {
     const sortField = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
     const order = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
 
-    const { count, rows: errorQueries } = await ErrorQuery.findAndCountAll({
+    // Only get count on first page without search/filters (expensive)
+    let count = null;
+    if (!cursor && page === 1 && !search && !category && !aiProvider && !startDate && !endDate && !tags) {
+      count = await ErrorQuery.count({ where: { userId } });
+    }
+
+    const errorQueries = await ErrorQuery.findAll({
       where: whereClause,
-      order: [[sortField, order]],
-      limit,
-      offset,
+      order: [[sortField, order], ['id', 'DESC']],
+      limit: limit + 1,
+      offset: cursor ? 0 : offset,
       attributes: [
         'id', 'errorMessage', 'explanation', 'solution', 
         'errorCategory', 'aiProvider', 'userSubscriptionTier', 
@@ -716,18 +728,25 @@ exports.getHistory = async (req, res) => {
       ]
     });
 
-    // Get aggregation data for filters
+    const hasMore = errorQueries.length > limit;
+    if (hasMore) errorQueries.pop();
+    
+    const nextCursor = hasMore && errorQueries.length > 0 ? errorQueries[errorQueries.length - 1].id : null;
+
+    // Get aggregation data for filters (cached for 5 min in future)
     const aggregations = await getHistoryAggregations(userId);
 
+    res.set('Cache-Control', 'private, max-age=30');
     res.json({
       history: errorQueries,
       pagination: {
         page,
         limit,
-        total: count,
-        totalPages: Math.ceil(count / limit),
-        hasNext: page < Math.ceil(count / limit),
-        hasPrev: page > 1
+        ...(count !== null && { total: count }),
+        ...(count !== null && { totalPages: Math.ceil(count / limit) }),
+        hasNext: hasMore,
+        hasPrev: page > 1,
+        nextCursor
       },
       aggregations,
       filters: {
@@ -749,33 +768,49 @@ exports.getHistory = async (req, res) => {
   }
 };
 
-// Get recent analyses (for ErrorAnalysisPage)
+// Get recent analyses (for ErrorAnalysisPage) - Optimized
 exports.getRecentAnalyses = async (req, res) => {
   try {
     const userId = req.user.id;
-    const limit = parseInt(req.query.limit) || 25;
+    const limit = Math.min(parseInt(req.query.limit) || 20, 50);
+    const cursor = req.query.cursor;
+    
+    const where = { userId };
+    if (cursor) {
+      where.id = { [Op.lt]: cursor };
+    }
 
     const errorQueries = await ErrorQuery.findAll({
-      where: { userId },
-      order: [['createdAt', 'DESC']],
-      limit: limit,
+      where,
+      order: [['createdAt', 'DESC'], ['id', 'DESC']],
+      limit: limit + 1,
       attributes: [
         'id', 'errorMessage', 'explanation', 'solution', 
         'errorCategory', 'responseTime', 'createdAt'
       ]
     });
 
+    const hasMore = errorQueries.length > limit;
+    if (hasMore) errorQueries.pop();
+
     const analyses = errorQueries.map(query => ({
       id: query.id,
       errorMessage: query.errorMessage,
       analysis: query.explanation,
       solution: query.solution,
-      confidence: Math.floor(Math.random() * 25) + 75, // Random confidence between 75-100%
+      confidence: Math.floor(Math.random() * 25) + 75,
       createdAt: query.createdAt
     }));
+    
+    const nextCursor = hasMore && analyses.length > 0 ? analyses[analyses.length - 1].id : null;
 
+    res.set('Cache-Control', 'private, max-age=30');
     res.json({
-      analyses: analyses
+      analyses,
+      pagination: {
+        hasMore,
+        nextCursor
+      }
     });
 
   } catch (error) {
@@ -928,11 +963,12 @@ exports.searchErrors = async (req, res) => {
       q: searchQuery, 
       category, 
       tags, 
-      limit = 10,
-      page = 1
+      limit = 15,
+      page = 1,
+      cursor
     } = req.query;
 
-    const offset = (page - 1) * limit;
+    const parsedLimit = Math.min(parseInt(limit) || 15, 50);
     const whereClause = { userId };
 
     // Full text search
@@ -953,24 +989,42 @@ exports.searchErrors = async (req, res) => {
       whereClause.tags = { [Op.overlap]: tagArray };
     }
 
-    const { count, rows } = await ErrorQuery.findAndCountAll({
+    if (cursor) {
+      whereClause.id = { [Op.lt]: cursor };
+    }
+
+    // Only count on first page without cursor
+    let count = null;
+    if (!cursor && parseInt(page) === 1) {
+      count = await ErrorQuery.count({ where: { userId } });
+    }
+
+    const rows = await ErrorQuery.findAll({
       where: whereClause,
-      order: [['createdAt', 'DESC']],
-      limit: parseInt(limit),
-      offset,
+      order: [['createdAt', 'DESC'], ['id', 'DESC']],
+      limit: parsedLimit + 1,
+      offset: cursor ? 0 : (parseInt(page) - 1) * parsedLimit,
       attributes: [
         'id', 'errorMessage', 'explanation', 'solution', 
         'errorCategory', 'createdAt', 'tags'
       ]
     });
 
+    const hasMore = rows.length > parsedLimit;
+    if (hasMore) rows.pop();
+
+    const nextCursor = hasMore && rows.length > 0 ? rows[rows.length - 1].id : null;
+
+    res.set('Cache-Control', 'private, max-age=30');
     res.json({
       searchResults: rows,
       pagination: {
         page: parseInt(page),
-        limit: parseInt(limit),
-        total: count,
-        totalPages: Math.ceil(count / limit)
+        limit: parsedLimit,
+        ...(count !== null && { total: count }),
+        ...(count !== null && { totalPages: Math.ceil(count / parsedLimit) }),
+        hasMore,
+        nextCursor
       },
       query: {
         searchQuery,

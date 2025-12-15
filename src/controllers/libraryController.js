@@ -459,24 +459,43 @@ exports.getMyTemplates = async (req, res) => {
       });
     }
     
-    const { page = 1, limit = 20 } = req.query;
-    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const { page = 1, limit = 15, cursor } = req.query;
+    const parsedLimit = Math.min(parseInt(limit) || 15, 50);
     
-    const { count, rows } = await ErrorLibrary.findAndCountAll({
-      where: { userId, type: 'user' },
-      order: [['createdAt', 'DESC']],
-      limit: parseInt(limit),
-      offset
+    const whereClause = { userId, type: 'user' };
+    if (cursor) {
+      whereClause.id = { [Op.lt]: cursor };
+    }
+    
+    // Only count on first page
+    let count = null;
+    if (!cursor && parseInt(page) === 1) {
+      count = await ErrorLibrary.count({ where: { userId, type: 'user' } });
+    }
+    
+    const rows = await ErrorLibrary.findAll({
+      where: whereClause,
+      order: [['createdAt', 'DESC'], ['id', 'DESC']],
+      limit: parsedLimit + 1,
+      offset: cursor ? 0 : (parseInt(page) - 1) * parsedLimit
     });
     
+    const hasMore = rows.length > parsedLimit;
+    if (hasMore) rows.pop();
+    
+    const nextCursor = hasMore && rows.length > 0 ? rows[rows.length - 1].id : null;
+    
+    res.set('Cache-Control', 'private, max-age=30');
     res.json({
       success: true,
       data: rows,
       pagination: {
-        total: count,
         page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(count / parseInt(limit))
+        limit: parsedLimit,
+        ...(count !== null && { total: count }),
+        ...(count !== null && { totalPages: Math.ceil(count / parsedLimit) }),
+        hasMore,
+        nextCursor
       }
     });
   } catch (error) {

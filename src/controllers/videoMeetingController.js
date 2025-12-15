@@ -512,7 +512,8 @@ exports.getTeamMeetings = async (req, res) => {
   try {
     const { teamId } = req.params;
     const userId = req.user.id;
-    const { status, limit = 20 } = req.query;
+    const { status, limit = 15 } = req.query;
+    const cursor = req.query.cursor;
 
     // Verify team membership
     const membership = await TeamMember.findOne({
@@ -523,15 +524,19 @@ exports.getTeamMeetings = async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
+    const parsedLimit = Math.min(parseInt(limit) || 15, 50);
     const whereClause = { team_id: teamId };
     if (status) {
       whereClause.status = status;
     }
+    if (cursor) {
+      whereClause.id = { [Op.lt]: cursor };
+    }
 
     const meetings = await VideoMeeting.findAll({
       where: whereClause,
-      order: [['created_at', 'DESC']],
-      limit: parseInt(limit),
+      order: [['created_at', 'DESC'], ['id', 'DESC']],
+      limit: parsedLimit + 1,
       include: [{
         model: User,
         as: 'host',
@@ -539,6 +544,12 @@ exports.getTeamMeetings = async (req, res) => {
       }]
     });
 
+    const hasMore = meetings.length > parsedLimit;
+    if (hasMore) meetings.pop();
+
+    const nextCursor = hasMore && meetings.length > 0 ? meetings[meetings.length - 1].id : null;
+
+    res.set('Cache-Control', 'private, max-age=30');
     res.json({
       success: true,
       meetings: meetings.map(m => ({
@@ -557,7 +568,11 @@ exports.getTeamMeetings = async (req, res) => {
         hasSharedContext: !!m.shared_context,
         inviteCode: m.invite_code,
         createdAt: m.created_at
-      }))
+      })),
+      pagination: {
+        hasMore,
+        nextCursor
+      }
     });
   } catch (error) {
     console.error('Get team meetings error:', error);

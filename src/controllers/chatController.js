@@ -669,43 +669,58 @@ exports.getConversation = async (req, res) => {
 /**
  * Get user's recent conversations
  * GET /api/chat/history
+ * Optimized with cursor-based pagination
  */
 exports.getConversationHistory = async (req, res) => {
   try {
     const userId = req.user.id;
-    const limit = parseInt(req.query.limit) || 20;
+    const limit = Math.min(parseInt(req.query.limit) || 15, 50);
     const offset = parseInt(req.query.offset) || 0;
+    const cursor = req.query.cursor;
+    
+    const where = {
+      userId,
+      parentId: null
+    };
+    
+    // Cursor-based pagination for faster infinite scroll
+    if (cursor) {
+      where.id = { [Op.lt]: cursor };
+    }
     
     // Get root conversations (not follow-ups)
     const conversations = await ErrorQuery.findAll({
-      where: {
-        userId,
-        parentId: null
-      },
-      order: [['createdAt', 'DESC']],
-      limit,
-      offset,
+      where,
+      order: [['createdAt', 'DESC'], ['id', 'DESC']],
+      limit: limit + 1,
+      offset: cursor ? 0 : offset,
       attributes: ['id', 'errorMessage', 'aiModel', 'createdAt', 'isConversation', 'language', 'framework']
     });
     
-    // Get follow-up counts for each
-    const conversationIds = conversations.map(c => c.id);
-    const followUpCounts = await ErrorQuery.findAll({
-      where: {
-        parentId: { [Op.in]: conversationIds }
-      },
-      attributes: [
-        'parentId',
-        [ErrorQuery.sequelize.fn('COUNT', '*'), 'count']
-      ],
-      group: ['parentId'],
-      raw: true
-    });
+    const hasMore = conversations.length > limit;
+    if (hasMore) conversations.pop();
     
-    const countsMap = {};
-    followUpCounts.forEach(c => {
-      countsMap[c.parentId] = parseInt(c.count);
-    });
+    // Get follow-up counts in batch (optimized)
+    const conversationIds = conversations.map(c => c.id);
+    let countsMap = {};
+    
+    if (conversationIds.length > 0) {
+      const followUpCounts = await ErrorQuery.findAll({
+        where: {
+          parentId: { [Op.in]: conversationIds }
+        },
+        attributes: [
+          'parentId',
+          [ErrorQuery.sequelize.fn('COUNT', '*'), 'count']
+        ],
+        group: ['parentId'],
+        raw: true
+      });
+      
+      followUpCounts.forEach(c => {
+        countsMap[c.parentId] = parseInt(c.count);
+      });
+    }
     
     const result = conversations.map(conv => ({
       id: conv.id,
@@ -718,13 +733,17 @@ exports.getConversationHistory = async (req, res) => {
       createdAt: conv.createdAt
     }));
     
+    const nextCursor = hasMore && result.length > 0 ? result[result.length - 1].id : null;
+    
+    res.set('Cache-Control', 'private, max-age=30');
     res.json({
       success: true,
       conversations: result,
       pagination: {
         limit,
         offset,
-        hasMore: conversations.length === limit
+        hasMore,
+        nextCursor
       }
     });
     

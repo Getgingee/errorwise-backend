@@ -356,11 +356,21 @@ exports.getTeamErrors = async (req, res) => {
       return res.status(404).json({ error: 'Team not found' });
     }
 
+    const parsedLimit = Math.min(parseInt(limit) || 15, 50);
+    const cursor = req.query.cursor;
+    
     const whereClause = { team_id: teamId };
     if (status) whereClause.status = status;
     if (category) whereClause.category = category;
+    if (cursor) whereClause.id = { [Op.lt]: cursor };
 
-    const { count, rows: sharedErrors } = await SharedError.findAndCountAll({
+    // Only count on first page
+    let count = null;
+    if (!cursor && parseInt(page) === 1) {
+      count = await SharedError.count({ where: { team_id: teamId } });
+    }
+
+    const sharedErrors = await SharedError.findAll({
       where: whereClause,
       include: [
         {
@@ -369,10 +379,13 @@ exports.getTeamErrors = async (req, res) => {
           attributes: ['id', 'username']
         }
       ],
-      order: [['created_at', 'DESC']],
-      limit: parseInt(limit),
-      offset: (parseInt(page) - 1) * parseInt(limit)
+      order: [['created_at', 'DESC'], ['id', 'DESC']],
+      limit: parsedLimit + 1,
+      offset: cursor ? 0 : (parseInt(page) - 1) * parsedLimit
     });
+
+    const hasMore = sharedErrors.length > parsedLimit;
+    if (hasMore) sharedErrors.pop();
 
     // Decrypt encrypted errors for authorized team members
     const decryptedErrors = sharedErrors.map(error => {
@@ -401,13 +414,18 @@ exports.getTeamErrors = async (req, res) => {
       return errorJson;
     });
 
+    const nextCursor = hasMore && decryptedErrors.length > 0 ? decryptedErrors[decryptedErrors.length - 1].id : null;
+
+    res.set('Cache-Control', 'private, max-age=30');
     res.json({
       shared_errors: decryptedErrors,
       pagination: {
         page: parseInt(page),
-        limit: parseInt(limit),
-        total: count,
-        totalPages: Math.ceil(count / limit)
+        limit: parsedLimit,
+        ...(count !== null && { total: count }),
+        ...(count !== null && { totalPages: Math.ceil(count / parsedLimit) }),
+        hasMore,
+        nextCursor
       }
     });
   } catch (error) {

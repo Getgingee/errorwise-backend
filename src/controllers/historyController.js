@@ -1,33 +1,70 @@
 const ErrorQuery = require('../models/ErrorQuery');
 const { Op } = require('sequelize');
 
-// GET /api/history
+// GET /api/history - Optimized with cursor pagination
 exports.getHistory = async (req, res) => {
   try {
     const userId = req.user.id;
+    const { limit = 20, cursor, category } = req.query;
+    const parsedLimit = Math.min(parseInt(limit) || 20, 50);
+    
+    const where = { userId };
+    if (cursor) {
+      where.id = { [Op.lt]: cursor };
+    }
+    if (category) {
+      where.errorCategory = category;
+    }
+    
     const history = await ErrorQuery.findAll({
-      where: { userId },
-      order: [['createdAt', 'DESC']],
+      where,
+      order: [['createdAt', 'DESC'], ['id', 'DESC']],
+      limit: parsedLimit + 1,
       attributes: [
         'id', 'errorMessage', 'explanation', 'solution', 'errorCategory',
         'aiProvider', 'userSubscriptionTier', 'responseTime', 'tags', 'createdAt'
       ]
     });
-    res.json({ history });
+    
+    const hasMore = history.length > parsedLimit;
+    if (hasMore) history.pop();
+    
+    res.set('Cache-Control', 'private, max-age=30');
+    res.json({ 
+      history,
+      pagination: {
+        hasMore,
+        nextCursor: hasMore && history.length > 0 ? history[history.length - 1].id : null
+      }
+    });
   } catch (error) {
     console.error('Error fetching history:', error);
     res.status(500).json({ error: 'Failed to fetch query history' });
   }
 };
 
-// GET /api/history/user
+// GET /api/history/user - Optimized pagination
 exports.getUserHistory = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { page = 1, limit = 10, search = '', category = '', sortBy = 'createdAt', sortOrder = 'DESC' } = req.query;
-    const offset = (page - 1) * limit;
+    const { 
+      page = 1, 
+      limit = 15, 
+      search = '', 
+      category = '', 
+      sortBy = 'createdAt', 
+      sortOrder = 'DESC',
+      cursor 
+    } = req.query;
+    
+    const parsedLimit = Math.min(parseInt(limit) || 15, 50);
+    const offset = cursor ? 0 : (parseInt(page) - 1) * parsedLimit;
     const whereClause = { userId };
 
+    if (cursor) {
+      whereClause.id = { [Op.lt]: cursor };
+    }
+    
     if (search.trim()) {
       whereClause[Op.or] = [
         { errorMessage: { [Op.iLike]: `%${search}%` } },
@@ -37,25 +74,39 @@ exports.getUserHistory = async (req, res) => {
     if (category.trim()) {
       whereClause.errorCategory = category;
     }
-    const { rows: queries, count: total } = await ErrorQuery.findAndCountAll({
+    
+    // Only count on first page
+    let total = null;
+    if (!cursor && parseInt(page) === 1) {
+      total = await ErrorQuery.count({ where: { userId } });
+    }
+    
+    const queries = await ErrorQuery.findAll({
       where: whereClause,
-      order: [[sortBy, sortOrder.toUpperCase()]],
-      limit: parseInt(limit),
-      offset: parseInt(offset),
+      order: [[sortBy, sortOrder.toUpperCase()], ['id', 'DESC']],
+      limit: parsedLimit + 1,
+      offset: cursor ? 0 : offset,
       attributes: [
         'id', 'errorMessage', 'explanation', 'solution', 'errorCategory',
         'aiProvider', 'userSubscriptionTier', 'responseTime', 'tags', 'createdAt'
       ]
     });
 
+    const hasMore = queries.length > parsedLimit;
+    if (hasMore) queries.pop();
+    
+    const nextCursor = hasMore && queries.length > 0 ? queries[queries.length - 1].id : null;
+
+    res.set('Cache-Control', 'private, max-age=30');
     res.json({
       queries,
       pagination: {
         currentPage: parseInt(page),
-        totalPages: Math.ceil(total / limit),
-        totalQueries: total,
-        hasNextPage: offset + queries.length < total,
-        hasPrevPage: page > 1
+        ...(total !== null && { totalPages: Math.ceil(total / parsedLimit) }),
+        ...(total !== null && { totalQueries: total }),
+        hasNextPage: hasMore,
+        hasPrevPage: parseInt(page) > 1,
+        nextCursor
       }
     });
   } catch (error) {
