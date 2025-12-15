@@ -336,11 +336,15 @@ exports.startConversation = async (req, res) => {
     }
     
     // Generate suggested follow-up questions
-    const suggestedQuestions = generateConversationalChips(
-      [{ role: 'user', content: errorMessage }],
-      normalizedAnalysis.response
-    );
-    
+      const suggestedChipsObjects = generateConversationalChips(
+        [{ role: 'user', content: errorMessage }],
+        normalizedAnalysis.response
+      );
+      
+      // Extract only the text from chip objects for frontend (which expects string array)
+      const suggestedQuestions = suggestedChipsObjects
+        .map(chip => typeof chip === 'string' ? chip : chip.text)
+        .filter(Boolean);
     res.json({
       success: true,
       conversationId,
@@ -510,22 +514,25 @@ exports.sendFollowUp = async (req, res) => {
     
     // Generate DYNAMIC contextual follow-up chips based on conversation
     const remainingFollowUps = maxFollowUps === -1 ? 999 : maxFollowUps - newFollowUpCount;
-    const suggestedChips = remainingFollowUps > 0 
-      ? conversationalAI.generateDynamicChips(
-          context.messages,
-          analysis.response,
-          context.metadata || {},
-          effectiveTier
-        )
-      : [
-          {
-            text: "✅ That fixed it, thanks!",
-            type: "close_conversation",
-            message: "Thank you, that solved my problem!"
-          }
-        ];
-    
-    res.json({
+      const suggestedChipsObjects = remainingFollowUps > 0
+        ? conversationalAI.generateDynamicChips(
+            context.messages,
+            analysis.response,
+            context.metadata || {},
+            effectiveTier
+          )
+        : [
+            {
+              text: "✅ That fixed it, thanks!",
+              type: "close_conversation",
+              message: "Thank you, that solved my problem!"
+            }
+          ];
+      
+      // Extract only the text from chip objects for frontend (which expects string array)
+      const suggestedChips = suggestedChipsObjects
+        .map(chip => typeof chip === 'string' ? chip : chip.text)
+        .filter(Boolean);
       success: true,
       messageId: followUp.id,
       response: analysis.response,
