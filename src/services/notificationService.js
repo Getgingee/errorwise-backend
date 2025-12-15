@@ -265,7 +265,7 @@ class NotificationService {
         </div>
         
         <p style="color: #6b7280; font-size: 14px;">
-          Questions about your subscription? Contact us at support@errorwise.com
+          Questions about your subscription? Contact us at hi@getgingee.com
         </p>
       </div>
     `;

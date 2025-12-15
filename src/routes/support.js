@@ -18,6 +18,7 @@ const {
   validateContactMessage, 
   validateHelpTicket 
 } = require('../middleware/validation');
+const supportConfig = require('../config/supportConfig');
 
 // Rate limiters
 const feedbackLimiter = rateLimit({
@@ -42,6 +43,33 @@ const newsletterLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 3, // 3 requests per window
   message: 'Too many newsletter requests, please try again later.'
+});
+
+/**
+ * ============================================
+ * PUBLIC CONTACT INFO ROUTES
+ * ============================================
+ */
+
+// Get support contact information (public, for landing page and app)
+router.get('/contact-info', (req, res) => {
+  res.json({
+    success: true,
+    contact: {
+      email: supportConfig.supportEmail,
+      supportEmail: supportConfig.supportEmail,
+      categories: supportConfig.supportCategories,
+      hours: supportConfig.supportHours,
+      helpResources: supportConfig.helpResources,
+      responseTimes: supportConfig.responseTimes,
+      templates: {
+        contactUsHeading: supportConfig.templates.contactUsHeading,
+        contactUsSubheading: supportConfig.templates.contactUsSubheading,
+        supportIntro: supportConfig.templates.supportIntro,
+        emailFooter: supportConfig.templates.emailFooter
+      }
+    }
+  });
 });
 
 /**
