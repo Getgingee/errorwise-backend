@@ -10,7 +10,11 @@
  * - Get conversation history
  * - Context memory (AI remembers previous messages)
  * 
- * Note: Context is stored in Redis for multi-worker support (cluster mode)
+ * ARCHITECTURE: Event-Driven Cache Sync
+ * - Database is SINGLE SOURCE OF TRUTH
+ * - Events trigger cache updates AFTER DB commits
+ * - Solves dual-write consistency problems
+ * - Cache failures don't block DB operations
  */
 
 const { v4: uuidv4 } = require('uuid');
@@ -21,6 +25,7 @@ const { hasFeature, getLimit } = require('../config/tierConfig');
 const { Op } = require('sequelize');
 const sequelize = require('../config/database');
 const redisService = require('../services/redisService');
+const { eventEmitter, getContextFromCache, getFollowUpCountFromCache } = require('../services/cacheSync');
 
 // Redis key prefix for conversation context
 const CONTEXT_PREFIX = 'conv_ctx:';
@@ -171,27 +176,47 @@ function generateConversationalChips(previousMessages, latestResponse) {
 }
 
 /**
- * Get or create conversation context from Redis
+ * Get or create conversation context from Redis (read-only cache)
+ * Falls back to DB if cache miss
  */
 async function getContext(conversationId) {
   try {
     const key = `${CONTEXT_PREFIX}${conversationId}`;
-    console.log(`[Context] Looking for key: ${key}, Redis connected: ${redisService.isConnected}`);
-    const context = await redisService.get(key);
+    console.log(`[Context] Looking for key: ${key}`);
+    
+    // Try to get from cache first (uses cache sync service)
+    const context = await getContextFromCache(conversationId);
+    
     if (context) {
-      console.log(`[Context] Found context for ${conversationId}, messages: ${context.messages?.length || 0}`);
-    } else {
-      console.log(`[Context] No context found for key: ${key}`);
+      console.log(`[Context] Cache HIT for ${conversationId}, messages: ${context.messages?.length || 0}`);
+      return context;
     }
-    return context;
-  } catch (error) {
-    console.error('[Context] Redis get error:', error.message);
+    
+    // Cache miss - return null, controller will fetch from DB
+    console.log(`[Context] Cache MISS for ${conversationId}, will fetch from DB`);
     return null;
+  } catch (error) {
+    console.error('[Context] Error getting context:', error.message);
+    return null; // Allow fallback to DB
   }
 }
 
 /**
- * Save conversation context to Redis (shared across all workers)
+ * Get follow-up count from cache (read-only)
+ */
+async function getFollowUpCount(conversationId) {
+  try {
+    const count = await getFollowUpCountFromCache(conversationId);
+    return count || 0;
+  } catch (error) {
+    console.error('[Context] Error getting follow-up count:', error.message);
+    return 0;
+  }
+}
+
+/**
+ * DEPRECATED: Use event-driven cache sync instead
+ * This function is kept for backward compatibility but should not be used
  */
 async function saveContext(conversationId, messages, metadata = {}) {
   try {
@@ -200,7 +225,8 @@ async function saveContext(conversationId, messages, metadata = {}) {
       metadata,
       lastUpdated: Date.now()
     };
-    await redisService.set(`${CONTEXT_PREFIX}${conversationId}`, context, CONTEXT_TTL);
+    // Note: Events will handle cache updates now
+    console.warn('[Context] Direct saveContext call detected - use events instead');
     return true;
   } catch (error) {
     console.error('[Context] Redis save error:', error.message);
@@ -272,7 +298,7 @@ exports.startConversation = async (req, res) => {
     });
     const responseTime = Date.now() - startTime;
     
-    // Save to database
+    // WRITE TO DATABASE FIRST (Source of Truth)
     const errorQuery = await ErrorQuery.create({
       id: conversationId,
       userId,
@@ -287,16 +313,17 @@ exports.startConversation = async (req, res) => {
       conversationTurn: 1
     });
     
-    // Initialize conversation context for follow-ups in Redis
+    // EMIT EVENT FOR ASYNC CACHE UPDATE (Non-blocking)
+    // Cache will be updated by cacheSync service listening to this event
     if (canFollowUp) {
-      await saveContext(conversationId, [
-        { role: 'user', content: errorMessage },
-        { role: 'assistant', content: analysis.response }
-      ], {
+      eventEmitter.emitConversationStarted(conversationId, userId, {
         language,
         framework,
         tier: effectiveTier,
-        userId
+        initialMessages: [
+          { role: 'user', content: errorMessage },
+          { role: 'assistant', content: analysis.response }
+        ]
       });
     }
     
@@ -421,17 +448,16 @@ exports.sendFollowUp = async (req, res) => {
     // Add assistant response to context
     context.messages.push({ role: 'assistant', content: analysis.response });
     
-    // Save updated context back to Redis
     const metadata = context.metadata || {
       language: context.language,
       framework: context.framework,
       tier: effectiveTier,
       userId
     };
-    await saveContext(conversationId, context.messages, metadata);
     
-    // Increment follow-up count in Redis
-    const newFollowUpCount = await incrementFollowUpCount(conversationId);
+    // WRITE TO DATABASE FIRST (Source of Truth)
+    // Calculate new follow-up count before saving
+    const newFollowUpCount = followUpCount + 1;
     
     // Save follow-up to database (use explanation + solution fields since ErrorQuery doesn't have aiResponse)
     const followUp = await ErrorQuery.create({
@@ -445,6 +471,15 @@ exports.sendFollowUp = async (req, res) => {
       responseTime,
       userSubscriptionTier: effectiveTier,
       tags: ['follow-up', conversationId] // Store conversationId in tags for reference
+    });
+    
+    // EMIT EVENT FOR ASYNC CACHE UPDATE (Non-blocking)
+    // Cache will be updated by cacheSync service listening to this event
+    eventEmitter.emitFollowUpSent(conversationId, userId, newFollowUpCount, {
+      language: metadata.language,
+      framework: metadata.framework,
+      tier: effectiveTier,
+      messageCount: context.messages.length
     });
     
     // Generate contextual follow-up chips

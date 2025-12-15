@@ -413,7 +413,11 @@ const start = async () => {
       const redisService = require('./src/services/redisService');
       await redisService.connect();
       
-      console.log('✅ Redis initialization complete');
+      // Initialize event-driven cache sync system
+      const { initializeCacheSync } = require('./src/services/cacheSync');
+      initializeCacheSync();
+      
+      console.log('✅ Redis and Cache Sync initialization complete');
     } catch (redisError) {
       console.warn('⚠️  Redis connection failed - sessions will use memory store:', redisError.message);
       if (process.env.NODE_ENV === 'production') {
