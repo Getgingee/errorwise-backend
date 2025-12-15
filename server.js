@@ -55,62 +55,53 @@ app.use(helmet({
   crossOriginEmbedderPolicy: process.env.NODE_ENV === 'production'
 }));
 
-// CORS configuration - supports wildcards like https://*.vercel.app
-// Production fallback includes common ErrorWise domains
+// CORS configuration - Secure whitelist of allowed origins
+// Production: Only allow legitimate ErrorWise domains
+// Development: Allow localhost for testing
 const getDefaultCorsOrigins = () => {
   if (process.env.NODE_ENV === 'production') {
     return [
       'https://errorwise.tech',
-      'https://www.errorwise.tech',
-      'https://*.vercel.app',
-      'https://errorwise-frontend.vercel.app',
-      'https://errorwise-frontend-*.vercel.app'
+      'https://www.errorwise.tech'
     ];
   }
   return ['http://localhost:3000', 'http://localhost:5173'];
 };
 
+// Get origins from environment or use defaults
 const corsOrigin = process.env.CORS_ORIGIN 
   ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
   : getDefaultCorsOrigins();
 
-// Function to check if origin matches wildcard pattern
-const isOriginAllowed = (origin, allowedOrigins) => {
+// Secure origin validation - no wildcards, only exact matches
+const isOriginAllowed = (origin) => {
   if (!origin) return false;
-  
-  for (const allowed of allowedOrigins) {
-    // Exact match
-    if (allowed === origin) return true;
-    
-    // Wildcard match (e.g., https://*.vercel.app)
-    if (allowed.includes('*')) {
-      const pattern = allowed
-        .replace(/\./g, '\\.')  // Escape dots
-        .replace(/\*/g, '.*');  // Convert * to regex .*
-      const regex = new RegExp(`^${pattern}$`);
-      if (regex.test(origin)) return true;
-    }
-  }
-  return false;
+  return corsOrigin.includes(origin);
 };
 
-app.use(cors({ 
+// CORS options - strict and secure
+const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    // Allow requests with no origin (mobile apps, curl, internal requests)
+    if (!origin) {
+      return callback(null, true);
+    }
     
-    const allowedOrigins = Array.isArray(corsOrigin) ? corsOrigin : [corsOrigin];
-    
-    if (isOriginAllowed(origin, allowedOrigins)) {
+    if (isOriginAllowed(origin)) {
       callback(null, true);
     } else {
+      logger.warn(`CORS rejection - Origin not allowed: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+  optionsSuccessStatus: 200,
+  maxAge: 86400 // Cache CORS preflight for 24 hours
+};
+
+app.use(cors(corsOptions));
 
 // Logging - different format for production
 if (process.env.NODE_ENV === 'production') {
