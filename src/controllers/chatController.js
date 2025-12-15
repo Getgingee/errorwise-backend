@@ -42,12 +42,12 @@ function generateConversationalChips(previousMessages, latestResponse) {
   if (responseLower.includes('```') || responseLower.includes('function') || responseLower.includes('const ')) {
     chips.push({
       text: "🤔 Can you explain this simpler?",
-      action: "follow_up",
+      type: "follow_up",
       message: "Can you explain this in simpler terms, like you're explaining to someone who's not very technical?"
     });
     chips.push({
       text: "📝 Show me step by step",
-      action: "follow_up",
+      type: "follow_up",
       message: "Can you break this down into simple step-by-step instructions?"
     });
   }
@@ -56,12 +56,12 @@ function generateConversationalChips(previousMessages, latestResponse) {
   if (responseLower.includes('try') || responseLower.includes('should work') || responseLower.includes('fix')) {
     chips.push({
       text: "😕 What if it still doesn't work?",
-      action: "follow_up",
+      type: "follow_up",
       message: "What should I do if this solution doesn't work? Are there alternative approaches?"
     });
     chips.push({
       text: "🔄 Any other ways to fix this?",
-      action: "follow_up",
+      type: "follow_up",
       message: "Are there other alternative ways to solve this problem?"
     });
   }
@@ -70,12 +70,12 @@ function generateConversationalChips(previousMessages, latestResponse) {
   if (responseLower.includes('setting') || responseLower.includes('config') || responseLower.includes('option')) {
     chips.push({
       text: "📍 Where do I find this setting?",
-      action: "follow_up",
+      type: "follow_up",
       message: "Can you give me the exact location or path to find this setting?"
     });
     chips.push({
       text: "🖼️ Can you show me exactly?",
-      action: "follow_up",
+      type: "follow_up",
       message: "Can you provide more detailed instructions on where to find this?"
     });
   }
@@ -84,12 +84,12 @@ function generateConversationalChips(previousMessages, latestResponse) {
   if (responseLower.includes('install') || responseLower.includes('download') || responseLower.includes('update')) {
     chips.push({
       text: "📥 How do I install this?",
-      action: "follow_up",
+      type: "follow_up",
       message: "Can you provide step-by-step installation instructions?"
     });
     chips.push({
       text: "⚠️ Is it safe to download?",
-      action: "follow_up",
+      type: "follow_up",
       message: "Is this download safe? Where is the official source?"
     });
   }
@@ -98,7 +98,7 @@ function generateConversationalChips(previousMessages, latestResponse) {
   if (responseLower.includes('restart') || responseLower.includes('refresh') || responseLower.includes('reboot')) {
     chips.push({
       text: "💡 What should I save first?",
-      action: "follow_up",
+      type: "follow_up",
       message: "What things should I save or backup before restarting?"
     });
   }
@@ -107,12 +107,12 @@ function generateConversationalChips(previousMessages, latestResponse) {
   if (responseLower.includes('password') || responseLower.includes('login') || responseLower.includes('account')) {
     chips.push({
       text: "🔐 How do I reset my password?",
-      action: "follow_up",
+      type: "follow_up",
       message: "How do I reset my password if I forgot it?"
     });
     chips.push({
       text: "📧 What if I forgot my email too?",
-      action: "follow_up",
+      type: "follow_up",
       message: "What options do I have if I also forgot my email address?"
     });
   }
@@ -121,12 +121,12 @@ function generateConversationalChips(previousMessages, latestResponse) {
   if (responseLower.includes('payment') || responseLower.includes('card') || responseLower.includes('charge')) {
     chips.push({
       text: "💳 Is my payment info safe?",
-      action: "follow_up",
+      type: "follow_up",
       message: "How is my payment information protected?"
     });
     chips.push({
       text: "📞 How do I contact support?",
-      action: "follow_up",
+      type: "follow_up",
       message: "How can I contact customer support for billing issues?"
     });
   }
@@ -135,7 +135,7 @@ function generateConversationalChips(previousMessages, latestResponse) {
   if (latestResponse.length > 500) {
     chips.push({
       text: "📋 Give me the quick version",
-      action: "follow_up",
+      type: "follow_up",
       message: "Can you give me a shorter, summarized version of this?"
     });
   }
@@ -144,12 +144,12 @@ function generateConversationalChips(previousMessages, latestResponse) {
   if (chips.length < 3) {
     chips.push({
       text: "🤷 I'm confused, help!",
-      action: "follow_up",
+      type: "follow_up",
       message: "I'm still confused. Can you explain this differently?"
     });
     chips.push({
       text: "✨ Any tips to prevent this?",
-      action: "follow_up",
+      type: "follow_up",
       message: "What can I do to prevent this issue from happening again?"
     });
   }
@@ -157,7 +157,7 @@ function generateConversationalChips(previousMessages, latestResponse) {
   // Success chip - special action to close conversation
   chips.push({
     text: "✅ That fixed it, thanks!",
-    action: "close_conversation",
+    type: "close_conversation",
     message: "Thank you, that solved my problem!"
   });
   
@@ -372,7 +372,7 @@ exports.sendFollowUp = async (req, res) => {
     let context = await getContext(conversationId);
     
     // If no context in Redis, the conversation has expired
-    if (!context) {
+    if (!context || !context.messages) {
       console.log(`[Chat Follow-up] No context in Redis for: ${conversationId}`);
       console.log(`[Chat Follow-up] Context expires after 30 mins`);
       
@@ -382,6 +382,11 @@ exports.sendFollowUp = async (req, res) => {
         code: 'CONVERSATION_EXPIRED',
         hint: 'Conversation context is stored temporarily. Submit your original query again to continue.'
       });
+    }
+    
+    // Ensure context.messages is an array
+    if (!Array.isArray(context.messages)) {
+      context.messages = [];
     }
     
     // Check follow-up limit using Redis counter (shared across workers)
@@ -415,7 +420,15 @@ exports.sendFollowUp = async (req, res) => {
     
     // Add assistant response to context
     context.messages.push({ role: 'assistant', content: analysis.response });
-    await saveContext(conversationId, context.messages, context.metadata);
+    
+    // Save updated context back to Redis
+    const metadata = context.metadata || {
+      language: context.language,
+      framework: context.framework,
+      tier: effectiveTier,
+      userId
+    };
+    await saveContext(conversationId, context.messages, metadata);
     
     // Increment follow-up count in Redis
     const newFollowUpCount = await incrementFollowUpCount(conversationId);
@@ -438,7 +451,13 @@ exports.sendFollowUp = async (req, res) => {
     const remainingFollowUps = maxFollowUps === -1 ? 999 : maxFollowUps - newFollowUpCount;
     const suggestedChips = remainingFollowUps > 0 
       ? generateConversationalChips(context.messages, analysis.response)
-      : ["Thanks for the help! 👍"];
+      : [
+          {
+            text: "✅ That fixed it, thanks!",
+            type: "close_conversation",
+            message: "Thank you, that solved my problem!"
+          }
+        ];
     
     res.json({
       success: true,
@@ -478,13 +497,32 @@ exports.getConversation = async (req, res) => {
     const { conversationId } = req.params;
     const userId = req.user.id;
     
-    // Get the original message
+    // Try to get fresh context from Redis first (if still in memory)
+    let redisContext = await getContext(conversationId);
+    
+    if (redisContext && redisContext.messages && redisContext.messages.length > 0) {
+      // Return from Redis cache - this is the most current data
+      return res.json({
+        success: true,
+        conversationId,
+        source: 'redis-cache',
+        messageCount: redisContext.messages.length,
+        messages: redisContext.messages.map((msg, idx) => ({
+          role: msg.role,
+          content: msg.content,
+          turn: idx + 1,
+          timestamp: msg.timestamp || new Date()
+        }))
+      });
+    }
+    
+    // Fallback to database if Redis cache expired
     const originalMessage = await ErrorQuery.findOne({
       where: {
         id: conversationId,
         userId
       },
-      attributes: ['id', 'errorMessage', 'explanation', 'solution', 'aiProvider', 'createdAt', 'feedback']
+      attributes: ['id', 'errorMessage', 'aiResponse', 'explanation', 'solution', 'aiProvider', 'aiModel', 'createdAt', 'feedback']
     });
     
     if (!originalMessage) {
@@ -508,20 +546,33 @@ exports.getConversation = async (req, res) => {
     const messages = [
       {
         id: originalMessage.id,
-        userMessage: originalMessage.errorMessage,
-        aiResponse: [originalMessage.explanation, originalMessage.solution].filter(Boolean).join('\n\n'),
-        model: originalMessage.aiProvider,
+        role: 'user',
+        content: originalMessage.errorMessage,
         turn: 1,
+        timestamp: originalMessage.createdAt
+      },
+      {
+        id: `${originalMessage.id}-response`,
+        role: 'assistant',
+        content: originalMessage.aiResponse || [originalMessage.explanation, originalMessage.solution].filter(Boolean).join('\n\n'),
+        model: originalMessage.aiProvider || originalMessage.aiModel,
         feedback: originalMessage.feedback,
         timestamp: originalMessage.createdAt
       },
       ...followUps.map((msg, idx) => ({
         id: msg.id,
-        userMessage: msg.errorMessage,
-        aiResponse: msg.explanation,
-        model: msg.aiProvider,
+        role: 'user',
+        content: msg.errorMessage,
         turn: idx + 2,
+        timestamp: msg.createdAt
+      })),
+      ...followUps.map((msg, idx) => ({
+        id: `${msg.id}-response`,
+        role: 'assistant',
+        content: msg.explanation,
+        model: msg.aiProvider,
         feedback: msg.feedback,
+        turn: idx + 2,
         timestamp: msg.createdAt
       }))
     ];
@@ -529,6 +580,7 @@ exports.getConversation = async (req, res) => {
     res.json({
       success: true,
       conversationId,
+      source: 'database',
       messageCount: messages.length,
       messages
     });
