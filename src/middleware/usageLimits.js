@@ -281,7 +281,8 @@ const getUserUsageStats = async (req, res) => {
     const monthlyRemaining = monthlyLimit === -1 ? -1 : Math.max(0, monthlyLimit - monthlyUsed);
 
     // Calculate flat values for ProfilePage compatibility
-    const effectiveLimit = monthlyLimit === -1 ? 999999 : monthlyLimit;
+    // For unlimited tiers, show the actual limit not a placeholder value
+    const effectiveLimit = monthlyLimit === -1 ? -1 : monthlyLimit;
     const percentage = monthlyLimit > 0 ? Math.round((monthlyUsed / monthlyLimit) * 100) : 0;
 
     const response = {
