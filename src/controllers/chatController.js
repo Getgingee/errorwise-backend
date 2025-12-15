@@ -21,6 +21,7 @@ const { v4: uuidv4 } = require('uuid');
 const ErrorQuery = require('../models/ErrorQuery');
 const User = require('../models/User');
 const aiService = require('../services/aiService');
+const conversationalAI = require('../services/conversationalAI');
 const { hasFeature, getLimit } = require('../config/tierConfig');
 const { Op } = require('sequelize');
 const sequelize = require('../config/database');
@@ -298,6 +299,13 @@ exports.startConversation = async (req, res) => {
     });
     const responseTime = Date.now() - startTime;
     
+    // Normalize response: create 'response' field from explanation + solution
+    const normalizedAnalysis = {
+      ...analysis,
+      response: [analysis.explanation, analysis.solution].filter(Boolean).join('\n\n'),
+      model: analysis.model || 'anthropic'
+    };
+    
     // WRITE TO DATABASE FIRST (Source of Truth)
     const errorQuery = await ErrorQuery.create({
       id: conversationId,
@@ -305,8 +313,8 @@ exports.startConversation = async (req, res) => {
       errorMessage: errorMessage.substring(0, 10000),
       language,
       framework,
-      aiResponse: analysis.response,
-      aiModel: analysis.model,
+      aiResponse: normalizedAnalysis.response,
+      aiModel: normalizedAnalysis.model,
       responseTime,
       userSubscriptionTier: effectiveTier,
       isConversation: canFollowUp,
@@ -322,7 +330,7 @@ exports.startConversation = async (req, res) => {
         tier: effectiveTier,
         initialMessages: [
           { role: 'user', content: errorMessage },
-          { role: 'assistant', content: analysis.response }
+          { role: 'assistant', content: normalizedAnalysis.response }
         ]
       });
     }
@@ -330,15 +338,15 @@ exports.startConversation = async (req, res) => {
     // Generate suggested follow-up questions
     const suggestedQuestions = generateConversationalChips(
       [{ role: 'user', content: errorMessage }],
-      analysis.response
+      normalizedAnalysis.response
     );
     
     res.json({
       success: true,
       conversationId,
       analysis: {
-        response: analysis.response,
-        model: analysis.model,
+        response: normalizedAnalysis.response,
+        model: normalizedAnalysis.model,
         cached: analysis.cached || false
       },
       conversation: {
@@ -437,6 +445,8 @@ exports.sendFollowUp = async (req, res) => {
     
     // Get AI response with context
     const startTime = Date.now();
+    console.log(`[Chat Follow-up] Getting AI response for message: "${message.substring(0, 50)}..."`);
+    
     const analysis = await aiService.analyzeWithContext({
       messages: context.messages,
       newMessage: message,
@@ -444,6 +454,22 @@ exports.sendFollowUp = async (req, res) => {
       subscriptionTier: effectiveTier
     });
     const responseTime = Date.now() - startTime;
+    
+    console.log(`[Chat Follow-up] Analysis received:`, {
+      hasResponse: !!analysis?.response,
+      hasModel: !!analysis?.model,
+      analysisKeys: analysis ? Object.keys(analysis) : 'undefined'
+    });
+    
+    // Defensive check: ensure analysis exists and has response
+    if (!analysis || !analysis.response) {
+      console.error('[Chat Follow-up] Invalid analysis response:', analysis);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to generate follow-up response',
+        code: 'ANALYSIS_FAILED'
+      });
+    }
     
     // Add assistant response to context
     context.messages.push({ role: 'assistant', content: analysis.response });
@@ -482,10 +508,15 @@ exports.sendFollowUp = async (req, res) => {
       messageCount: context.messages.length
     });
     
-    // Generate contextual follow-up chips
+    // Generate DYNAMIC contextual follow-up chips based on conversation
     const remainingFollowUps = maxFollowUps === -1 ? 999 : maxFollowUps - newFollowUpCount;
     const suggestedChips = remainingFollowUps > 0 
-      ? generateConversationalChips(context.messages, analysis.response)
+      ? conversationalAI.generateDynamicChips(
+          context.messages,
+          analysis.response,
+          context.metadata || {},
+          effectiveTier
+        )
       : [
           {
             text: "✅ That fixed it, thanks!",
@@ -515,10 +546,16 @@ exports.sendFollowUp = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Follow-up error:', error);
+    console.error('[Chat Follow-up] Error occurred:', {
+      message: error.message,
+      stack: error.stack,
+      userId: req.user?.id,
+      conversationId: req.body?.conversationId
+    });
     res.status(500).json({
       success: false,
-      error: 'Failed to process follow-up'
+      error: 'Failed to process follow-up',
+      details: error.message
     });
   }
 };

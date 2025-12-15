@@ -81,7 +81,30 @@ router.get('/admin/learning/stats', authMiddleware, libraryController.getLearnin
 // Process verification queue manually
 router.post('/admin/learning/process-queue', authMiddleware, libraryController.processLearningQueue);
 
-// Manually approve a pending pattern
-router.post('/admin/learning/approve', authMiddleware, libraryController.approveLearningEntry);
+// ============================================================================
+// USER-SPECIFIC LEARNING LIBRARY ROUTES
+// Personal knowledge base - separate from system library
+// ============================================================================
+
+// Get user's personal learning library
+router.get('/user/learning-library', authMiddleware, libraryController.getUserLearningLibrary);
+
+// Get categories in user's learning library
+router.get('/user/learning-library/categories', authMiddleware, libraryController.getUserLearningCategories);
+
+// Get statistics for user's learning library
+router.get('/user/learning-library/stats', authMiddleware, libraryController.getUserLearningStats);
+
+// Get single entry from learning library
+router.get('/user/learning-library/:id', authMiddleware, libraryController.getUserLearningEntry);
+
+// Add to user's learning library
+router.post('/user/learning-library', authMiddleware, libraryController.addToUserLearningLibrary);
+
+// Update learning library entry
+router.put('/user/learning-library/:id', authMiddleware, libraryController.updateUserLearningEntry);
+
+// Delete from learning library
+router.delete('/user/learning-library/:id', authMiddleware, libraryController.deleteFromUserLearningLibrary);
 
 module.exports = router;

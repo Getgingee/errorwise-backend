@@ -1247,3 +1247,403 @@ exports.deleteUserSolution = async (req, res) => {
     });
   }
 };
+
+// ============================================================================
+// USER-SPECIFIC LEARNING LIBRARY - Personal knowledge base per user
+// ============================================================================
+
+const UserLearningLibrary = require('../models/UserLearningLibrary');
+
+/**
+ * Get user's personal learning library
+ * GET /api/user/learning-library
+ * Query params: category, search, page, limit, sort
+ */
+exports.getUserLearningLibrary = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const {
+      category,
+      search,
+      page = 1,
+      limit = 20,
+      sort = 'recent' // recent, popular, top-rated
+    } = req.query;
+    
+    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const where = { userId };
+    
+    // Filter by category
+    if (category && category !== 'all') {
+      where.category = category;
+    }
+    
+    // Filter by status
+    where.status = 'active';
+    
+    // Search
+    if (search) {
+      where[Op.or] = [
+        { title: { [Op.iLike]: `%${search}%` } },
+        { errorMessage: { [Op.iLike]: `%${search}%` } },
+        { explanation: { [Op.iLike]: `%${search}%` } },
+        { solution: { [Op.iLike]: `%${search}%` } },
+        sequelize.where(
+          sequelize.cast(sequelize.col('tags'), 'text'),
+          { [Op.iLike]: `%${search}%` }
+        )
+      ];
+    }
+    
+    // Sorting
+    let order;
+    switch (sort) {
+      case 'popular':
+        order = [['referenceCount', 'DESC']];
+        break;
+      case 'top-rated':
+        order = [['userRating', 'DESC'], ['referenceCount', 'DESC']];
+        break;
+      case 'recent':
+      default:
+        order = [['createdAt', 'DESC']];
+    }
+    
+    const { count, rows } = await UserLearningLibrary.findAndCountAll({
+      where,
+      order,
+      limit: parseInt(limit),
+      offset,
+      attributes: [
+        'id', 'title', 'errorMessage', 'category', 'subcategory', 
+        'explanation', 'difficulty', 'referenceCount', 'userRating',
+        'lastReferencedAt', 'isVerified', 'tags', 'createdAt'
+      ]
+    });
+    
+    res.json({
+      success: true,
+      data: rows,
+      pagination: {
+        total: count,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(count / limit)
+      },
+      meta: {
+        hasMore: offset + rows.length < count
+      }
+    });
+    
+  } catch (error) {
+    console.error('Get user learning library error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get learning library'
+    });
+  }
+};
+
+/**
+ * Get categories in user's learning library
+ * GET /api/user/learning-library/categories
+ */
+exports.getUserLearningCategories = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    const categories = await UserLearningLibrary.findAll({
+      where: { userId, status: 'active' },
+      attributes: [
+        'category',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
+        [sequelize.fn('AVG', sequelize.col('userRating')), 'avgRating']
+      ],
+      group: ['category'],
+      raw: true,
+      order: [[sequelize.literal('count'), 'DESC']]
+    });
+    
+    res.json({
+      success: true,
+      categories
+    });
+    
+  } catch (error) {
+    console.error('Get user learning categories error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get categories'
+    });
+  }
+};
+
+/**
+ * Get single learning entry
+ * GET /api/user/learning-library/:id
+ */
+exports.getUserLearningEntry = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+    
+    const entry = await UserLearningLibrary.findOne({
+      where: { id, userId }
+    });
+    
+    if (!entry) {
+      return res.status(404).json({
+        success: false,
+        error: 'Entry not found'
+      });
+    }
+    
+    // Update last referenced time
+    await entry.update({
+      lastReferencedAt: new Date(),
+      referenceCount: entry.referenceCount + 1
+    });
+    
+    res.json({
+      success: true,
+      data: entry
+    });
+    
+  } catch (error) {
+    console.error('Get user learning entry error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get entry'
+    });
+  }
+};
+
+/**
+ * Add to user's personal learning library
+ * POST /api/user/learning-library
+ * Body: { errorMessage, explanation, solution, title, category, ... }
+ */
+exports.addToUserLearningLibrary = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const {
+      errorMessage,
+      explanation,
+      solution,
+      title,
+      category = 'general',
+      subcategory,
+      language,
+      framework,
+      difficulty = 'intermediate',
+      timeToSolve,
+      source = 'personal',
+      sourceUrl,
+      tags = [],
+      codeExample,
+      commonCauses = [],
+      preventionTips = [],
+      notes
+    } = req.body;
+    
+    if (!errorMessage || !solution) {
+      return res.status(400).json({
+        success: false,
+        error: 'Error message and solution are required'
+      });
+    }
+    
+    try {
+      const entry = await UserLearningLibrary.create({
+        userId,
+        title: title || errorMessage.substring(0, 100),
+        errorMessage: errorMessage.substring(0, 2000),
+        explanation: explanation || '',
+        solution: solution.substring(0, 5000),
+        category: category || 'general',
+        subcategory,
+        language,
+        framework,
+        difficulty,
+        timeToSolve,
+        source,
+        sourceUrl,
+        tags: tags || [],
+        codeExample: codeExample || null,
+        commonCauses: commonCauses || [],
+        preventionTips: preventionTips || [],
+        notes: notes || null,
+        status: 'active',
+        userRating: 5,
+        isVerified: false
+      });
+      
+      res.status(201).json({
+        success: true,
+        message: 'Added to your learning library',
+        data: entry
+      });
+      
+    } catch (error) {
+      console.error('Create learning entry error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create entry'
+      });
+    }
+    
+  } catch (error) {
+    console.error('Add to learning library error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to add to learning library'
+    });
+  }
+};
+
+/**
+ * Update user's learning library entry
+ * PUT /api/user/learning-library/:id
+ */
+exports.updateUserLearningEntry = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+    const updates = req.body;
+    
+    const entry = await UserLearningLibrary.findOne({
+      where: { id, userId }
+    });
+    
+    if (!entry) {
+      return res.status(404).json({
+        success: false,
+        error: 'Entry not found'
+      });
+    }
+    
+    // Only allow updating certain fields
+    const allowedUpdates = [
+      'title', 'explanation', 'solution', 'category', 'subcategory',
+      'difficulty', 'tags', 'codeExample', 'commonCauses',
+      'preventionTips', 'notes', 'userRating', 'isVerified', 'status'
+    ];
+    
+    const fieldsToUpdate = {};
+    for (const key of allowedUpdates) {
+      if (key in updates) {
+        fieldsToUpdate[key] = updates[key];
+      }
+    }
+    
+    await entry.update(fieldsToUpdate);
+    
+    res.json({
+      success: true,
+      message: 'Entry updated',
+      data: entry
+    });
+    
+  } catch (error) {
+    console.error('Update learning entry error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update entry'
+    });
+  }
+};
+
+/**
+ * Delete from user's learning library
+ * DELETE /api/user/learning-library/:id
+ */
+exports.deleteFromUserLearningLibrary = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+    
+    const entry = await UserLearningLibrary.findOne({
+      where: { id, userId }
+    });
+    
+    if (!entry) {
+      return res.status(404).json({
+        success: false,
+        error: 'Entry not found'
+      });
+    }
+    
+    // Soft delete
+    await entry.update({ status: 'archived' });
+    
+    res.json({
+      success: true,
+      message: 'Entry deleted'
+    });
+    
+  } catch (error) {
+    console.error('Delete learning entry error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete entry'
+    });
+  }
+};
+
+/**
+ * Get user's learning library statistics
+ * GET /api/user/learning-library/stats
+ */
+exports.getUserLearningStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    const totalEntries = await UserLearningLibrary.count({
+      where: { userId, status: 'active' }
+    });
+    
+    const stats = await UserLearningLibrary.findAll({
+      where: { userId, status: 'active' },
+      attributes: [
+        'category',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
+        [sequelize.fn('AVG', sequelize.col('userRating')), 'avgRating'],
+        [sequelize.fn('SUM', sequelize.col('referenceCount')), 'totalReferences']
+      ],
+      group: ['category'],
+      raw: true
+    });
+    
+    const totalReferences = await UserLearningLibrary.sum('referenceCount', {
+      where: { userId, status: 'active' }
+    }) || 0;
+    
+    const avgRating = await UserLearningLibrary.findOne({
+      where: { userId, status: 'active' },
+      attributes: [[sequelize.fn('AVG', sequelize.col('userRating')), 'avgRating']],
+      raw: true
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        totalEntries,
+        totalReferences,
+        avgRating: parseFloat(avgRating?.avgRating || 0).toFixed(2),
+        byCategory: stats,
+        lastAdded: await UserLearningLibrary.findOne({
+          where: { userId, status: 'active' },
+          order: [['createdAt', 'DESC']],
+          attributes: ['title', 'createdAt']
+        })
+      }
+    });
+    
+  } catch (error) {
+    console.error('Get user learning stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get statistics'
+    });
+  }
+};

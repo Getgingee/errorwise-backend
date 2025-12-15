@@ -69,49 +69,76 @@ async function deleteConversationContext(contextKey) {
  * No more hardcoded models - everything flows from modelConfig.js
  */
 function getAIConfig(tier = 'free') {
-  const defaultModel = modelConfig.getDefaultModelForTier(tier);
-  const maxTokens = modelConfig.getMaxTokensForTier(tier);
-  
-  // Feature configuration based on tier
-  const featuresByTier = {
-    free: {
-      basicExplanations: true,
-      followUpQuestions: false,
-      webScraping: false,
-      codeExamples: false,
-      multiLanguage: false
-    },
-    pro: {
-      basicExplanations: true,
-      fullExplanations: true,
-      followUpQuestions: true,
-      webScraping: true,
-      codeExamples: true,
-      fixSuggestions: true,
-      multiLanguage: true,
-      contextAwareness: true
-    },
-    team: {
-      basicExplanations: true,
-      fullExplanations: true,
-      followUpQuestions: true,
-      webScraping: true,
-      codeExamples: true,
-      fixSuggestions: true,
-      multiLanguage: true,
-      contextAwareness: true,
-      advancedAnalysis: true,
-      deepWebSearch: true
+  try {
+    const defaultModel = modelConfig.getDefaultModelForTier(tier);
+    if (!defaultModel) {
+      console.error('[ConversationalAI] ERROR: No default model for tier:', tier);
+      throw new Error(`No model configuration found for tier: ${tier}`);
     }
-  };
-  
-  return {
-    model: defaultModel.apiId,
-    modelName: defaultModel.name,
-    provider: 'anthropic', // All tiers use Anthropic Claude
-    maxTokens: maxTokens,
-    features: featuresByTier[tier] || featuresByTier.free
-  };
+    
+    const maxTokens = modelConfig.getMaxTokensForTier(tier);
+    if (!maxTokens || maxTokens <= 0) {
+      console.error('[ConversationalAI] ERROR: Invalid max tokens:', maxTokens);
+      throw new Error(`Invalid token configuration for tier: ${tier}`);
+    }
+    
+    // Feature configuration based on tier
+    const featuresByTier = {
+      free: {
+        basicExplanations: true,
+        followUpQuestions: false,
+        webScraping: false,
+        codeExamples: false,
+        multiLanguage: false
+      },
+      pro: {
+        basicExplanations: true,
+        fullExplanations: true,
+        followUpQuestions: true,
+        webScraping: true,
+        codeExamples: true,
+        fixSuggestions: true,
+        multiLanguage: true,
+        contextAwareness: true
+      },
+      team: {
+        basicExplanations: true,
+        fullExplanations: true,
+        followUpQuestions: true,
+        webScraping: true,
+        codeExamples: true,
+        fixSuggestions: true,
+        multiLanguage: true,
+        contextAwareness: true,
+        advancedAnalysis: true,
+        deepWebSearch: true
+      }
+    };
+    
+    return {
+      model: defaultModel.apiId,
+      modelName: defaultModel.name,
+      provider: 'anthropic', // All tiers use Anthropic Claude
+      maxTokens: maxTokens,
+      features: featuresByTier[tier] || featuresByTier.free
+    };
+  } catch (error) {
+    console.error('[ConversationalAI] ERROR in getAIConfig:', error.message);
+    // Return fallback config
+    return {
+      model: 'claude-3-5-haiku-20241022',
+      modelName: 'Claude 3.5 Haiku',
+      provider: 'anthropic',
+      maxTokens: 1000,
+      features: {
+        basicExplanations: true,
+        followUpQuestions: false,
+        webScraping: false,
+        codeExamples: false,
+        multiLanguage: false
+      }
+    };
+  }
 }
 
 /**
@@ -552,6 +579,10 @@ async function getConversationalResponse({
     
     // UNIFIED: Get tier configuration from central modelConfig
     const config = getAIConfig(tier);
+    if (!config || !config.model || !config.provider) {
+      console.error('[ConversationalAI] ERROR: Invalid configuration returned:', config);
+      throw new Error('Failed to get AI configuration');
+    }
     console.log(`[ConversationalAI] Using config: provider=${config.provider}, model=${config.model}, modelName=${config.modelName}`);
     
     // Check if Anthropic is available
@@ -612,8 +643,17 @@ async function getConversationalResponse({
     // Get AI response based on tier - ALL tiers use Claude now
     let aiResponse;
     if (config.provider === 'anthropic' && anthropic) {
+      if (!aiPrompt) {
+        throw new Error('Failed to build AI prompt');
+      }
+      console.log(`[ConversationalAI] Prompt length: ${aiPrompt.length} chars`);
+      
       aiResponse = await getClaudeResponse(aiPrompt, config);
       console.log('[ConversationalAI] Claude response received');
+      
+      if (!aiResponse || typeof aiResponse !== 'string') {
+        throw new Error('Invalid response from Claude API');
+      }
     } else if (config.provider === 'gemini' && genAI) {
       // Fallback to Gemini only if explicitly configured
       aiResponse = await getGeminiResponse(aiPrompt, config);
@@ -635,19 +675,44 @@ async function getConversationalResponse({
     
     console.log('[ConversationalAI] Response complete');
     
-    return {
+    // Ensure all required fields are present before returning
+    const finalResponse = {
       conversationId: contextKey,
       type: 'answer',
       message: aiResponse,
       context: conversation.context,
       sources: webContext || [],
       tier,
-      model: config.model
+      model: config.model,
+      // DYNAMIC CHIPS: Generated based on full conversation context
+      suggestedChips: generateDynamicChips(
+        conversation.messages,
+        aiResponse,
+        conversation.context,
+        tier
+      ),
+      meta: {
+        messageCount: conversation.messages.length,
+        turnCount: Math.ceil(conversation.messages.length / 2)
+      }
     };
     
+    // Validate response structure
+    if (!finalResponse.conversationId || !finalResponse.type || !finalResponse.message) {
+      console.error('[ConversationalAI] ERROR: Invalid response structure:', finalResponse);
+      throw new Error('Failed to generate valid response');
+    }
+    
+    return finalResponse;
+    
   } catch (error) {
-    console.error('[ConversationalAI] Error:', error.message);
-    console.error('[ConversationalAI] Stack:', error.stack);
+    console.error('[ConversationalAI] Error occurred:');
+    console.error('  Message:', error.message);
+    console.error('  Type:', error.constructor.name);
+    if (error.stack) {
+      console.error('  Stack:', error.stack);
+    }
+    
     return {
       type: 'error',
       message: 'Sorry, I encountered an error processing your request. Please try again.',
@@ -779,7 +844,17 @@ async function getClaudeResponse(prompt, config) {
       throw new Error('Anthropic API client not available. Check ANTHROPIC_API_KEY environment variable.');
     }
     
-    console.log(`[Claude] Calling model: ${config.model}, maxTokens: ${config.maxTokens}`);
+    if (!config || !config.model || !config.maxTokens) {
+      console.error('[Claude] ERROR: Invalid config:', config);
+      throw new Error('Invalid Claude configuration');
+    }
+    
+    if (!prompt || typeof prompt !== 'string' || prompt.length === 0) {
+      console.error('[Claude] ERROR: Invalid prompt');
+      throw new Error('Invalid prompt provided to Claude');
+    }
+    
+    console.log(`[Claude] Calling model: ${config.model}, maxTokens: ${config.maxTokens}, promptLength: ${prompt.length}`);
     
     const message = await anthropic.messages.create({
       model: config.model,
@@ -790,22 +865,34 @@ async function getClaudeResponse(prompt, config) {
       }]
     });
     
-    if (!message || !message.content || !message.content[0]) {
-      console.error('[Claude] Empty response received');
+    if (!message) {
+      console.error('[Claude] ERROR: No message returned from API');
       throw new Error('Empty response from Claude API');
     }
     
-    const responseText = message.content[0].text;
+    if (!message.content || !Array.isArray(message.content) || message.content.length === 0) {
+      console.error('[Claude] ERROR: Invalid message content:', message.content);
+      throw new Error('Invalid content structure in Claude response');
+    }
+    
+    const responseText = message.content[0]?.text;
+    if (!responseText || typeof responseText !== 'string') {
+      console.error('[Claude] ERROR: Response text is not a string:', responseText);
+      throw new Error('Invalid response text from Claude');
+    }
+    
     console.log(`[Claude] Response received: ${responseText.length} chars`);
     
     return responseText;
   } catch (error) {
-    console.error('[Claude] API error:', error.message);
-    console.error('[Claude] Error details:', {
-      status: error.status,
-      code: error.code,
-      type: error.type
-    });
+    console.error('[Claude] API error occurred:');
+    console.error('  Message:', error.message);
+    console.error('  Type:', error.constructor.name);
+    console.error('  Status:', error.status);
+    console.error('  Code:', error.code);
+    if (error.stack) {
+      console.error('  Stack:', error.stack);
+    }
     
     // Provide more specific error messages
     if (error.status === 401) {
@@ -821,8 +908,254 @@ async function getClaudeResponse(prompt, config) {
 }
 
 /**
- * Get response from Gemini (LEGACY FALLBACK - Not used since all tiers use Claude)
- * Kept for emergency fallback only
+ * Generate contextually-aware follow-up chips based on full conversation history
+ * Chips change based on the topic, messages so far, and the latest response
+ */
+function generateDynamicChips(conversationMessages, latestResponse, context = {}, tier = 'free') {
+  const chips = [];
+  
+  // Analyze conversation flow and topics
+  const conversationText = conversationMessages.map(m => m.content?.toLowerCase() || '').join(' ');
+  const responseLower = latestResponse.toLowerCase();
+  
+  // Track what's been discussed to avoid repetition
+  const discussedTopics = {
+    hasCode: /```|function|const |let |var |import |class |def |return/i.test(conversationText),
+    hasError: /error|exception|bug|issue|fail|crash|undefined|null/i.test(conversationText),
+    hasTutorial: /step|how to|tutorial|guide|process|procedure/i.test(conversationText),
+    hasDebug: /debug|troubleshoot|diagnose|investigate|trace|log/i.test(conversationText),
+    hasPerformance: /performance|speed|slow|optimize|efficient|memory/i.test(conversationText),
+    hasSecurity: /security|safe|vulnerable|exploit|attack|protect|encrypt/i.test(conversationText),
+    hasBestPractice: /best practice|pattern|design|architecture|standard/i.test(conversationText),
+    hasAlternative: /alternative|another way|different approach|instead of/i.test(conversationText)
+  };
+  
+  // Detect current response characteristics
+  const responseCharacteristics = {
+    hasCode: /```/.test(responseLower),
+    hasTechnicalDetails: /\d+|parameter|argument|variable|method/i.test(responseLower),
+    hasExample: /example|for instance|like|such as|suppose/i.test(responseLower),
+    isLong: latestResponse.length > 500,
+    suggestsFix: /try|should|you can|recommended|best/i.test(responseLower),
+    asksQuestion: /\?|question|help|need/.test(latestResponse),
+    isWarning: /warning|caution|important|note|attention/i.test(responseLower)
+  };
+  
+  // MESSAGE COUNT CONTEXT - adjust chips based on conversation length
+  const messageCount = conversationMessages.length;
+  const isEarlyConversation = messageCount <= 2;
+  const isActiveConversation = messageCount > 2 && messageCount <= 10;
+  const isLongConversation = messageCount > 10;
+  
+  // ============================================
+  // TIER-BASED CHIP AVAILABILITY
+  // ============================================
+  const tierChips = {
+    free: { max: 2, allowWebSearch: false, allowAdvanced: false },
+    pro: { max: 4, allowWebSearch: true, allowAdvanced: true },
+    team: { max: 4, allowWebSearch: true, allowAdvanced: true }
+  };
+  const chipLimit = tierChips[tier]?.max || 2;
+  
+  // ============================================
+  // DYNAMIC CHIP GENERATION
+  // ============================================
+  
+  // 1. CODE-SPECIFIC CHIPS
+  if (responseCharacteristics.hasCode && !discussedTopics.hasAlternative) {
+    chips.push({
+      text: "🔍 Explain this line by line",
+      type: "follow_up",
+      message: "Can you walk me through this code and explain what each part does?",
+      context: 'code_explanation',
+      priority: 9
+    });
+    
+    if (tier === 'pro' || tier === 'team') {
+      chips.push({
+        text: "🎯 How do I use this?",
+        type: "follow_up",
+        message: "How would I integrate or use this code in my project?",
+        context: 'code_usage',
+        priority: 8
+      });
+    }
+  }
+  
+  // 2. ERROR/DEBUG CHIPS
+  if (discussedTopics.hasError && !isLongConversation) {
+    if (!discussedTopics.hasDebug) {
+      chips.push({
+        text: "🔧 How do I debug this?",
+        type: "follow_up",
+        message: "What steps should I take to debug this error?",
+        context: 'debugging',
+        priority: 9
+      });
+    }
+    
+    if (responseCharacteristics.suggestsFix) {
+      chips.push({
+        text: "❓ What if it still doesn't work?",
+        type: "follow_up",
+        message: "What alternative solutions exist if this fix doesn't work?",
+        context: 'alternatives',
+        priority: 8
+      });
+    }
+  }
+  
+  // 3. PERFORMANCE/OPTIMIZATION CHIPS
+  if ((discussedTopics.hasCode || responseCharacteristics.hasTechnicalDetails) && !discussedTopics.hasPerformance) {
+    if (tier === 'pro' || tier === 'team') {
+      chips.push({
+        text: "⚡ How can I optimize this?",
+        type: "follow_up",
+        message: "Are there ways to improve the performance or efficiency of this?",
+        context: 'optimization',
+        priority: 7
+      });
+    }
+  }
+  
+  // 4. BEST PRACTICE CHIPS
+  if (responseCharacteristics.hasTechnicalDetails && !discussedTopics.hasBestPractice) {
+    chips.push({
+      text: "📚 What's the best practice?",
+      type: "follow_up",
+      message: "What are the recommended best practices for this approach?",
+      context: 'best_practices',
+      priority: 7
+    });
+  }
+  
+  // 5. SECURITY CHIPS
+  if ((discussedTopics.hasCode || responseLower.includes('data') || responseLower.includes('user')) && !discussedTopics.hasSecurity && (tier === 'pro' || tier === 'team')) {
+    chips.push({
+      text: "🔒 Is this secure?",
+      type: "follow_up",
+      message: "Are there any security considerations I should be aware of?",
+      context: 'security',
+      priority: 6
+    });
+  }
+  
+  // 6. SIMPLIFICATION CHIPS (for long responses)
+  if (responseCharacteristics.isLong) {
+    chips.push({
+      text: "📝 Give me the summary",
+      type: "follow_up",
+      message: "Can you summarize this more concisely?",
+      context: 'summary',
+      priority: 5
+    });
+  }
+  
+  // 7. EXAMPLE CHIPS
+  if (!responseCharacteristics.hasExample && responseCharacteristics.hasTechnicalDetails) {
+    chips.push({
+      text: "💡 Show me an example",
+      type: "follow_up",
+      message: "Can you show me a concrete example of how this works?",
+      context: 'example',
+      priority: 8
+    });
+  }
+  
+  // 8. DEEPER UNDERSTANDING CHIPS
+  if (isEarlyConversation && !responseCharacteristics.hasExample) {
+    chips.push({
+      text: "🤔 Explain simply",
+      type: "follow_up",
+      message: "Can you explain this in simpler terms?",
+      context: 'simplification',
+      priority: 8
+    });
+  }
+  
+  // 9. WEB SEARCH CHIPS (Pro/Team only)
+  if (tier === 'pro' || tier === 'team') {
+    if (!discussedTopics.hasAlternative && discussedTopics.hasCode) {
+      chips.push({
+        text: "🌐 Find similar examples",
+        type: "follow_up",
+        message: "Can you search for similar examples or implementations?",
+        context: 'web_examples',
+        priority: 6
+      });
+    }
+  }
+  
+  // 10. CONTINUATION CHIPS based on conversation progress
+  if (isActiveConversation) {
+    if (!discussedTopics.hasPerformance && discussedTopics.hasCode) {
+      chips.push({
+        text: "📊 What about performance?",
+        type: "follow_up",
+        message: "Are there any performance implications I should consider?",
+        context: 'performance',
+        priority: 6
+      });
+    }
+  }
+  
+  // 11. SUCCESS/RESOLUTION CHIPS
+  if (isLongConversation || (responseCharacteristics.suggestsFix && messageCount > 4)) {
+    chips.push({
+      text: "✅ That solved it!",
+      type: "close_conversation",
+      message: "Thanks, that fixed my issue!",
+      context: 'resolution',
+      priority: 1
+    });
+  }
+  
+  // 12. GENERAL LEARNING CHIPS (fallback)
+  if (chips.length < 2) {
+    if (!discussedTopics.hasTutorial) {
+      chips.push({
+        text: "📖 Tell me more",
+        type: "follow_up",
+        message: "Can you provide more details or context about this topic?",
+        context: 'learn_more',
+        priority: 4
+      });
+    }
+    
+    chips.push({
+      text: "❓ Any other tips?",
+      type: "follow_up",
+      message: "Do you have any other recommendations or tips related to this?",
+      context: 'tips',
+      priority: 3
+    });
+  }
+  
+  // ============================================
+  // CHIP FILTERING & DEDUPLICATION
+  // ============================================
+  
+  // Remove duplicates by context
+  const seen = new Set();
+  const uniqueChips = chips.filter(chip => {
+    if (seen.has(chip.context)) return false;
+    seen.add(chip.context);
+    return true;
+  });
+  
+  // Sort by priority (highest first) and limit by tier
+  return uniqueChips
+    .sort((a, b) => b.priority - a.priority)
+    .slice(0, chipLimit)
+    .map(chip => ({
+      text: chip.text,
+      type: chip.type,
+      message: chip.message
+    })); // Remove priority for client
+}
+
+/**
+ * Gemini fallback - Kept for emergency fallback only
  */
 async function getGeminiResponse(prompt, config) {
   try {
@@ -873,5 +1206,6 @@ module.exports = {
   getConversationHistory,
   clearConversation,
   extractContext,
-  getAIConfig  // UNIFIED: Export the function that uses central modelConfig
+  getAIConfig,  // UNIFIED: Export the function that uses central modelConfig
+  generateDynamicChips  // DYNAMIC CHIPS: Export for use in other controllers
 };
