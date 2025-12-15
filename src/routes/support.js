@@ -53,22 +53,48 @@ const newsletterLimiter = rateLimit({
 
 // Get support contact information (public, for landing page and app)
 router.get('/contact-info', (req, res) => {
+  // Get user tier from query or default to 'free'
+  const userTier = req.query.tier || 'free';
+  
+  // Filter FAQs to show tier-specific answers where applicable
+  const faqs = supportConfig.faqs.map(faq => {
+    if (faq.answerByTier) {
+      return {
+        ...faq,
+        answer: faq.answerByTier[userTier] || faq.answerByTier.free,
+        answerByTier: undefined // Don't send all tiers to client
+      };
+    }
+    return faq;
+  });
+  
   res.json({
     success: true,
-    contact: {
-      email: supportConfig.supportEmail,
+    data: {
+      // Basic contact info
       supportEmail: supportConfig.supportEmail,
-      categories: supportConfig.supportCategories,
-      hours: supportConfig.supportHours,
-      helpResources: supportConfig.helpResources,
+      categories: Object.values(supportConfig.supportCategories),
       responseTimes: supportConfig.responseTimes,
-      templates: {
-        contactUsHeading: supportConfig.templates.contactUsHeading,
-        contactUsSubheading: supportConfig.templates.contactUsSubheading,
-        supportIntro: supportConfig.templates.supportIntro,
-        emailFooter: supportConfig.templates.emailFooter
+      supportHours: supportConfig.supportHours,
+      
+      // Support page content
+      faqs: faqs,
+      helpResources: supportConfig.helpResources,
+      systemStatus: supportConfig.systemStatus,
+      supportPageConfig: supportConfig.supportPageConfig,
+      
+      // Templates and text
+      templates: supportConfig.templates,
+      
+      // Ticket system info
+      ticketSystem: {
+        enabled: supportConfig.ticketSystem.enabled,
+        autoReplyMessage: supportConfig.ticketSystem.autoReplyMessage,
+        maxAttachmentSize: supportConfig.supportPageConfig.maxAttachmentSize,
+        supportedFileTypes: supportConfig.supportPageConfig.supportedFileTypes
       }
-    }
+    },
+    timestamp: new Date().toISOString()
   });
 });
 

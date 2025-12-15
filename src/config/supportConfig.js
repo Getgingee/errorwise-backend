@@ -88,20 +88,165 @@ const SUPPORT_CONFIG = {
     ticketPrefix: 'EW',
   },
 
+  // Frequently Asked Questions
+  faqs: [
+    {
+      id: 'sla-response-time',
+      question: 'How quickly will I get a response?',
+      answerByTier: {
+        free: 'As a Free user, we guarantee a response within 24-48 hours via email.',
+        pro: 'As a Pro user, we prioritize your request and respond within 12-24 hours.',
+        team: 'As a Team user, you receive premium support with a guaranteed response within 4-12 hours.'
+      },
+      category: 'support'
+    },
+    {
+      id: 'support-hours',
+      question: 'What are your support hours?',
+      answer: 'We offer email support 24/7, with response times varying by subscription tier. Our team actively responds weekdays from 9:00 AM to 6:00 PM IST. Weekend and holiday inquiries receive responses on the next business day.',
+      category: 'support'
+    },
+    {
+      id: 'upgrade-plan',
+      question: 'How do I upgrade my plan?',
+      answer: 'You can upgrade your plan anytime from your account settings. Simply go to Settings > Subscription and select your desired plan. Your upgrade takes effect immediately.',
+      category: 'billing'
+    },
+    {
+      id: 'downgrade-plan',
+      question: 'Can I downgrade my plan?',
+      answer: 'Yes, you can downgrade at any time. Downgrade changes take effect at the end of your current billing cycle. No refunds are issued for partial months.',
+      category: 'billing'
+    },
+    {
+      id: 'cancel-subscription',
+      question: 'How do I cancel my subscription?',
+      answer: 'You can cancel anytime from Settings > Subscription > Cancel Plan. Your access continues until the end of your current billing period.',
+      category: 'billing'
+    },
+    {
+      id: 'data-security',
+      question: 'Is my data secure?',
+      answer: 'Yes. We use industry-standard encryption (AES-256), secure HTTPS connections, and regular security audits. Your data is encrypted both in transit and at rest.',
+      category: 'security'
+    },
+    {
+      id: 'api-availability',
+      question: 'What is your API uptime guarantee?',
+      answer: 'We maintain a 99.9% uptime SLA. Real-time status is available at status.errorwise.com.',
+      category: 'technical'
+    },
+    {
+      id: 'integration-support',
+      question: 'Do you support integrations?',
+      answer: 'Yes! We support integrations with popular platforms. Check our documentation at errorwise.tech/docs/integrations for available options.',
+      category: 'technical'
+    }
+  ],
+
   // Common support articles/FAQs
-  helpResources: {
-    gettingStarted: 'https://errorwise.tech/docs/getting-started',
-    faq: 'https://errorwise.tech/docs/faq',
-    documentations: 'https://errorwise.tech/docs',
-    tutorials: 'https://errorwise.tech/tutorials',
-    communityForum: null, // Add if available
+  helpResources: [
+    {
+      id: 'getting-started',
+      title: 'Getting Started Guide',
+      url: 'https://errorwise.tech/docs/getting-started',
+      description: 'Learn the basics of ErrorWise',
+      category: 'documentation'
+    },
+    {
+      id: 'faq-docs',
+      title: 'FAQ Documentation',
+      url: 'https://errorwise.tech/docs/faq',
+      description: 'Common questions and answers',
+      category: 'faq'
+    },
+    {
+      id: 'api-docs',
+      title: 'API Documentation',
+      url: 'https://errorwise.tech/docs/api',
+      description: 'Complete API reference for developers',
+      category: 'documentation'
+    },
+    {
+      id: 'tutorials',
+      title: 'Video Tutorials',
+      url: 'https://errorwise.tech/tutorials',
+      description: 'Step-by-step video guides',
+      category: 'tutorial'
+    },
+    {
+      id: 'troubleshooting',
+      title: 'Troubleshooting Guide',
+      url: 'https://errorwise.tech/docs/troubleshooting',
+      description: 'Solve common problems',
+      category: 'help'
+    },
+    {
+      id: 'status-page',
+      title: 'System Status',
+      url: 'https://status.errorwise.com',
+      description: 'Real-time service status',
+      category: 'status'
+    }
+  ],
+
+  // System status information
+  systemStatus: {
+    lastChecked: new Date().toISOString(),
+    overallStatus: 'operational', // operational, degraded, maintenance, down
+    statusMessage: 'All systems operational',
+    services: [
+      {
+        id: 'api-service',
+        name: 'API Service',
+        status: 'operational', // operational, degraded, down
+        uptime: '99.99%',
+        lastIncident: null,
+        description: 'Main API endpoints'
+      },
+      {
+        id: 'ai-service',
+        name: 'AI Processing Service',
+        status: 'operational',
+        uptime: '99.98%',
+        lastIncident: null,
+        description: 'Error analysis and AI features'
+      },
+      {
+        id: 'auth-service',
+        name: 'Authentication Service',
+        status: 'operational',
+        uptime: '99.99%',
+        lastIncident: null,
+        description: 'User login and session management'
+      },
+      {
+        id: 'database-service',
+        name: 'Database Service',
+        status: 'operational',
+        uptime: '99.99%',
+        lastIncident: null,
+        description: 'Data storage and retrieval'
+      },
+      {
+        id: 'cache-service',
+        name: 'Cache Service',
+        status: 'operational',
+        uptime: '99.95%',
+        lastIncident: null,
+        description: 'Performance optimization layer'
+      }
+    ]
   },
 
-  // Social media for support announcements
-  socialMedia: {
-    twitter: null, // Add if available
-    linkedin: null, // Add if available
-    github: null, // Add if available
+  // Support page configuration
+  supportPageConfig: {
+    showFAQTab: true,
+    showStatusTab: true,
+    showTicketForm: true,
+    enableFeedback: true,
+    maxAttachmentSize: 5 * 1024 * 1024, // 5MB
+    supportedFileTypes: ['.jpg', '.png', '.pdf', '.txt', '.log'],
   },
 
   // Support text templates
