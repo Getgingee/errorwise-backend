@@ -31,6 +31,14 @@ const refreshTokenLimiter = rateLimit({
   legacyHeaders: false
 });
 
+const activityLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, // 100 requests per minute (loose for activity tracking)
+  message: { error: 'Too many activity updates. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
 // Public routes with rate limiting and validation
 router.post('/register', registerLimiter, validateRegistration, authController.register);
 
@@ -44,5 +52,9 @@ router.post('/refresh-token', refreshTokenLimiter, authController.refreshToken);
 // Protected routes (require authentication)
 router.post('/logout', authMiddleware, authController.logout);
 router.get('/profile', authMiddleware, authController.getProfile);
+
+// Activity tracking endpoint (for idle timeout feature)
+// Updates last activity without needing full token refresh
+router.post('/activity', authMiddleware, activityLimiter, authController.updateActivity);
 
 module.exports = router;

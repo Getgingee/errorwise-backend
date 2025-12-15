@@ -504,3 +504,29 @@ exports.getProfile = async (req, res) => {
     }
 };
 
+/**
+ * Update user's last activity timestamp
+ * Used by frontend idle timeout system to track activity
+ * This allows the session to stay active without full token refresh
+ */
+exports.updateActivity = async (req, res) => {
+    try {
+        const user = req.user;
+        
+        if (!user) {
+            return res.status(401).json({ success: false, error: 'User not authenticated' });
+        }
+
+        // Session middleware already updates lastActivity
+        // This endpoint confirms activity was received
+        res.json({ 
+            success: true, 
+            message: 'Activity recorded',
+            timestamp: Date.now(),
+            userId: user.id
+        });
+    } catch (error) {
+        logger.error('Activity update error:', error);
+        res.status(500).json({ success: false, error: 'Server error' });
+    }
+};
