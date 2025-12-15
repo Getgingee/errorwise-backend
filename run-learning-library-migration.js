@@ -119,7 +119,7 @@ async function runMigration() {
         -- Foreign Key
         CONSTRAINT user_learning_libraries_userId_fkey 
           FOREIGN KEY ("userId") 
-          REFERENCES "Users"("id") 
+          REFERENCES "users"("id") 
           ON DELETE CASCADE 
           ON UPDATE CASCADE
       );
