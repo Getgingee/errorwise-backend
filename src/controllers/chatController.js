@@ -533,24 +533,27 @@ exports.sendFollowUp = async (req, res) => {
       const suggestedChips = suggestedChipsObjects
         .map(chip => typeof chip === 'string' ? chip : chip.text)
         .filter(Boolean);
-      success: true,
-      messageId: followUp.id,
-      response: analysis.response,
-      model: analysis.model,
-      conversation: {
-        id: conversationId,
-        turn: newFollowUpCount + 1,
-        followUpsUsed: newFollowUpCount,
-        followUpsRemaining: maxFollowUps === -1 ? 'unlimited' : remainingFollowUps,
-        canContinue: remainingFollowUps > 0
-      },
-      // Suggested follow-up chips for continued conversation
-      suggestedChips,
-      meta: {
-        responseTime,
-        contextLength: context.messages.length
-      }
-    });
+
+      // Return success response with follow-up data
+      return res.json({
+        success: true,
+        messageId: followUp.id,
+        response: analysis.response,
+        model: analysis.model,
+        conversation: {
+          id: conversationId,
+          turn: newFollowUpCount + 1,
+          followUpsUsed: newFollowUpCount,
+          followUpsRemaining: maxFollowUps === -1 ? 'unlimited' : remainingFollowUps,
+          canContinue: remainingFollowUps > 0
+        },
+        // Suggested follow-up chips for continued conversation
+        suggestedChips,
+        meta: {
+          responseTime,
+          contextLength: context.messages.length
+        }
+      });
     
   } catch (error) {
     console.error('[Chat Follow-up] Error occurred:', {
