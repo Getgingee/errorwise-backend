@@ -26,7 +26,7 @@ const sequelize = require('../config/database');
 /**
  * Browse/search the error library
  * GET /api/library
- * Query params: category, q (search), page, limit, difficulty
+ * Query params: category, q (search), page, limit, difficulty, cursor
  */
 exports.browseLibrary = async (req, res) => {
   try {
@@ -34,15 +34,18 @@ exports.browseLibrary = async (req, res) => {
       category,
       q,
       page = 1,
-      limit = 20,
+      limit = 15,
       difficulty,
-      sort = 'popular' // popular, recent, helpful
+      sort = 'popular', // popular, recent, helpful
+      cursor // For cursor-based pagination
     } = req.query;
     
-    const offset = (parseInt(page) - 1) * parseInt(limit);
+    const parsedLimit = Math.min(parseInt(limit) || 15, 50); // Max 50
+    const offset = cursor ? 0 : (parseInt(page) - 1) * parsedLimit;
+    
     const where = {
       isActive: true,
-      type: 'system' // Only show system entries in browse (user templates are private by default)
+      type: 'system'
     };
     
     // Category filter
@@ -53,6 +56,11 @@ exports.browseLibrary = async (req, res) => {
     // Difficulty filter
     if (difficulty) {
       where.difficulty = difficulty;
+    }
+    
+    // Cursor-based pagination
+    if (cursor) {
+      where.id = { [Op.lt]: cursor };
     }
     
     // Search filter
@@ -69,40 +77,61 @@ exports.browseLibrary = async (req, res) => {
       ];
     }
     
-    // Sorting
+    // Sorting (include id for stable cursor pagination)
     let order;
     switch (sort) {
       case 'recent':
-        order = [['createdAt', 'DESC']];
+        order = [['createdAt', 'DESC'], ['id', 'DESC']];
         break;
       case 'helpful':
-        order = [['helpfulCount', 'DESC'], ['viewCount', 'DESC']];
+        order = [['helpfulCount', 'DESC'], ['viewCount', 'DESC'], ['id', 'DESC']];
         break;
       case 'popular':
       default:
-        order = [['viewCount', 'DESC'], ['useCount', 'DESC']];
+        order = [['viewCount', 'DESC'], ['useCount', 'DESC'], ['id', 'DESC']];
     }
     
-    const { count, rows } = await ErrorLibrary.findAndCountAll({
+    // Count only on first page for performance
+    let count = null;
+    if (!cursor && parseInt(page) === 1 && !q) {
+      count = await ErrorLibrary.count({ 
+        where: { isActive: true, type: 'system', ...(category && category !== 'all' ? { category } : {}) }
+      });
+    }
+    
+    const rows = await ErrorLibrary.findAll({
       where,
       order,
-      limit: parseInt(limit),
-      offset,
+      limit: parsedLimit + 1, // Fetch one extra
+      offset: cursor ? 0 : offset,
       attributes: [
         'id', 'errorCode', 'title', 'errorMessage', 'category', 
-        'subcategory', 'explanation', 'difficulty', 'viewCount',
-        'useCount', 'helpfulCount', 'tags', 'platforms', 'createdAt'
+        'subcategory', 'difficulty', 'viewCount', 'helpfulCount', 
+        'tags', 'platforms', 'createdAt'
       ]
+    });
+    
+    const hasMore = rows.length > parsedLimit;
+    if (hasMore) rows.pop();
+    
+    const nextCursor = hasMore && rows.length > 0 ? rows[rows.length - 1].id : null;
+    
+    // Cache headers
+    res.set({
+      'Cache-Control': 'public, max-age=60', // Cache for 1 minute (public content)
+      'X-Total-Count': count !== null ? count : 'unknown'
     });
     
     res.json({
       success: true,
       data: rows,
       pagination: {
-        total: count,
+        ...(count !== null && { total: count }),
         page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages: Math.ceil(count / parseInt(limit))
+        limit: parsedLimit,
+        ...(count !== null && { totalPages: Math.ceil(count / parsedLimit) }),
+        hasMore,
+        nextCursor
       }
     });
   } catch (error) {
@@ -1257,7 +1286,7 @@ const UserLearningLibrary = require('../models/UserLearningLibrary');
 /**
  * Get user's personal learning library
  * GET /api/user/learning-library
- * Query params: category, search, page, limit, sort
+ * Query params: category, search, page, limit, sort, cursor (for cursor-based pagination)
  */
 exports.getUserLearningLibrary = async (req, res) => {
   try {
@@ -1266,20 +1295,26 @@ exports.getUserLearningLibrary = async (req, res) => {
       category,
       search,
       page = 1,
-      limit = 20,
-      sort = 'recent' // recent, popular, top-rated
+      limit = 10, // Reduced default for faster response
+      sort = 'recent', // recent, popular, top-rated
+      cursor, // For cursor-based pagination (ID of last item)
+      fields // Optional: comma-separated fields to return
     } = req.query;
     
-    const offset = (parseInt(page) - 1) * parseInt(limit);
-    const where = { userId };
+    const parsedLimit = Math.min(parseInt(limit) || 10, 50); // Max 50 per page
+    const offset = cursor ? 0 : (parseInt(page) - 1) * parsedLimit;
+    
+    const where = { userId, status: 'active' };
     
     // Filter by category
     if (category && category !== 'all') {
       where.category = category;
     }
     
-    // Filter by status
-    where.status = 'active';
+    // Cursor-based pagination (faster for large datasets)
+    if (cursor) {
+      where.id = { [Op.lt]: cursor };
+    }
     
     // Search
     if (search) {
@@ -1299,39 +1334,72 @@ exports.getUserLearningLibrary = async (req, res) => {
     let order;
     switch (sort) {
       case 'popular':
-        order = [['referenceCount', 'DESC']];
+        order = [['referenceCount', 'DESC'], ['id', 'DESC']];
         break;
       case 'top-rated':
-        order = [['userRating', 'DESC'], ['referenceCount', 'DESC']];
+        order = [['userRating', 'DESC'], ['referenceCount', 'DESC'], ['id', 'DESC']];
+        break;
+      case 'oldest':
+        order = [['createdAt', 'ASC'], ['id', 'ASC']];
         break;
       case 'recent':
       default:
-        order = [['createdAt', 'DESC']];
+        order = [['createdAt', 'DESC'], ['id', 'DESC']];
     }
     
-    const { count, rows } = await UserLearningLibrary.findAndCountAll({
+    // Optimized attributes - only fetch what's needed for list view
+    const defaultAttributes = [
+      'id', 'title', 'errorMessage', 'category', 'subcategory', 
+      'difficulty', 'referenceCount', 'userRating', 'tags', 'createdAt'
+    ];
+    
+    // Allow custom field selection
+    let attributes = defaultAttributes;
+    if (fields) {
+      const requestedFields = fields.split(',').map(f => f.trim());
+      const allowedFields = ['id', 'title', 'errorMessage', 'category', 'subcategory', 
+        'explanation', 'solution', 'difficulty', 'referenceCount', 'userRating',
+        'lastReferencedAt', 'isVerified', 'tags', 'language', 'framework', 'createdAt'];
+      attributes = ['id', ...requestedFields.filter(f => allowedFields.includes(f))];
+    }
+    
+    // Get total count only for first page (performance optimization)
+    let count = null;
+    if (!cursor && parseInt(page) === 1) {
+      count = await UserLearningLibrary.count({ where: { userId, status: 'active' } });
+    }
+    
+    const rows = await UserLearningLibrary.findAll({
       where,
       order,
-      limit: parseInt(limit),
-      offset,
-      attributes: [
-        'id', 'title', 'errorMessage', 'category', 'subcategory', 
-        'explanation', 'difficulty', 'referenceCount', 'userRating',
-        'lastReferencedAt', 'isVerified', 'tags', 'createdAt'
-      ]
+      limit: parsedLimit + 1, // Fetch one extra to check if more exists
+      offset: cursor ? 0 : offset,
+      attributes
+    });
+    
+    // Check if there are more results
+    const hasMore = rows.length > parsedLimit;
+    if (hasMore) rows.pop(); // Remove the extra item
+    
+    // Get cursor for next page
+    const nextCursor = hasMore && rows.length > 0 ? rows[rows.length - 1].id : null;
+    
+    // Set cache headers for better performance
+    res.set({
+      'Cache-Control': 'private, max-age=30', // Cache for 30 seconds
+      'X-Total-Count': count !== null ? count : 'unknown'
     });
     
     res.json({
       success: true,
       data: rows,
       pagination: {
-        total: count,
+        ...(count !== null && { total: count }),
         page: parseInt(page),
-        limit: parseInt(limit),
-        pages: Math.ceil(count / limit)
-      },
-      meta: {
-        hasMore: offset + rows.length < count
+        limit: parsedLimit,
+        ...(count !== null && { pages: Math.ceil(count / parsedLimit) }),
+        hasMore,
+        nextCursor
       }
     });
     
