@@ -344,8 +344,8 @@ exports.getPlans = async (req, res) => {
           
           // Build features array from displayFeatures for frontend
           const featuresArray = (tierConfig.displayFeatures || [])
-            .filter((f: any) => f.available)
-            .map((f: any) => f.text);
+            .filter(f => f.available)
+            .map(f => f.text);
           
           return {
             id: tierKey, // Use tier key ('free', 'pro', 'team') instead of database ID
@@ -388,8 +388,8 @@ exports.getPlans = async (req, res) => {
       
       // Build features array from displayFeatures for frontend
       const featuresArray = (tier.displayFeatures || [])
-        .filter((f: any) => f.available)
-        .map((f: any) => f.text);
+        .filter(f => f.available)
+        .map(f => f.text);
       
       return {
         id: tierKey,
