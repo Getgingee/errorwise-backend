@@ -52,6 +52,49 @@ const Subscription = sequelize.define('Subscription', {
     allowNull: true,
     field: 'trial_end'
   },
+  // Trial management fields
+  trialStatus: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    defaultValue: 'none',
+    field: 'trial_status'
+  },
+  trialPlanId: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    field: 'trial_plan_id'
+  },
+  trialEndDate: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'trial_end_date'
+  },
+  trialCancelledAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'trial_cancelled_at'
+  },
+  trialConvertedAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    field: 'trial_converted_at'
+  },
+  cancelReason: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+    field: 'cancel_reason'
+  },
+  dodoSessionId: {
+    type: DataTypes.STRING(255),
+    allowNull: true,
+    field: 'dodo_session_id'
+  },
+  paymentMethodCaptured: {
+    type: DataTypes.BOOLEAN,
+    allowNull: true,
+    defaultValue: false,
+    field: 'payment_method_captured'
+  },
   nextBillingDate: {
     type: DataTypes.DATE,
     allowNull: true,

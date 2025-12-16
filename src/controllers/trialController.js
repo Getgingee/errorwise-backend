@@ -277,22 +277,28 @@ exports.cancelTrial = async (req, res) => {
     }
 
     const user = await User.findByPk(userId);
-    const subscription = await Subscription.findOne({
-      where: { 
-        userId,
-        trialStatus: 'active'
-      }
-    });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-    if (!subscription) {
+    // Check if user has an active trial based on trialEndsAt
+    const now = new Date();
+    const hasActiveTrial = user.trialEndsAt && new Date(user.trialEndsAt) > now;
+
+    if (!hasActiveTrial) {
       return res.status(404).json({ 
         error: 'No active trial found',
         code: 'NO_ACTIVE_TRIAL'
       });
     }
 
+    // Find subscription record if it exists
+    const subscription = await Subscription.findOne({
+      where: { userId }
+    });
+
     // Cancel with Dodo Payments if we have a subscription ID
-    if (subscription.dodoSubscriptionId) {
+    if (subscription?.dodoSubscriptionId) {
       try {
         await paymentService.cancelSubscription(subscription.dodoSubscriptionId);
         console.log('✅ Cancelled Dodo subscription:', subscription.dodoSubscriptionId);
@@ -302,20 +308,24 @@ exports.cancelTrial = async (req, res) => {
       }
     }
 
-    // Update subscription record
-    await subscription.update({
-      status: 'cancelled',
-      trialStatus: 'cancelled',
-      trialCancelledAt: new Date(),
-      cancelReason: reason || 'User cancelled during trial',
-      cancelAtPeriodEnd: false
-    });
+    // Update subscription record if it exists
+    if (subscription) {
+      await subscription.update({
+        status: 'cancelled',
+        trialStatus: 'cancelled',
+        trialCancelledAt: new Date(),
+        cancelReason: reason || 'User cancelled during trial',
+        cancelAtPeriodEnd: false
+      });
+    }
 
-    // Downgrade user to free tier
+    const trialEndDate = user.trialEndsAt;
+
+    // Downgrade user to free tier and clear trial
     await user.update({
       subscriptionTier: 'free',
       subscriptionStatus: 'active',
-      hasUsedTrial: true // Mark that they used their trial
+      trialEndsAt: null // Clear trial end date
     });
 
     // Send cancellation confirmation email
@@ -323,7 +333,7 @@ exports.cancelTrial = async (req, res) => {
       await emailService.sendTrialCancelledEmail(
         user.email,
         user.username,
-        subscription.trialEndDate
+        trialEndDate
       );
     } catch (emailError) {
       console.error('Failed to send trial cancellation email:', emailError);
