@@ -330,13 +330,31 @@ exports.getPlans = async (req, res) => {
           const plan = plansByTier[tierKey];
           const tierConfig = SUBSCRIPTION_TIERS[tierKey] || SUBSCRIPTION_TIERS.free;
           
+          // Build limits object for frontend compatibility
+          const limits = {
+            daily_queries: tierConfig.features?.dailyQueries ?? -1,
+            monthly_queries: tierConfig.features?.monthlyQueries ?? 50,
+            explanation_type: tierKey === 'free' ? 'Basic' : 'Full',
+            solutions_provided: tierConfig.features?.fixSuggestions ?? false,
+            team_features: tierConfig.features?.teamFeatures ?? false,
+            video_chat: tierConfig.features?.videoMeetings ?? false,
+            video_session_duration: tierKey === 'team' ? 60 : undefined,
+            max_team_members: tierKey === 'team' ? 10 : undefined
+          };
+          
+          // Build features array from displayFeatures for frontend
+          const featuresArray = (tierConfig.displayFeatures || [])
+            .filter((f: any) => f.available)
+            .map((f: any) => f.text);
+          
           return {
             id: tierKey, // Use tier key ('free', 'pro', 'team') instead of database ID
             name: plan.name,
             price: tierConfig.price || parseFloat(plan.price) || 0, // Use SUBSCRIPTION_TIERS price first
             interval: plan.billing_interval || plan.interval || 'month',
             trialDays: plan.trial_period_days || plan.trial_days || (tierKey === 'pro' ? 7 : tierKey === 'team' ? 14 : 0),
-            features: tierConfig.features, // Use features from SUBSCRIPTION_TIERS
+            features: featuresArray, // Array of feature strings for frontend
+            limits: limits, // Limits object for frontend
             displayFeatures: tierConfig.displayFeatures, // Frontend-ready feature list
             popular: tierKey === 'pro', // Mark Pro as popular
             description: plan.description || getPlanDescription(tierKey),
@@ -355,13 +373,32 @@ exports.getPlans = async (req, res) => {
     console.log('⚠️  No plans in database, using hardcoded SUBSCRIPTION_TIERS');
     const plans = Object.keys(SUBSCRIPTION_TIERS).map(tierKey => {
       const tier = SUBSCRIPTION_TIERS[tierKey];
+      
+      // Build limits object for frontend compatibility
+      const limits = {
+        daily_queries: tier.features?.dailyQueries ?? -1,
+        monthly_queries: tier.features?.monthlyQueries ?? 50,
+        explanation_type: tierKey === 'free' ? 'Basic' : 'Full',
+        solutions_provided: tier.features?.fixSuggestions ?? false,
+        team_features: tier.features?.teamFeatures ?? false,
+        video_chat: tier.features?.videoMeetings ?? false,
+        video_session_duration: tierKey === 'team' ? 60 : undefined,
+        max_team_members: tierKey === 'team' ? 10 : undefined
+      };
+      
+      // Build features array from displayFeatures for frontend
+      const featuresArray = (tier.displayFeatures || [])
+        .filter((f: any) => f.available)
+        .map((f: any) => f.text);
+      
       return {
         id: tierKey,
         name: tier.name,
         price: tier.price,
         interval: tier.interval,
         trialDays: tier.trialDays || 0,
-        features: tier.features,
+        features: featuresArray, // Array of feature strings
+        limits: limits, // Limits object for frontend
         displayFeatures: tier.displayFeatures, // Frontend-ready feature list
         popular: tierKey === 'pro', // Mark Pro as popular
         description: getPlanDescription(tierKey),
